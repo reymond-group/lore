@@ -1,0 +1,41 @@
+var fs = require('fs');
+var uglifyjs = require('uglify-js');
+var concat = require('concat-files');
+
+// Shaders/Default.js etc. must be at the end!
+var files = [
+  '../src/Lore.js',
+  '../src/Core/DrawModes.js',
+  '../src/Core/Color.js',
+  '../src/Core/Renderer.js',
+  '../src/Core/Shader.js',
+  '../src/Core/Uniform.js',
+  '../src/Core/Node.js',
+  '../src/Core/Geometry.js',
+  '../src/Core/Attribute.js',
+  '../src/Controls/ControlsBase.js',
+  '../src/Controls/ArcballControls.js',
+  '../src/Cameras/CameraBase.js',
+  '../src/Cameras/OrthographicCamera.js',
+  '../src/Math/Array2.js',
+  '../src/Math/Array3.js',
+  '../src/Math/Vector2f.js',
+  '../src/Math/Vector3f.js',
+  '../src/Math/Matrix3f.js',
+  '../src/Math/Matrix4f.js',
+  '../src/Math/Quaternion.js',
+  '../src/Math/ProjectionMatrix.js',
+  '../src/Cloud/Cloud.js',
+  '../src/Shaders/Default.js'
+];
+
+desc('Combining and minifying the files.');
+task('default', { async: true }, function (params) {
+  concat(files, 'lore.js');
+  var result = uglifyjs.minify(files);
+  fs.writeFile('lore.min.js', result.code, function(err) {
+    if(err) throw new Error(err);
+  });
+  complete();
+  console.log('Done.');
+});
