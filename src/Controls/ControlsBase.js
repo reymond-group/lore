@@ -33,7 +33,9 @@ Lore.ControlsBase = function(renderer) {
 
     var that = this;
     this.canvas.addEventListener('mousemove', function(e) {
-        if (that.mouse.previousPosition.x !== null && that.mouse.state.left) {
+        if (that.mouse.previousPosition.x !== null && that.mouse.state.left
+                                                      || that.mouse.state.middle
+                                                      || that.mouse.state.right) {
             that.mouse.delta.x = e.pageX - that.mouse.previousPosition.x;
             that.mouse.delta.y = e.pageY - that.mouse.previousPosition.y;
 
@@ -41,7 +43,6 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
             that.mousemove(that.mouse.delta);
-
             // Give priority to left, then middle, then right
             if (that.mouse.state.left) {
                 that.mousedrag(that.mouse.delta, 'left');

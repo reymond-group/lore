@@ -7,6 +7,14 @@ Lore.Renderer = function(targetId, options) {
     this.shaders = []
     this.geometries = [];
     this.render = function(camera, geometries) {};
+    
+    // Disable context menu on right click
+    this.canvas.addEventListener('contextmenu', function(e) {
+        if (e.button = 2) {
+            e.preventDefault();
+            return false;
+        }
+    });
 
     this.init();
 }
