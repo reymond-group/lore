@@ -14,7 +14,7 @@ var files = [
   '../src/Core/Geometry.js',
   '../src/Core/Attribute.js',
   '../src/Controls/ControlsBase.js',
-  '../src/Controls/ArcballControls.js',
+  '../src/Controls/OrbitalControls.js',
   '../src/Cameras/CameraBase.js',
   '../src/Cameras/OrthographicCamera.js',
   '../src/Math/Array2.js',
