@@ -1,5 +1,6 @@
 Lore.OrbitalControls = function(renderer, radius) {
     Lore.ControlsBase.call(this, renderer);
+    this.up = Lore.Vector3f.up();
     this.radius = radius;
     this.camera = renderer.camera;
     this.x = 0;
@@ -25,8 +26,11 @@ Lore.OrbitalControls = function(renderer, radius) {
             that.camera.position.components[1] = lookAt[1] + that.radius * Math.sin(that.y);
             that.camera.position.components[2] = lookAt[2] + that.radius * Math.cos(-that.x) * Math.cos(that.y);
             
-            var m = Lore.Matrix4f.lookAt(that.camera.position, that.camera.getLookAt(), that.camera.getUpVector());
-            that.camera.rotation.setFromMatrix(m);
+            that.camera.rotation.lookAt(that.camera.position, that.camera.getLookAt(), that.up);
+        }
+        else if(source == 'right') {
+            // Translate
+
         }
 	    
         that.camera.updateProjectionMatrix();

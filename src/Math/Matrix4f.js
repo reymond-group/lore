@@ -13,14 +13,14 @@ Lore.Matrix4f = function(entries) {
 Lore.Matrix4f.prototype = {
     constructor: Lore.Matrix4f,
 
-    set: function(m00, m01, m02, m03,
-        m10, m11, m12, m13,
-        m20, m21, m22, m23,
-        m30, m31, m32, m33) {
+    set: function(m00, m10, m20, m30,
+                  m01, m11, m21, m31,
+                  m02, m12, m22, m32,
+                  m03, m13, m23, m33) {
         this.entries.set([m00, m10, m20, m30,
-            m01, m11, m21, m31,
-            m02, m12, m22, m32,
-            m03, m13, m23, m33
+                          m01, m11, m21, m31,
+                          m02, m12, m22, m32,
+                          m03, m13, m23, m33
         ]);
     },
 
@@ -539,21 +539,20 @@ Lore.Matrix4f.fromQuaternion = function(q) {
     ]));
 }
 
-Lore.Matrix4f.lookAt = function(cameraPosition, target, cameraUp) {
+Lore.Matrix4f.lookAt = function(cameraPosition, target, up) {
     // See here in order to return a quaternion directly:
     // http://www.euclideanspace.com/maths/algebra/vectors/lookat/
-
     var z = Lore.Vector3f.subtract(cameraPosition, target).normalize();
 
     if (z.lengthSq() === 0.0) {
         z.components[2] = 1.0
     }
 
-    var x = Lore.Vector3f.cross(cameraUp, z).normalize();
+    var x = Lore.Vector3f.cross(up, z).normalize();
 
     if (x.lengthSq() === 0.0) {
         z.components[2] += 0.0001;
-        x = Lore.Vector3f.cross(cameraUp, z).normalize();
+        x = Lore.Vector3f.cross(up, z).normalize();
     }
 
     var y = Lore.Vector3f.cross(z, x);

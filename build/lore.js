@@ -752,6 +752,7 @@ Lore.ControlsBase.prototype = {
 }
 Lore.OrbitalControls = function(renderer, radius) {
     Lore.ControlsBase.call(this, renderer);
+    this.up = Lore.Vector3f.up();
     this.radius = radius;
     this.camera = renderer.camera;
     this.x = 0;
@@ -777,8 +778,11 @@ Lore.OrbitalControls = function(renderer, radius) {
             that.camera.position.components[1] = lookAt[1] + that.radius * Math.sin(that.y);
             that.camera.position.components[2] = lookAt[2] + that.radius * Math.cos(-that.x) * Math.cos(that.y);
             
-            var m = Lore.Matrix4f.lookAt(that.camera.position, that.camera.getLookAt(), that.camera.getUpVector());
-            that.camera.rotation.setFromMatrix(m);
+            that.camera.rotation.lookAt(that.camera.position, that.camera.getLookAt(), that.up);
+        }
+        else if(source == 'right') {
+            // Translate
+
         }
 	    
         that.camera.updateProjectionMatrix();
@@ -1276,6 +1280,18 @@ Lore.Vector3f.dot = function(u, v) {
         u.components[1] * v.components[1] +
         u.components[2] * v.components[2];
 }
+
+Lore.Vector3f.forward = function() {
+    return new Lore.Vector3f(0, 0, 1);
+}
+
+Lore.Vector3f.up = function() {
+    return new Lore.Vector3f(0, 1, 0);
+}
+
+Lore.Vector3f.right = function() {
+    return new Lore.Vector3f(1, 0, 0);
+}
 Lore.Matrix3f = function(entries) {
     this.entries = entries || new Float32Array([
         1, 0, 0,
@@ -1314,14 +1330,14 @@ Lore.Matrix4f = function(entries) {
 Lore.Matrix4f.prototype = {
     constructor: Lore.Matrix4f,
 
-    set: function(m00, m01, m02, m03,
-        m10, m11, m12, m13,
-        m20, m21, m22, m23,
-        m30, m31, m32, m33) {
+    set: function(m00, m10, m20, m30,
+                  m01, m11, m21, m31,
+                  m02, m12, m22, m32,
+                  m03, m13, m23, m33) {
         this.entries.set([m00, m10, m20, m30,
-            m01, m11, m21, m31,
-            m02, m12, m22, m32,
-            m03, m13, m23, m33
+                          m01, m11, m21, m31,
+                          m02, m12, m22, m32,
+                          m03, m13, m23, m33
         ]);
     },
 
@@ -1840,21 +1856,20 @@ Lore.Matrix4f.fromQuaternion = function(q) {
     ]));
 }
 
-Lore.Matrix4f.lookAt = function(cameraPosition, target, cameraUp) {
+Lore.Matrix4f.lookAt = function(cameraPosition, target, up) {
     // See here in order to return a quaternion directly:
     // http://www.euclideanspace.com/maths/algebra/vectors/lookat/
-
     var z = Lore.Vector3f.subtract(cameraPosition, target).normalize();
 
     if (z.lengthSq() === 0.0) {
         z.components[2] = 1.0
     }
 
-    var x = Lore.Vector3f.cross(cameraUp, z).normalize();
+    var x = Lore.Vector3f.cross(up, z).normalize();
 
     if (x.lengthSq() === 0.0) {
         z.components[2] += 0.0001;
-        x = Lore.Vector3f.cross(cameraUp, z).normalize();
+        x = Lore.Vector3f.cross(up, z).normalize();
     }
 
     var y = Lore.Vector3f.cross(z, x);
@@ -1947,25 +1962,9 @@ Lore.Quaternion.prototype = {
         this.components[3] = Math.cos(halfAngle);
     },
 
-    setLookAt: function(source, dest) {
-        var forward = Lore.Vector3f.subtract(source, dest).normalize();
-        var fw = new Lore.Vector3f(0, 0, 1);
-        var dot = Lore.Vector3f.dot(fw, forward);
-        console.log(dot);        
-        if(Math.abs(dot + 1.0) < 0.000001) {
-            this.set(0, 1, 0, 3.1415926535897932);
-            return;
-        }
-        
-        if(Math.abs(dot - 1.0) < 0.000001) {
-            this.set(0, 0, 0, 1);
-            return;
-        }
-        
-        var angle = Math.acos(dot);
-
-        var axis = Lore.Vector3f.cross(fw, forward).normalize();
-        this.setFromAxisAngle(axis, angle);
+    lookAt: function(source, dest, up) {
+        this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
+        return this;
     },
 
     lengthSq: function() {

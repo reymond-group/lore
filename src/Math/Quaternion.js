@@ -70,25 +70,9 @@ Lore.Quaternion.prototype = {
         this.components[3] = Math.cos(halfAngle);
     },
 
-    setLookAt: function(source, dest) {
-        var forward = Lore.Vector3f.subtract(source, dest).normalize();
-        var fw = new Lore.Vector3f(0, 0, 1);
-        var dot = Lore.Vector3f.dot(fw, forward);
-        console.log(dot);        
-        if(Math.abs(dot + 1.0) < 0.000001) {
-            this.set(0, 1, 0, 3.1415926535897932);
-            return;
-        }
-        
-        if(Math.abs(dot - 1.0) < 0.000001) {
-            this.set(0, 0, 0, 1);
-            return;
-        }
-        
-        var angle = Math.acos(dot);
-
-        var axis = Lore.Vector3f.cross(fw, forward).normalize();
-        this.setFromAxisAngle(axis, angle);
+    lookAt: function(source, dest, up) {
+        this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
+        return this;
     },
 
     lengthSq: function() {

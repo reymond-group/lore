@@ -198,3 +198,15 @@ Lore.Vector3f.dot = function(u, v) {
         u.components[1] * v.components[1] +
         u.components[2] * v.components[2];
 }
+
+Lore.Vector3f.forward = function() {
+    return new Lore.Vector3f(0, 0, 1);
+}
+
+Lore.Vector3f.up = function() {
+    return new Lore.Vector3f(0, 1, 0);
+}
+
+Lore.Vector3f.right = function() {
+    return new Lore.Vector3f(1, 0, 0);
+}
