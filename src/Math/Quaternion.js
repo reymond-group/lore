@@ -70,6 +70,26 @@ Lore.Quaternion.prototype = {
         this.components[3] = Math.cos(halfAngle);
     },
 
+    setFromUnitVectors: function(from, to) {
+        var v = null;
+        var r = from.dot(to) + 1;
+
+        if(r < 0.000001) {
+            v = new Lore.Vector3f();
+            r = 0;
+            if(Math.abs(from.components[0]) > Math.abs(from.components[2]))
+                v.set(-from.components[1], from.components[0], 0);
+            else
+                v.set(0, -from.components[2], from.components[1]);
+        }
+        else {
+            v = Lore.Vector3f.cross(from, to);
+        }
+
+        this.set(v.components[0], v.components[1], v.components[2], r);
+        this.normalize();
+    },
+
     lookAt: function(source, dest, up) {
         this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
         return this;
@@ -219,6 +239,7 @@ Lore.Quaternion.prototype = {
     },
 
     toRotationMatrix: function() {
+        // THIS IS CRAP -> NOT ROW MAJOR!!!
         var x = this.components[0];
         var y = this.components[1];
         var z = this.components[2];
@@ -278,32 +299,27 @@ Lore.Quaternion.prototype = {
             m22 = m.entries[10];
 
         var t = m00 + m11 + m22;
-        var s = null;
-
+        
         if (t > 0) {
-            s = 0.5 / Math.sqrt(t + 1.0);
-
+            var s = 0.5 / Math.sqrt(t + 1.0);
             this.components[0] = (m21 - m12) * s;
             this.components[1] = (m02 - m20) * s;
             this.components[2] = (m10 - m01) * s;
             this.components[3] = 0.25 / s;
         } else if (m00 > m11 && m00 > m22) {
-            s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
-
+            var s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
             this.components[0] = 0.25 * s;
             this.components[1] = (m01 + m10) / s;
             this.components[2] = (m02 + m20) / s;
             this.components[3] = (m21 - m12) / s;
         } else if (m11 > m22) {
-            s = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
-
+            var s = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
             this.components[0] = (m01 + m10) / s;
             this.components[1] = 0.25 * s;
             this.components[2] = (m12 + m21) / s;
             this.components[3] = (m02 - m20) / s;
         } else {
-            s = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
-
+            var s = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
             this.components[0] = (m02 + m20) / s;
             this.components[1] = (m12 + m21) / s;
             this.components[2] = 0.25 * s;

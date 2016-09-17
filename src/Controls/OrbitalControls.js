@@ -3,9 +3,13 @@ Lore.OrbitalControls = function(renderer, radius) {
     this.up = Lore.Vector3f.up();
     this.radius = radius;
     this.camera = renderer.camera;
-    this.x = 0;
-    this.y = 0;
-    
+    this.canvas = renderer.canvas;
+
+    this.dPhi = 0.0;
+    this.dTheta = 0.0;
+    this.spherical = new Lore.SphericalCoords();
+    this.lookAt = new Lore.Vector3f();
+
     this.camera.position = new Lore.Vector3f(0, 0, radius);
     this.camera.updateProjectionMatrix();
     this.camera.updateViewMatrix();
@@ -14,17 +18,14 @@ Lore.OrbitalControls = function(renderer, radius) {
     this.mousedrag = function(e, source) {
         console.log(source);	
         if(source == 'left') {
-	       // Rotate
-            that.x += e.x * 0.01;
-            that.y += e.y * 0.01;
-            
-            if(that.y < -1.570796) that.y = -1.570796;
-            if(that.y >  1.570796) that.y =  1.570796;
+	        // Rotate
+            that.dTheta = -2 * Math.PI * e.x / that.canvas.clientWidth * 1.0;
+            that.dPhi   = -2 * Math.PI * e.y / that.canvas.clientHeight * 1.0;
         }
         else if(source == 'right') {
             // Translate
-            var forward = that.camera.getForwardVector().normalize();
-            var up = that.camera.getUpVector().normalize();
+            var forward = that.camera.getForwardVector();
+            var up = that.camera.getUpVector();
 
             var fx = forward.components[0], fz = forward.components[2];
             var ux = up.components[0], uz = up.components[2];
@@ -34,17 +35,37 @@ Lore.OrbitalControls = function(renderer, radius) {
             that.camera.lookAt.components[0] += e.y * ux + e.x * -uz;
             that.camera.lookAt.components[2] += e.y * uz + e.x * ux;
         }
-
         // Update the camera
-        var lookAt = that.camera.lookAt.components;
-        that.camera.position.components[0] = lookAt[0] + that.radius * Math.sin(-that.x) * Math.cos(that.y);
-        that.camera.position.components[1] = lookAt[1] + that.radius * Math.sin(that.y);
-        that.camera.position.components[2] = lookAt[2] + that.radius * Math.cos(-that.x) * Math.cos(that.y);
-       
-        that.camera.rotation.lookAt(that.camera.position, that.camera.getLookAt(), that.up);
+        
+        var offset = that.camera.position.clone().subtract(that.lookAt);
+        var q = new Lore.Quaternion();
+        q.setFromUnitVectors(that.camera.getUpVector(), that.up);
+        var qInverse = q.clone().inverse();
+        
+        offset.applyQuaternion(q);
+        that.spherical.setFromVector(offset);
+        
+        that.spherical.components[1] += that.dPhi;
+        that.spherical.components[2] += that.dTheta;
+        
+        that.spherical.limit(); 
+        that.spherical.secure();
+        
+        // Limit radius here
+
+        // that.camera.lookAt.add(panOffset);
+        offset.setFromSphericalCoords(that.spherical);
+        offset.applyQuaternion(qInverse);
+
+        that.camera.position.copyFrom(that.lookAt).add(offset);
+        
+        that.camera.setLookAt(that.lookAt);
 
         that.camera.updateProjectionMatrix();
         that.camera.updateViewMatrix();
+
+        that.dPhi = 0.0;
+        that.dTheta = 0.0;
     };
 }
 

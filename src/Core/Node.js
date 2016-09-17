@@ -25,36 +25,18 @@ Lore.Node.prototype = {
     },
 
     getUpVector: function() {
-        var x = this.rotation.components[0];
-        var y = this.rotation.components[1];
-        var z = this.rotation.components[2];
-        var w = this.rotation.components[3];
-
-        return new Lore.Vector3f(2 * (x * y - w * z),
-                                 1 - 2 * (x * x + z * z),
-                                 2 * (y * z + w * x)).normalize();
+        var v = new Lore.Vector3f(0, 1, 0);
+        return v.applyQuaternion(this.rotation);
     },
 
     getForwardVector: function() {
-        var x = this.rotation.components[0];
-        var y = this.rotation.components[1];
-        var z = this.rotation.components[2];
-        var w = this.rotation.components[3];
-
-        return new Lore.Vector3f(2 * (x * z + w * y),
-                                 2 * (y * x - w * x),
-                                 1- 2 * (x * x + y * y)).normalize();
+        var v = new Lore.Vector3f(0, 0, 1);
+        return v.applyQuaternion(this.rotation);
     },
 
     getRightVector: function() {
-        var x = this.rotation.components[0];
-        var y = this.rotation.components[1];
-        var z = this.rotation.components[2];
-        var w = this.rotation.components[3];
-
-        return new Lore.Vector3f(1 - 2 * (y * y + z * z),
-                                 2 * (x * y + w * z),
-                                 2 * (x * z - w * y)).normalize();
+        var v = new Lore.Vector3f(1, 0, 0);
+        return v.applyQuaternion(this.rotation);
     },
 
     translateOnAxis: function(axis, distance) {

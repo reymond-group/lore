@@ -46,6 +46,27 @@ Lore.Vector3f.prototype = {
         return this;
     },
 
+    setFromSphericalCoords: function(s) {
+        var radius = s.components[0];
+        var phi = s.components[1];
+        var theta = s.components[2];
+
+        var t = Math.sin(phi) * radius;
+
+        this.components[0] = Math.sin(theta) * t;
+        this.components[1] = Math.cos(phi) * radius;
+        this.components[2] = Math.cos(theta) * t;
+
+        return this;
+    },
+
+    copyFrom: function(v) {
+        this.components[0] = v.components[0];
+        this.components[1] = v.components[1];
+        this.components[2] = v.components[2];
+        return this;
+    },
+
     setLength: function(length) {
         return this.multiplyScalar(length / this.length());
     },
@@ -106,6 +127,20 @@ Lore.Vector3f.prototype = {
         return this;
     },
 
+    dot: function(v) {
+        return this.components[0] * v.components[0] +
+               this.components[1] * v.components[1] +
+               this.components[2] * v.components[2];
+    },
+
+    cross: function(v) {    
+        return new Lore.Vector3f(
+            this.components[1] * v.components[2] - this.components[2] * v.components[1],
+            this.components[2] * v.components[0] - this.components[0] * v.components[2],
+            this.components[0] * v.components[1] - this.components[1] * v.components[0]
+        );
+    },
+
     applyQuaternion: function(q) {
         var x = this.components[0];
         var y = this.components[1];
@@ -116,9 +151,9 @@ Lore.Vector3f.prototype = {
         var qz = q.components[2];
         var qw = q.components[3];
 
-        var ix = qw * x + qy * z - qz * y;
-        var iy = qw * y + qz * x - qx * z;
-        var iz = qw * z + qx * y - qy * x;
+        var ix =  qw * x + qy * z - qz * y;
+        var iy =  qw * y + qz * x - qx * z;
+        var iz =  qw * z + qx * y - qy * x;
         var iw = -qx * x - qy * y - qz * z;
 
         this.components[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;

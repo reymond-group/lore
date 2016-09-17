@@ -5,7 +5,6 @@ Lore.CameraBase = function() {
     this.isProjectionMatrixStale = false;
     this.isViewMatrixStale = false;
     
-    this.lookAt = new Lore.Vector3f();
     this.projectionMatrix = new Lore.ProjectionMatrix();
     this.viewMatrix = new Lore.Matrix4f();
 }
@@ -19,7 +18,7 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
     },
 
     setLookAt: function(v) {
-        this.lookAt = v;
+        this.rotation.lookAt(this.position, v, Lore.Vector3f.up());
     },
 
     updateProjectionMatrix: function() {
@@ -31,10 +30,6 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         viewMatrix.invert();
         this.viewMatrix = viewMatrix;
         this.isViewMatrixStale = true;
-    },
-
-    getLookAt: function() {
-        return this.lookAt;
     },
 
     getProjectionMatrix: function() {
