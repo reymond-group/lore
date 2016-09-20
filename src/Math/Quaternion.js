@@ -239,46 +239,34 @@ Lore.Quaternion.prototype = {
     },
 
     toRotationMatrix: function() {
-        // THIS IS CRAP -> NOT ROW MAJOR!!!
-        var x = this.components[0];
-        var y = this.components[1];
-        var z = this.components[2];
-        var w = this.components[3];
+        var i = this.components[0];
+        var j = this.components[1];
+        var k = this.components[2];
+        var r = this.components[3];
 
-        var xx = x * x;
-        var xy = x * y;
-        var xz = x * z;
-        var xw = x * w;
+        var ii = i * i;
+        var ij = i * j;
+        var ik = i * k;
+        var ir = i * r;
 
-        var yw = y * w;
-        var yy = y * y;
-        var yz = y * z;
+        var jr = j * r;
+        var jj = j * j;
+        var jk = j * k;
 
-        var zz = z * z;
-        var zw = z * w;
+        var kk = k * k;
+        var kr = k * r;
 
         var mat = new Lore.Matrix4f();
-
-        // Row-major
-        //  0,  1,  2,  3,
-        //  4,  5,  6,  7,
-        //  8,  9, 10, 11,
-        // 12, 13, 14, 15
-
-        mat.entries[0] = 1 - 2 * (yy + zz);
-        mat.entries[1] = 2 * (xy - zw);
-        mat.entries[2] = 2 * (xz + yw);
-
-        mat.entries[4] = 2 * (xy + zw);
-        mat.entries[5] = 1 - 2 * (xx + zz);
-        mat.entries[6] = 2 * (yz - xw);
-
-        mat.entries[8] = 2 * (xz - yw);
-        mat.entries[9] = 2 * (yz + xw);
-        mat.entries[10] = 1 - 2 * (xx + yy);
-
-        mat.entries[3] = mat.entries[7] = mat.entries[11] = mat.entries[12] = mat.entries[13] = mat.entries[14] = 0;
-        mat.entries[15] = 1;
+        
+        mat.entries[0]  = 1 - 2 * (jj + kk);
+        mat.entries[1]  = 2 * (ij + kr);
+        mat.entries[2]  = 2 * (ik - jr);
+        mat.entries[4]  = 2 * (jk - kr);
+        mat.entries[5]  = 1 - 2 * (ii + kk);
+        mat.entries[6]  = 2 * (jk + ir);
+        mat.entries[8]  = 2 * (ik + jr);
+        mat.entries[9]  = 2 * (jk - ir);
+        mat.entries[10] = 1 - 2 * (ii + jj);
 
         return mat;
     },

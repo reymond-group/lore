@@ -24,7 +24,7 @@ Lore.SphericalCoords.prototype = {
     setFromVector: function(v) {
         this.components[0] = v.length();
         
-        if(this.components[0] === 0) {
+        if(this.components[0] === 0.0) {
             this.components[1] = 0.0;
             this.components[2] = 0.0;
         }
@@ -38,8 +38,6 @@ Lore.SphericalCoords.prototype = {
 
     limit: function() {
         // Limits for orbital controls
-        console.log('Phi: ' + this.components[1]);
-        console.log('Theta: ' + this.components[2]);
         this.components[1] = Math.max(0.0, Math.min(Math.PI, this.components[1]));
         this.components[2] = Math.max(-Infinity, Math.min(Infinity, this.components[2]));
     },
