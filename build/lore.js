@@ -70,14 +70,23 @@ Lore.Color.fromHex = function(hex) {
 }
 Lore.Renderer = function(targetId, options) {
     this.canvas = document.getElementById(targetId);
+    this.antialiasing = options.antialiasing === false ? false : true;
+    this.verbose = options.verbose === true ? true : false;
+    this.fpsElement = options.fps;
+    this.fps = 0;
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
+    
     this.camera = options.camera || new Lore.OrthographicCamera(500 / -2, 500 / 2, 500 / 2, 500 / -2);
     this.shaders = []
     this.geometries = [];
     this.render = function(camera, geometries) {};
-    
+    this.sceneTexture;
+    this.effect;
+
+    this.lastTiming = performance.now();
+
     // Disable context menu on right click
     this.canvas.addEventListener('contextmenu', function(e) {
         if (e.button = 2) {
@@ -95,19 +104,62 @@ Lore.Renderer.prototype = {
     gl: null,
     init: function() {
         var _this = this;
+        
+        var settings = { antialias: this.antialiasing, premultipliedAlpha: false, alpha: false };
 
-        this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+        this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
+        
         if (!this.gl) {
             console.error('Could not initialize the WebGL context.');
             return;
         }
+       
+        var g = this.gl;
 
-        this.gl.clearColor(this.clearColor.r, this.clearColor.g, this.clearColor.b, this.clearColor.a);
-        this.gl.clearDepth(this.clearDepth);
+        // Initialize scene texture to apply post processing effects to
+        this.sceneTexture = g.createTexture();
+        g.bindTexture(g.TEXTURE_2D, this.sceneTexture);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+        
+        // Initialize effect(s)
+        var effectShader = this.createProgram(Lore.Shaders.fxaa);
+        this.effect = new Lore.Effect(g, this.canvas.width, this.canvas.height, this.shaders[effectShader]);
+
+        if(this.verbose) {
+            var hasAA = g.getContextAttributes().antialias;
+            var size = g.getParameter(g.SAMPLES);
+            console.info('Antialiasing: ' + hasAA + ' (' + size + 'x)');
+
+            var highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
+            var hasHighp = highp.precision != 0;
+            console.info('High precision support: ' + hasHighp);
+        }
+
+        // Blending
+        g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
+       
+        // Extensions
+        var oes = 'OES_standard_derivatives';
+        var extOes = g.getExtension(oes);
+        if(extOes === null) {
+            console.warn('Could not load extension: ' + oes + '.');
+        }
+
+        var wdb = 'WEBGL_draw_buffers';
+        var extWdb = g.getExtension(wdb);
+        if(extWdb === null) {
+            console.warn('Could not load extension: ' + wdb + '.');
+        }
+
+        g.clearColor(this.clearColor.r, this.clearColor.g, this.clearColor.b, this.clearColor.a);
+        g.clearDepth(this.clearDepth);
 
         if (this.enableDepthTest) {
-            this.gl.enable(this.gl.DEPTH_TEST);
-            this.gl.depthFunc(this.gl.LEQUAL);
+            g.enable(g.DEPTH_TEST);
+            g.depthFunc(g.LEQUAL);
         }
 
         this.updateViewport(0, 0, this.canvas.width, this.canvas.height);
@@ -116,7 +168,6 @@ Lore.Renderer.prototype = {
         });
 
         this.ready = true;
-        this.camera.translateZ(100);
         this.animate();
     },
 
@@ -126,11 +177,25 @@ Lore.Renderer.prototype = {
 
     animate: function() {
         var that = this;
+
         requestAnimationFrame(function() {
             that.animate();
         });
+
+        if(this.fpsElement) {
+            var now = performance.now();
+            var delta = now - this.lastTiming;
+            this.lastTiming = now;
+            this.fps = Math.round(1000.0 / delta);
+            this.fpsElement.innerHTML = this.fps;
+        }
+
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.render(this.camera, this.geometries);
+    
+        // Post-processing
+        this.effect.setTextureFromCanvas(this.sceneTexture, this.canvas);
+        this.effect.bind();
     },
 
     createProgram: function(shader) {
@@ -193,7 +258,8 @@ Lore.Shader.prototype = {
         // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
         // and:
         // http://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
-        var fragmentShaderCode = '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' +
+        var fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' +
+            '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' +
             this.getFragmentShaderCode();
 
         gl.shaderSource(shader, fragmentShaderCode);
@@ -329,36 +395,18 @@ Lore.Node.prototype = {
     },
 
     getUpVector: function() {
-        var x = this.rotation.components[0];
-        var y = this.rotation.components[1];
-        var z = this.rotation.components[2];
-        var w = this.rotation.components[3];
-
-        return new Lore.Vector3f(2 * (x * y - w * z),
-                                 1 - 2 * (x * x + z * z),
-                                 2 * (y * z + w * x)).normalize();
+        var v = new Lore.Vector3f(0, 1, 0);
+        return v.applyQuaternion(this.rotation);
     },
 
     getForwardVector: function() {
-        var x = this.rotation.components[0];
-        var y = this.rotation.components[1];
-        var z = this.rotation.components[2];
-        var w = this.rotation.components[3];
-
-        return new Lore.Vector3f(2 * (x * z + w * y),
-                                 2 * (y * x - w * x),
-                                 1- 2 * (x * x + y * y)).normalize();
+        var v = new Lore.Vector3f(0, 0, 1);
+        return v.applyQuaternion(this.rotation);
     },
 
     getRightVector: function() {
-        var x = this.rotation.components[0];
-        var y = this.rotation.components[1];
-        var z = this.rotation.components[2];
-        var w = this.rotation.components[3];
-
-        return new Lore.Vector3f(1 - 2 * (y * y + z * z),
-                                 2 * (x * y + w * z),
-                                 2 * (x * z - w * y)).normalize();
+        var v = new Lore.Vector3f(1, 0, 0);
+        return v.applyQuaternion(this.rotation);
     },
 
     translateOnAxis: function(axis, distance) {
@@ -367,7 +415,7 @@ Lore.Node.prototype = {
                                   axis.components[2]);
         v.applyQuaternion(this.rotation);
         v.multiplyScalar(distance);
-        this.position.add(v)
+        this.position.add(v);
         return this;
     },
 
@@ -520,12 +568,10 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
             renderer.camera.isProjectionMatrixStale = false;
         }
 
-        if (this.isStale || renderer.camera.isViewMatrixStale) {
+        if (renderer.camera.isViewMatrixStale) {
             var modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
             this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
-
-            this.isStale = false;
-            this.isViewMatrixStale = false;
+            renderer.camera.isViewMatrixStale = false;
         }
 
         this.shader.updateUniforms();
@@ -636,6 +682,53 @@ Lore.Attribute.prototype = {
         }
     }
 }
+Lore.Effect = function(gl, width, height, shader) {
+    this.gl = gl;
+    this.fb = gl.createFramebuffer();
+    this.tex = gl.createTexture();
+    this.width = width;
+    this.height = height;
+    this.shader = shader;
+}
+
+
+Lore.Effect.prototype = {
+    constructor: Lore.Effect,
+    
+    getWidth: function() { return this.width; },
+    setWidth: function(width) { this.width = width; },
+
+    getHeight: function() { return this.height; },
+    setHeight: function(height) { this.height = height; },
+
+    setTextureFromCanvas: function(tex, canvas) {
+        var g = this.gl;
+        g.bindTexture(g.TEXTURE_2D, tex);
+        g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, canvas);
+    },
+
+    bind: function() {
+        var g = this.gl;
+        g.bindFramebuffer(g.FRAMEBUFFER, this.fb);
+        g.bindTexture(g.TEXTURE_2D, this.tex);
+    
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+
+        g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, this.width, this.height, 0, g.RGBA, g.UNSIGNED_BYTE, null);
+        g.framebufferTexture2D(g.FRAMEBUFFER, g.COLOR_ATTACHMENT0, g.TEXTURE_2D, this.tex, 0);
+        
+        // Bind shader
+        g.useProgram(this.shader.program);
+        
+        g.drawArrays(g.TRIANGLES, 0, 6);
+    }
+}
+
+
+
 Lore.ControlsBase = function(renderer) {
     this.canvas = renderer.canvas;
     this.mouse = {
@@ -668,6 +761,7 @@ Lore.ControlsBase = function(renderer) {
     this.mouseup = function(e, source) {};
     this.mousedown = function(e, source) {};
     this.mousedrag = function(e, source) {};
+    this.mousewheel = function(e) {};
 
     var that = this;
     this.canvas.addEventListener('mousemove', function(e) {
@@ -693,6 +787,13 @@ Lore.ControlsBase = function(renderer) {
 
         that.mouse.previousPosition.x = e.pageX;
         that.mouse.previousPosition.y = e.pageY;
+    });
+
+    var wheelevent = 'mousewheel';
+    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
+    
+    this.canvas.addEventListener(wheelevent, function(e) {
+        that.mousewheel(e.wheelDelta);
     });
 
     this.canvas.addEventListener('keydown', function(e) {
@@ -764,53 +865,105 @@ Lore.OrbitalControls = function(renderer, radius) {
     this.up = Lore.Vector3f.up();
     this.radius = radius;
     this.camera = renderer.camera;
-    this.x = 0;
-    this.y = 0;
+    this.canvas = renderer.canvas;
+
+    this.dPhi = 0.0;
+    this.dTheta = 0.0;
+    this.dPan = new Lore.Vector3f();
+
+    this.spherical = new Lore.SphericalCoords();
+    this.lookAt = new Lore.Vector3f();
+
+    this.scale = 0.95;
+    this.zoomed = false;
     
     this.camera.position = new Lore.Vector3f(0, 0, radius);
     this.camera.updateProjectionMatrix();
     this.camera.updateViewMatrix();
     
     var that = this;
+    
     this.mousedrag = function(e, source) {
-        console.log(source);	
-        if(source == 'left') {
-	       // Rotate
-            that.x += e.x * 0.01;
-            that.y += e.y * 0.01;
-            
-            if(that.y < -1.570796) that.y = -1.570796;
-            if(that.y >  1.570796) that.y =  1.570796;
-        }
-        else if(source == 'right') {
-            // Translate
-            var forward = that.camera.getForwardVector().normalize();
-            var up = that.camera.getUpVector().normalize();
-
-            var fx = forward.components[0], fz = forward.components[2];
-            var ux = up.components[0], uz = up.components[2];
-
-            that.camera.lookAt.components[0] += e.y * fx + e.x * -fz;
-            that.camera.lookAt.components[2] += e.y * fz + e.x * fx;
-            that.camera.lookAt.components[0] += e.y * ux + e.x * -uz;
-            that.camera.lookAt.components[2] += e.y * uz + e.x * ux;
-        }
-
-        // Update the camera
-        var lookAt = that.camera.lookAt.components;
-        that.camera.position.components[0] = lookAt[0] + that.radius * Math.sin(-that.x) * Math.cos(that.y);
-        that.camera.position.components[1] = lookAt[1] + that.radius * Math.sin(that.y);
-        that.camera.position.components[2] = lookAt[2] + that.radius * Math.cos(-that.x) * Math.cos(that.y);
-       
-        that.camera.rotation.lookAt(that.camera.position, that.camera.getLookAt(), that.up);
-
-        that.camera.updateProjectionMatrix();
-        that.camera.updateViewMatrix();
+        that.update(e, source);
+    };
+    
+    this.mousewheel = function(e) {
+        that.update({ x: 0, y: -e }, 'wheel');
     };
 }
 
 Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.prototype), {
     constructor: Lore.OrbitalControls,
+    update: function(e, source) { 
+        if(source == 'left') {
+	        // Rotate
+            this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth / this.camera.zoom;
+            this.dPhi   = -2 * Math.PI * e.y / this.canvas.clientHeight / this.camera.zoom;
+        }
+        else if(source == 'right') {
+            // Translate
+            var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
+            var y = e.y * (this.camera.top - this.camera.bottom) / this.camera.zoom / this.canvas.clientHeight;
+            
+            var u = this.camera.getUpVector().components;
+            var r = this.camera.getRightVector().components;
+
+            this.dPan.components[0] = r[0] * -x + u[0] * y;
+            this.dPan.components[1] = r[1] * -x + u[1] * y;
+            this.dPan.components[2] = r[2] * -x + u[2] * y;
+        }
+        else if(source == 'middle' || source == 'wheel') {
+            if(e.y > 0) {
+                // Zoom Out
+                this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
+                this.camera.updateProjectionMatrix();
+                this.zoomed = true;
+            }
+            else if(e.y < 0) {
+                // Zoom In
+                this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
+                this.camera.updateProjectionMatrix();
+                this.zoomed = true;
+            }
+        }
+        
+        // Update the camera
+        var offset = this.camera.position.clone().subtract(this.lookAt);
+        
+        //var q = new Lore.Quaternion();
+        //q.setFromUnitVectors(this.up, this.up);
+        //var qInverse = q.clone().inverse();
+        //offset.applyQuaternion(q);
+        
+        this.spherical.setFromVector(offset);
+        this.spherical.components[1] += this.dPhi;
+        this.spherical.components[2] += this.dTheta;
+        this.spherical.limit(); 
+        this.spherical.secure();
+        
+        
+        // Limit radius here
+
+        this.lookAt.add(this.dPan);
+        offset.setFromSphericalCoords(this.spherical);
+        
+        //offset.applyQuaternion(qInverse);
+
+        this.camera.position.copyFrom(this.lookAt).add(offset);
+        
+        this.camera.setLookAt(this.lookAt);
+
+        this.camera.updateViewMatrix();
+        
+        this.dPhi = 0.0;
+        this.dTheta = 0.0;
+        this.dPan.set(0, 0, 0);
+
+        // Handle zoom, this is copied from THREE.js OrbitCamera
+        if(this.zoomed) {
+            this.zoomed = false;
+        }
+    }
 });
 Lore.CameraBase = function() {
     Lore.Node.call(this);
@@ -819,7 +972,6 @@ Lore.CameraBase = function() {
     this.isProjectionMatrixStale = false;
     this.isViewMatrixStale = false;
     
-    this.lookAt = new Lore.Vector3f();
     this.projectionMatrix = new Lore.ProjectionMatrix();
     this.viewMatrix = new Lore.Matrix4f();
 }
@@ -833,7 +985,7 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
     },
 
     setLookAt: function(v) {
-        this.lookAt = v;
+        this.rotation.lookAt(this.position, v, Lore.Vector3f.up());
     },
 
     updateProjectionMatrix: function() {
@@ -845,10 +997,6 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         viewMatrix.invert();
         this.viewMatrix = viewMatrix;
         this.isViewMatrixStale = true;
-    },
-
-    getLookAt: function() {
-        return this.lookAt;
     },
 
     getProjectionMatrix: function() {
@@ -1147,6 +1295,27 @@ Lore.Vector3f.prototype = {
         return this;
     },
 
+    setFromSphericalCoords: function(s) {
+        var radius = s.components[0];
+        var phi = s.components[1];
+        var theta = s.components[2];
+
+        var t = Math.sin(phi) * radius;
+
+        this.components[0] = Math.sin(theta) * t;
+        this.components[1] = Math.cos(phi) * radius;
+        this.components[2] = Math.cos(theta) * t;
+
+        return this;
+    },
+
+    copyFrom: function(v) {
+        this.components[0] = v.components[0];
+        this.components[1] = v.components[1];
+        this.components[2] = v.components[2];
+        return this;
+    },
+
     setLength: function(length) {
         return this.multiplyScalar(length / this.length());
     },
@@ -1207,6 +1376,20 @@ Lore.Vector3f.prototype = {
         return this;
     },
 
+    dot: function(v) {
+        return this.components[0] * v.components[0] +
+               this.components[1] * v.components[1] +
+               this.components[2] * v.components[2];
+    },
+
+    cross: function(v) {    
+        return new Lore.Vector3f(
+            this.components[1] * v.components[2] - this.components[2] * v.components[1],
+            this.components[2] * v.components[0] - this.components[0] * v.components[2],
+            this.components[0] * v.components[1] - this.components[1] * v.components[0]
+        );
+    },
+
     applyQuaternion: function(q) {
         var x = this.components[0];
         var y = this.components[1];
@@ -1217,9 +1400,9 @@ Lore.Vector3f.prototype = {
         var qz = q.components[2];
         var qw = q.components[3];
 
-        var ix = qw * x + qy * z - qz * y;
-        var iy = qw * y + qz * x - qx * z;
-        var iz = qw * z + qx * y - qy * x;
+        var ix =  qw * x + qy * z - qz * y;
+        var iy =  qw * y + qz * x - qx * z;
+        var iz =  qw * z + qx * y - qy * x;
         var iw = -qx * x - qy * y - qz * z;
 
         this.components[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
@@ -1484,16 +1667,18 @@ Lore.Matrix4f.prototype = {
         var z = v.components[2];
 
         this.entries[0] *= x;
-        this.entries[4] *= y;
-        this.entries[8] *= z;
         this.entries[1] *= x;
-        this.entries[5] *= y;
-        this.entries[9] *= z;
         this.entries[2] *= x;
-        this.entries[6] *= y;
-        this.entries[10] *= z;
         this.entries[3] *= x;
+
+        this.entries[4] *= y;
+        this.entries[5] *= y;
+        this.entries[6] *= y;
         this.entries[7] *= y;
+        
+        this.entries[8] *= z;
+        this.entries[9] *= z;
+        this.entries[10] *= z;
         this.entries[11] *= z;
 
         return this;
@@ -1535,6 +1720,14 @@ Lore.Matrix4f.prototype = {
         this.entries[8] = xz + wy;
         this.entries[9] = yz - wx;
         this.entries[10] = 1 - (xx + yy);
+
+        this.entries[3] = 0.0;
+        this.entries[7] = 0.0;
+        this.entries[11] = 0.0;
+        this.entries[12] = 0.0;
+        this.entries[13] = 0.0;
+        this.entries[14] = 0.0;
+        this.entries[15] = 1.0;
 
         return this;
     },
@@ -1783,6 +1976,13 @@ Lore.Matrix4f.prototype = {
         }
 
         return true;
+    },
+
+    toString: function() {
+        console.log(this.entries[0] + ', ' + this.entries[4] + ', ' + this.entries[8]  + ', ' + this.entries[12]); 
+        console.log(this.entries[1] + ', ' + this.entries[5] + ', ' + this.entries[9]  + ', ' + this.entries[13]);
+        console.log(this.entries[2] + ', ' + this.entries[6] + ', ' + this.entries[10] + ', ' + this.entries[14]);
+        console.log(this.entries[3] + ', ' + this.entries[7] + ', ' + this.entries[11] + ', ' + this.entries[15]);
     }
 }
 
@@ -1981,6 +2181,26 @@ Lore.Quaternion.prototype = {
         this.components[3] = Math.cos(halfAngle);
     },
 
+    setFromUnitVectors: function(from, to) {
+        var v = null;
+        var r = from.dot(to) + 1;
+
+        if(r < 0.000001) {
+            v = new Lore.Vector3f();
+            r = 0;
+            if(Math.abs(from.components[0]) > Math.abs(from.components[2]))
+                v.set(-from.components[1], from.components[0], 0);
+            else
+                v.set(0, -from.components[2], from.components[1]);
+        }
+        else {
+            v = Lore.Vector3f.cross(from, to);
+        }
+
+        this.set(v.components[0], v.components[1], v.components[2], r);
+        this.normalize();
+    },
+
     lookAt: function(source, dest, up) {
         this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
         return this;
@@ -2130,45 +2350,34 @@ Lore.Quaternion.prototype = {
     },
 
     toRotationMatrix: function() {
-        var x = this.components[0];
-        var y = this.components[1];
-        var z = this.components[2];
-        var w = this.components[3];
+        var i = this.components[0];
+        var j = this.components[1];
+        var k = this.components[2];
+        var r = this.components[3];
 
-        var xx = x * x;
-        var xy = x * y;
-        var xz = x * z;
-        var xw = x * w;
+        var ii = i * i;
+        var ij = i * j;
+        var ik = i * k;
+        var ir = i * r;
 
-        var yw = y * w;
-        var yy = y * y;
-        var yz = y * z;
+        var jr = j * r;
+        var jj = j * j;
+        var jk = j * k;
 
-        var zz = z * z;
-        var zw = z * w;
+        var kk = k * k;
+        var kr = k * r;
 
         var mat = new Lore.Matrix4f();
-
-        // Row-major
-        //  0,  1,  2,  3,
-        //  4,  5,  6,  7,
-        //  8,  9, 10, 11,
-        // 12, 13, 14, 15
-
-        mat.entries[0] = 1 - 2 * (yy + zz);
-        mat.entries[1] = 2 * (xy - zw);
-        mat.entries[2] = 2 * (xz + yw);
-
-        mat.entries[4] = 2 * (xy + zw);
-        mat.entries[5] = 1 - 2 * (xx + zz);
-        mat.entries[6] = 2 * (yz - xw);
-
-        mat.entries[8] = 2 * (xz - yw);
-        mat.entries[9] = 2 * (yz + xw);
-        mat.entries[10] = 1 - 2 * (xx + yy);
-
-        mat.entries[3] = mat.entries[7] = mat.entries[11] = mat.entries[12] = mat.entries[13] = mat.entries[14] = 0;
-        mat.entries[15] = 1;
+        
+        mat.entries[0]  = 1 - 2 * (jj + kk);
+        mat.entries[1]  = 2 * (ij + kr);
+        mat.entries[2]  = 2 * (ik - jr);
+        mat.entries[4]  = 2 * (jk - kr);
+        mat.entries[5]  = 1 - 2 * (ii + kk);
+        mat.entries[6]  = 2 * (jk + ir);
+        mat.entries[8]  = 2 * (ik + jr);
+        mat.entries[9]  = 2 * (jk - ir);
+        mat.entries[10] = 1 - 2 * (ii + jj);
 
         return mat;
     },
@@ -2189,32 +2398,27 @@ Lore.Quaternion.prototype = {
             m22 = m.entries[10];
 
         var t = m00 + m11 + m22;
-        var s = null;
-
+        
         if (t > 0) {
-            s = 0.5 / Math.sqrt(t + 1.0);
-
+            var s = 0.5 / Math.sqrt(t + 1.0);
             this.components[0] = (m21 - m12) * s;
             this.components[1] = (m02 - m20) * s;
             this.components[2] = (m10 - m01) * s;
             this.components[3] = 0.25 / s;
         } else if (m00 > m11 && m00 > m22) {
-            s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
-
+            var s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
             this.components[0] = 0.25 * s;
             this.components[1] = (m01 + m10) / s;
             this.components[2] = (m02 + m20) / s;
             this.components[3] = (m21 - m12) / s;
         } else if (m11 > m22) {
-            s = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
-
+            var s = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
             this.components[0] = (m01 + m10) / s;
             this.components[1] = 0.25 * s;
             this.components[2] = (m12 + m21) / s;
             this.components[3] = (m02 - m20) / s;
         } else {
-            s = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
-
+            var s = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
             this.components[0] = (m02 + m20) / s;
             this.components[1] = (m12 + m21) / s;
             this.components[2] = 0.25 * s;
@@ -2351,6 +2555,58 @@ Lore.Quaternion.slerp = function(q, p, t) {
         q.components[2] * ratioA + tmp.components[2] * ratioB,
         q.components[3] * ratioA + tmp.components[3] * ratioB);
 }
+Lore.SphericalCoords = function(radius, phi, theta) {
+    this.components = new Float32Array(3);
+    this.radius = (radius !== undefined) ? radius : 1.0;
+    this.phi = phi ? phi : 0.0;
+    this.theta = theta ? theta : 0.0;
+}
+
+Lore.SphericalCoords.prototype = {
+    constructor: Lore.SphericalCoords,
+
+    set: function(radius, phi, theta) {
+        this.components[0] = radius;
+        this.components[1] = phi;
+        this.components[2] = theta;
+        
+        return this;
+    },
+
+    secure: function() {
+        this.components[1] = Math.max(0.000001, Math.min(Math.PI - 0.000001, this.components[1]));
+        return this;
+    },
+
+    setFromVector: function(v) {
+        this.components[0] = v.length();
+        
+        if(this.components[0] === 0.0) {
+            this.components[1] = 0.0;
+            this.components[2] = 0.0;
+        }
+        else {
+            this.components[1] = Math.acos(Math.max(-1.0, Math.min(1.0, v.components[1] / this.components[0])));
+            this.components[2] = Math.atan2(v.components[0], v.components[2]);
+        }
+
+        return this;
+    },
+
+    limit: function() {
+        // Limits for orbital controls
+        this.components[1] = Math.max(0.0, Math.min(Math.PI, this.components[1]));
+        this.components[2] = Math.max(-Infinity, Math.min(Infinity, this.components[2]));
+    },
+
+    clone: function() {
+        return new Lore.SphericalCoords(this.radius, this.phi, this.theta);
+    },
+
+    toString: function() {
+        return '(' + this.components[0] + ', ' + this.components[1] + ', ' + this.components[2] + ')';
+    }
+}
 Lore.ProjectionMatrix = function() {
     Lore.Matrix4f.call(this);
 
@@ -2403,13 +2659,51 @@ Lore.Shaders['default'] = new Lore.Shader('Default', {}, [
     'attribute vec3 color;',
     'varying vec3 vColor;',
     'void main() {',
-    'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-    'gl_PointSize = 5.0;',
-    'vColor = color;',
+        'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+        'gl_PointSize = 5.0;',
+        'vColor = color;',
     '}'
 ], [
     'varying vec3 vColor;',
     'void main() {',
-    'gl_FragColor = vec4(vColor, 1.0);',
+        'gl_FragColor = vec4(vColor, 1.0);',
+    '}'
+]);
+Lore.Shaders['circle'] = new Lore.Shader('Circle', {}, [
+    'attribute vec3 position;',
+    'attribute vec3 color;',
+    'varying vec3 vColor;',
+    'void main() {',
+        'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+        'gl_PointSize = 6.0;',
+        'vColor = color;',
+    '}'
+], [
+    'varying vec3 vColor;',
+    'void main() {',
+        'float r = 0.0, delta = 0.0, alpha = 1.0;',
+        'vec2 cxy = 2.0 * gl_PointCoord - 1.0;',
+        'r = dot(cxy, cxy);',
+        '//#ifdef GL_OES_standard_derivatives',
+            '//delta = fwidth(r);',
+            '//alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);',
+        '//#else',
+            'if(r > 1.0) discard;',
+        '//#endif',
+        'gl_FragColor = vec4(vColor, alpha);',
+    '}'
+]);
+Lore.Shaders['fxaa'] = new Lore.Shader('FXAA', {}, [
+    'attribute vec2 position;',
+    'varying vec2 uv;',
+    'void main() {',
+        'gl_Position = vec4(position, 0.0, 1.0);',
+        'uv = 0.5 * (position + 1.0);',
+    '}'
+], [
+    'varying vec2 uv;',
+    'uniform sampler2D t;',
+    'void main() {',
+        'gl_FragColor = texture2D(t, uv).rgba;',
     '}'
 ]);

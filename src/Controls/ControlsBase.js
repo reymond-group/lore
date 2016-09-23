@@ -30,6 +30,7 @@ Lore.ControlsBase = function(renderer) {
     this.mouseup = function(e, source) {};
     this.mousedown = function(e, source) {};
     this.mousedrag = function(e, source) {};
+    this.mousewheel = function(e) {};
 
     var that = this;
     this.canvas.addEventListener('mousemove', function(e) {
@@ -55,6 +56,13 @@ Lore.ControlsBase = function(renderer) {
 
         that.mouse.previousPosition.x = e.pageX;
         that.mouse.previousPosition.y = e.pageY;
+    });
+
+    var wheelevent = 'mousewheel';
+    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
+    
+    this.canvas.addEventListener(wheelevent, function(e) {
+        that.mousewheel(e.wheelDelta);
     });
 
     this.canvas.addEventListener('keydown', function(e) {

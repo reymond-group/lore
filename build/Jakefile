@@ -13,6 +13,7 @@ var files = [
   '../src/Core/Node.js',
   '../src/Core/Geometry.js',
   '../src/Core/Attribute.js',
+  '../src/Core/Effect.js',
   '../src/Controls/ControlsBase.js',
   '../src/Controls/OrbitalControls.js',
   '../src/Cameras/CameraBase.js',
@@ -24,9 +25,12 @@ var files = [
   '../src/Math/Matrix3f.js',
   '../src/Math/Matrix4f.js',
   '../src/Math/Quaternion.js',
+  '../src/Math/SphericalCoords.js',
   '../src/Math/ProjectionMatrix.js',
   '../src/Cloud/Cloud.js',
-  '../src/Shaders/Default.js'
+  '../src/Shaders/Default.js',
+  '../src/Shaders/Circle.js',
+  '../src/Shaders/FXAA.js'
 ];
 
 desc('Combining and minifying the files.');

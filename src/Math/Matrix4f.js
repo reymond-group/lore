@@ -148,16 +148,18 @@ Lore.Matrix4f.prototype = {
         var z = v.components[2];
 
         this.entries[0] *= x;
-        this.entries[4] *= y;
-        this.entries[8] *= z;
         this.entries[1] *= x;
-        this.entries[5] *= y;
-        this.entries[9] *= z;
         this.entries[2] *= x;
-        this.entries[6] *= y;
-        this.entries[10] *= z;
         this.entries[3] *= x;
+
+        this.entries[4] *= y;
+        this.entries[5] *= y;
+        this.entries[6] *= y;
         this.entries[7] *= y;
+        
+        this.entries[8] *= z;
+        this.entries[9] *= z;
+        this.entries[10] *= z;
         this.entries[11] *= z;
 
         return this;
@@ -199,6 +201,14 @@ Lore.Matrix4f.prototype = {
         this.entries[8] = xz + wy;
         this.entries[9] = yz - wx;
         this.entries[10] = 1 - (xx + yy);
+
+        this.entries[3] = 0.0;
+        this.entries[7] = 0.0;
+        this.entries[11] = 0.0;
+        this.entries[12] = 0.0;
+        this.entries[13] = 0.0;
+        this.entries[14] = 0.0;
+        this.entries[15] = 1.0;
 
         return this;
     },

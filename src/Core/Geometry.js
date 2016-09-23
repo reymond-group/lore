@@ -76,12 +76,10 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
             renderer.camera.isProjectionMatrixStale = false;
         }
 
-        if (this.isStale || renderer.camera.isViewMatrixStale) {
+        if (renderer.camera.isViewMatrixStale) {
             var modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
             this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
-
-            this.isStale = false;
-            this.isViewMatrixStale = false;
+            renderer.camera.isViewMatrixStale = false;
         }
 
         this.shader.updateUniforms();

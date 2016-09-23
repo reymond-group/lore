@@ -46,7 +46,8 @@ Lore.Shader.prototype = {
         // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
         // and:
         // http://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
-        var fragmentShaderCode = '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' +
+        var fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' +
+            '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' +
             this.getFragmentShaderCode();
 
         gl.shaderSource(shader, fragmentShaderCode);

@@ -12,63 +12,94 @@ Lore.OrbitalControls = function(renderer, radius) {
     this.spherical = new Lore.SphericalCoords();
     this.lookAt = new Lore.Vector3f();
 
+    this.scale = 0.95;
+    this.zoomed = false;
+    
     this.camera.position = new Lore.Vector3f(0, 0, radius);
     this.camera.updateProjectionMatrix();
     this.camera.updateViewMatrix();
     
     var that = this;
+    
     this.mousedrag = function(e, source) {
-        if(source == 'left') {
-	        // Rotate
-            that.dTheta = -2 * Math.PI * e.x / that.canvas.clientWidth * 1.0;
-            that.dPhi   = -2 * Math.PI * e.y / that.canvas.clientHeight * 1.0;
-        }
-        else if(source == 'right') {
-            // Translate
-            var x = e.x * (that.camera.right - that.camera.left) / 1.0 / that.canvas.clientWidth;
-            var y = e.y * (that.camera.top - that.camera.bottom) / 1.0 / that.canvas.clientHeight;
-            
-            var m = that.camera.viewMatrix.entries;
-            that.dPan.components[0] = m[0] * -x + m[4] * y;
-            that.dPan.components[1] = m[1] * -x + m[5] * y;
-            that.dPan.components[2] = m[2] * -x + m[6] * y;
-        }
-        
-        // Update the camera
-        var offset = that.camera.position.clone().subtract(that.lookAt);
-        
-        //var q = new Lore.Quaternion();
-        //q.setFromUnitVectors(that.up, that.up);
-        //var qInverse = q.clone().inverse();
-        //offset.applyQuaternion(q);
-        
-        that.spherical.setFromVector(offset);
-        that.spherical.components[1] += that.dPhi;
-        that.spherical.components[2] += that.dTheta;
-        that.spherical.limit(); 
-        that.spherical.secure();
-        
-        
-        // Limit radius here
-
-        that.lookAt.add(that.dPan);
-        offset.setFromSphericalCoords(that.spherical);
-        
-        //offset.applyQuaternion(qInverse);
-
-        that.camera.position.copyFrom(that.lookAt).add(offset);
-        
-        that.camera.setLookAt(that.lookAt);
-
-        that.camera.updateProjectionMatrix();
-        that.camera.updateViewMatrix();
-        
-        that.dPhi = 0.0;
-        that.dTheta = 0.0;
-        that.dPan.set(0, 0, 0);
+        that.update(e, source);
+    };
+    
+    this.mousewheel = function(e) {
+        that.update({ x: 0, y: -e }, 'wheel');
     };
 }
 
 Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.prototype), {
     constructor: Lore.OrbitalControls,
+    update: function(e, source) { 
+        if(source == 'left') {
+	        // Rotate
+            this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth / this.camera.zoom;
+            this.dPhi   = -2 * Math.PI * e.y / this.canvas.clientHeight / this.camera.zoom;
+        }
+        else if(source == 'right') {
+            // Translate
+            var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
+            var y = e.y * (this.camera.top - this.camera.bottom) / this.camera.zoom / this.canvas.clientHeight;
+            
+            var u = this.camera.getUpVector().components;
+            var r = this.camera.getRightVector().components;
+
+            this.dPan.components[0] = r[0] * -x + u[0] * y;
+            this.dPan.components[1] = r[1] * -x + u[1] * y;
+            this.dPan.components[2] = r[2] * -x + u[2] * y;
+        }
+        else if(source == 'middle' || source == 'wheel') {
+            if(e.y > 0) {
+                // Zoom Out
+                this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
+                this.camera.updateProjectionMatrix();
+                this.zoomed = true;
+            }
+            else if(e.y < 0) {
+                // Zoom In
+                this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
+                this.camera.updateProjectionMatrix();
+                this.zoomed = true;
+            }
+        }
+        
+        // Update the camera
+        var offset = this.camera.position.clone().subtract(this.lookAt);
+        
+        //var q = new Lore.Quaternion();
+        //q.setFromUnitVectors(this.up, this.up);
+        //var qInverse = q.clone().inverse();
+        //offset.applyQuaternion(q);
+        
+        this.spherical.setFromVector(offset);
+        this.spherical.components[1] += this.dPhi;
+        this.spherical.components[2] += this.dTheta;
+        this.spherical.limit(); 
+        this.spherical.secure();
+        
+        
+        // Limit radius here
+
+        this.lookAt.add(this.dPan);
+        offset.setFromSphericalCoords(this.spherical);
+        
+        //offset.applyQuaternion(qInverse);
+
+        this.camera.position.copyFrom(this.lookAt).add(offset);
+        
+        this.camera.setLookAt(this.lookAt);
+
+        this.camera.updateViewMatrix();
+        
+        this.dPhi = 0.0;
+        this.dTheta = 0.0;
+        this.dPan.set(0, 0, 0);
+
+        // Handle zoom, this is copied from THREE.js OrbitCamera
+        if(this.zoomed) {
+            this.zoomed = false;
+        }
+    }
 });

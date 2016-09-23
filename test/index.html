@@ -9,45 +9,40 @@
 <body>
   <canvas id="loreCanvas" height="750" width="750">
   </canvas>
+  <p id="fps"></p>
 
   <script src="../build/lore.js"></script>
   <script>
     var cc = new Lore.Color.fromHex('#F0F0F0');
 
-    var renderer = new Lore.Renderer('loreCanvas', { clearColor: cc });
+    var renderer = new Lore.Renderer('loreCanvas', { 
+        clearColor: cc, 
+        verbose: true,
+        fps: document.getElementById('fps')
+    });
+
     var controls = new Lore.OrbitalControls(renderer, 500, new Lore.Vector3f());
-
-    var program = renderer.createProgram(Lore.Shaders.default);
+    
+    var program = renderer.createProgram(Lore.Shaders.circle);
     var geometry = renderer.createGeometry('TestGeometry', program);
-    var geometry2 = renderer.createGeometry('TestGeometry2', program);
-
-    var size = 150;
+    
+    var size = 1000;
     var positions = new Float32Array(size * 3);
-    var positions2 = new Float32Array(size * 3);
     var colors = new Float32Array(size * 3)
-    var colors2 = new Float32Array(size * 3)
 
     for(var i = 0; i < size * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 250.0;
+      positions[i] = Math.sin(Math.random() - 0.5) * 300.0;
       colors[i] = Math.random();
-      positions2[i] = (Math.random() - 0.5) * 300.0;
-      colors2[i] = Math.random();
     }
 
     geometry.addAttribute('position', positions);
     geometry.addAttribute('color', colors);
-    geometry.setMode(Lore.DrawModes.triangles);
-
-    geometry2.addAttribute('position', positions2);
-    geometry2.addAttribute('color', colors2);
-    geometry2.setMode(Lore.DrawModes.points);
-    geometry2.isVisible = true;
+    geometry.setMode(Lore.DrawModes.points);
+    geometry.isVisible = true;
 
     renderer.render = function(camera, geometries) {
       for(var i = 0; i < this.geometries.length; i++) {
         var geometry = this.geometries[i];
-        //geometry.rotateY(0.01);
-        //geometry.update();
         geometry.draw(this);
       }
     }

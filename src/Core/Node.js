@@ -45,7 +45,7 @@ Lore.Node.prototype = {
                                   axis.components[2]);
         v.applyQuaternion(this.rotation);
         v.multiplyScalar(distance);
-        this.position.add(v)
+        this.position.add(v);
         return this;
     },
 
