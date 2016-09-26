@@ -7,13 +7,11 @@ Lore.Renderer = function(targetId, options) {
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
-    
+
     this.camera = options.camera || new Lore.OrthographicCamera(500 / -2, 500 / 2, 500 / 2, 500 / -2);
     this.shaders = []
     this.geometries = [];
     this.render = function(camera, geometries) {};
-    this.sceneTexture;
-    this.effect;
 
     this.lastTiming = performance.now();
 
@@ -34,29 +32,17 @@ Lore.Renderer.prototype = {
     gl: null,
     init: function() {
         var _this = this;
-        
+
         var settings = { antialias: this.antialiasing, premultipliedAlpha: false, alpha: false };
 
         this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
-        
+
         if (!this.gl) {
             console.error('Could not initialize the WebGL context.');
             return;
         }
-       
-        var g = this.gl;
 
-        // Initialize scene texture to apply post processing effects to
-        this.sceneTexture = g.createTexture();
-        g.bindTexture(g.TEXTURE_2D, this.sceneTexture);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
-        
-        // Initialize effect(s)
-        var effectShader = this.createProgram(Lore.Shaders.fxaa);
-        this.effect = new Lore.Effect(g, this.canvas.width, this.canvas.height, this.shaders[effectShader]);
+        var g = this.gl;
 
         if(this.verbose) {
             var hasAA = g.getContextAttributes().antialias;
@@ -70,7 +56,7 @@ Lore.Renderer.prototype = {
 
         // Blending
         g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
-       
+
         // Extensions
         var oes = 'OES_standard_derivatives';
         var extOes = g.getExtension(oes);
@@ -84,7 +70,8 @@ Lore.Renderer.prototype = {
             console.warn('Could not load extension: ' + wdb + '.');
         }
 
-        g.clearColor(this.clearColor.r, this.clearColor.g, this.clearColor.b, this.clearColor.a);
+        var cc = this.clearColor.components;
+        g.clearColor(cc[0], cc[1], cc[2], cc[3]);
         g.clearDepth(this.clearDepth);
 
         if (this.enableDepthTest) {
@@ -122,10 +109,6 @@ Lore.Renderer.prototype = {
 
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.render(this.camera, this.geometries);
-    
-        // Post-processing
-        this.effect.setTextureFromCanvas(this.sceneTexture, this.canvas);
-        this.effect.bind();
     },
 
     createProgram: function(shader) {

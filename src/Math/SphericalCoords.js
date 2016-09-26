@@ -12,7 +12,7 @@ Lore.SphericalCoords.prototype = {
         this.components[0] = radius;
         this.components[1] = phi;
         this.components[2] = theta;
-        
+
         return this;
     },
 
@@ -23,7 +23,7 @@ Lore.SphericalCoords.prototype = {
 
     setFromVector: function(v) {
         this.components[0] = v.length();
-        
+
         if(this.components[0] === 0.0) {
             this.components[1] = 0.0;
             this.components[2] = 0.0;
@@ -35,11 +35,11 @@ Lore.SphericalCoords.prototype = {
 
         return this;
     },
-
-    limit: function() {
+    
+    limit: function(phiMin, phiMax, thetaMin, thetaMax) {
         // Limits for orbital controls
-        this.components[1] = Math.max(0.0, Math.min(Math.PI, this.components[1]));
-        this.components[2] = Math.max(-Infinity, Math.min(Infinity, this.components[2]));
+        this.components[1] = Math.max(phiMin, Math.min(phiMax, this.components[1]));
+        this.components[2] = Math.max(thetaMin, Math.min(thetaMax, this.components[2]));
     },
 
     clone: function() {

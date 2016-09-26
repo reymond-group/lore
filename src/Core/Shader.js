@@ -89,6 +89,10 @@ Lore.Shader.prototype = {
             if (unif.stale)
                 Lore.Uniform.Set(this.gl, this.program, unif);
         }
+    },
+
+    use: function() {
+      this.gl.useProgram(this.program);
     }
 }
 

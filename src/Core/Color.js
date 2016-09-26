@@ -1,18 +1,23 @@
 Lore.Color = function(r, g, b, a) {
-    this.r = r || 0.0;
-    this.g = g || 0.0;
-    this.b = b || 0.0;
-    this.a = a || 1.0;
+    if (arguments.length === 1) {
+        this.components = new Float32Array(r);
+    } else {
+        this.components = new Float32Array(4);
+        this.components[0] = r || 0.0;
+        this.components[1] = g || 0.0;
+        this.components[2] = b || 0.0;
+        this.components[3] = a || 1.0;
+    }
 }
 
 Lore.Color.prototype = {
     constructor: Lore.Color,
     set: function(r, g, b, a) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
+        this.components[0] = r;
+        this.components[1] = g;
+        this.components[2] = b;
 
-        if (arguments.length == 4) this.a = a;
+        if (arguments.length == 4) this.components[3] = a;
     }
 }
 

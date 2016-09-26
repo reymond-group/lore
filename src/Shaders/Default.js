@@ -4,7 +4,8 @@ Lore.Shaders['default'] = new Lore.Shader('Default', {}, [
     'varying vec3 vColor;',
     'void main() {',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-        'gl_PointSize = 5.0;',
+        'vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
+        'gl_PointSize = 5.0 * (1000.0 / length(mvPosition.xyz));',
         'vColor = color;',
     '}'
 ], [

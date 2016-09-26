@@ -68,7 +68,7 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         for (var prop in this.attributes)
             if (this.attributes[prop].stale) this.attributes[prop].update(this.gl);
 
-        this.gl.useProgram(this.shader.program);
+        this.shader.use();
 
         // Update the modelView and projection matrices
         if (renderer.camera.isProjectionMatrixStale) {
