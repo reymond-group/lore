@@ -13,6 +13,7 @@ var files = [
   '../src/Core/Node.js',
   '../src/Core/Geometry.js',
   '../src/Core/Attribute.js',
+  '../src/Core/Effect.js',
   '../src/Controls/ControlsBase.js',
   '../src/Controls/OrbitalControls.js',
   '../src/Cameras/CameraBase.js',
@@ -30,9 +31,18 @@ var files = [
   '../src/Helpers/HelperBase.js',
   '../src/Helpers/PointHelper.js',
   '../src/Helpers/CoordinatesHelper.js',
+  '../src/Helpers/OctreeHelper.js',
+  '../src/IO/FileReaderBase.js',
+  '../src/IO/CsvFileReader.js',
   '../src/Utils/Utils.js',
   '../src/Shaders/Default.js',
-  '../src/Shaders/Circle.js'
+  '../src/Shaders/Circle.js',
+  '../src/Shaders/DefaultEffect.js',
+  '../src/Shaders/FXAAEffect.js',
+  '../src/Spice/Octree.js',
+  '../src/Spice/AABB.js',
+  '../src/Spice/Raycaster.js',
+  '../src/UI/UI.js'
 ];
 
 desc('Combining and minifying the files.');

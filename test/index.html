@@ -10,57 +10,27 @@
   <canvas id="loreCanvas" height="750" width="750">
   </canvas>
   <p id="fps"></p>
+  <input id="csv" type="file"></input>
 
   <script src="../build/lore.js"></script>
   <script>
-    var cc = new Lore.Color.fromHex('#F0F0F0');
+    var lore = Lore.init('loreCanvas');
 
-    var renderer = new Lore.Renderer('loreCanvas', {
-        clearColor: cc,
-        verbose: true,
-        fps: document.getElementById('fps')
+    var csvReader = new Lore.CsvFileReader('csv', {
+        header: true,
+        cols: [0, 1, 2, 3],
+        types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Float32Array'],
+        separator: ' '
     });
 
-    var controls = new Lore.OrbitalControls(renderer, 1200, new Lore.Vector3f());
-    var pointHelper = new Lore.PointHelper(renderer, 'TestGeometry', 'default');
+    csvReader.addEventListener('loaded', function(e) {
+        var pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'default');
+        pointHelper.geometry.isVisible = true;
+        var minmax = Lore.Statistics.normalize(e[3]);
+        pointHelper.setPositionsXYZHues(e[0], e[1], e[2], e[3]);
 
-    var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
-        position: new Lore.Vector3f(-500, -500, -500),
-        axis: {
-            x: { length: 1000, color: Lore.Color.fromHex('#666666') },
-            y: { length: 1000, color: Lore.Color.fromHex('#666666') },
-            z: { length: 1000, color: Lore.Color.fromHex('#666666') }
-        },
-        ticks: {
-          x: { length: 20, color: Lore.Color.fromHex('#666666') },
-          y: { length: 20, color: Lore.Color.fromHex('#666666') },
-          z: { length: 20, color: Lore.Color.fromHex('#666666') }
-        },
-        box: {
-          x: { color: Lore.Color.fromHex('#cccccc') },
-          y: { color: Lore.Color.fromHex('#cccccc') },
-          z: { color: Lore.Color.fromHex('#cccccc') }
-        }
+        var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper.octree);
     });
-
-    var size = 10000;
-    var positions = new Float32Array(size * 3);
-    var colors = new Float32Array(size * 3)
-
-    for(var i = 0; i < size * 3; i++) {
-      positions[i] = Lore.Statistics.randomNormalScaled(0, 2000);
-
-      colors[i] = Math.random();
-    }
-
-    pointHelper.setPositions(positions);
-    pointHelper.setColors(colors);
-
-    renderer.render = function(camera, geometries) {
-        pointHelper.draw();
-        coordinatesHelper.draw();
-    }
-
   </script>
 </body>
 </html>

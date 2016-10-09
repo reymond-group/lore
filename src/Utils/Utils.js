@@ -30,3 +30,31 @@ Lore.Utils.extend = function () {
 
     return extended;
 };
+
+Lore.Utils.arrayContains = function(array, value) {
+    for(var i = 0; i < array.length; i++) {
+        if(array[i] === value) return true;
+    }
+
+    return false;
+};
+
+Lore.Utils.concatTypedArrays = function(a, b) {
+    var c = new a.constructor(a.length + b.length);
+    c.set(a);
+    c.set(b, a.length);
+
+    return c;
+};
+
+Lore.Utils.msb = function(n) {
+    return (n & 0x80000000) ? 31 : Lore.Utils.msb((n << 1) | 1) - 1;
+};
+
+Lore.Utils.mergePointDistances = function(a, b) {
+    var newObj = {};
+
+    newObj.indices = Lore.Utils.concatTypedArrays(a.indices, b.indices);
+    newObj.distancesSq = Lore.Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
+    return newObj;
+};

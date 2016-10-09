@@ -46,3 +46,21 @@ Lore.Statistics.randomNormalScaled = function(mean, sd) {
     var r = Lore.Statistics.randomNormalInRange(-1, 1);
     return r * sd + mean;
 }
+
+Lore.Statistics.normalize = function(arr) {
+    var max = Number.MIN_VALUE;
+    var min = Number.MAX_VALUE;
+
+    for(var i = 0; i < arr.length; i++) {
+        var val = arr[i];
+        if(val > max) max = val;
+        if(val < min) min = val;
+    }
+
+    var diff = max - min;
+    for(var i = 0; i < arr.length; i++) {
+        arr[i] = (arr[i] - min) / diff;
+    }
+
+    return [min, max];
+}

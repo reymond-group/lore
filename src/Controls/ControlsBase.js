@@ -1,5 +1,6 @@
 Lore.ControlsBase = function(renderer) {
     this.canvas = renderer.canvas;
+    this.eventListeners = {};
     this.mouse = {
         previousPosition: {
             x: null,
@@ -17,6 +18,10 @@ Lore.ControlsBase = function(renderer) {
             left: false,
             middle: false,
             right: false
+        },
+        normalizedPosition: {
+            x: 0.0,
+            y: 0.0
         }
     };
 
@@ -25,12 +30,6 @@ Lore.ControlsBase = function(renderer) {
         ctrl: false,
         shift: false
     }
-
-    this.mousemove = function(e) {};
-    this.mouseup = function(e, source) {};
-    this.mousedown = function(e, source) {};
-    this.mousedrag = function(e, source) {};
-    this.mousewheel = function(e) {};
 
     var that = this;
     this.canvas.addEventListener('mousemove', function(e) {
@@ -43,14 +42,14 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.x += 0.01 * that.mouse.delta.x;
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
-            that.mousemove(that.mouse.delta);
+            that.raiseEvent('mousemove', { e: that.mouse.delta });
             // Give priority to left, then middle, then right
             if (that.mouse.state.left) {
-                that.mousedrag(that.mouse.delta, 'left');
+                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'left' });
             } else if (that.mouse.state.middle) {
-                that.mousedrag(that.mouse.delta, 'middle');
+                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'middle' });
             } else if (that.mouse.state.right) {
-                that.mousedrag(that.mouse.delta, 'right');
+                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'right' });
             }
         }
 
@@ -60,9 +59,9 @@ Lore.ControlsBase = function(renderer) {
 
     var wheelevent = 'mousewheel';
     if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
-    
+
     this.canvas.addEventListener(wheelevent, function(e) {
-        that.mousewheel(e.wheelDelta);
+        that.raiseEvent('mousewheel', { e: e.wheelDelta });
     });
 
     this.canvas.addEventListener('keydown', function(e) {
@@ -73,6 +72,8 @@ Lore.ControlsBase = function(renderer) {
         } else if (e.which == 18) {
             that.keyboard.alt = true;
         }
+
+        that.raiseEvent('keydown', { e: e.which })
     });
 
     this.canvas.addEventListener('keyup', function(e) {
@@ -83,6 +84,8 @@ Lore.ControlsBase = function(renderer) {
         } else if (e.which == 18) {
             that.keyboard.alt = false;
         }
+
+        that.raiseEvent('keyup', { e: e.which });
     });
 
     this.canvas.addEventListener('mousedown', function(e) {
@@ -100,7 +103,12 @@ Lore.ControlsBase = function(renderer) {
             source = 'right';
         }
 
-        that.mousedown(that, source);
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((e.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousedown', { e: that, source: source });
     });
 
     this.canvas.addEventListener('mouseup', function(e) {
@@ -122,10 +130,22 @@ Lore.ControlsBase = function(renderer) {
         that.mouse.previousPosition.x = null;
         that.mouse.previousPosition.y = null;
 
-        that.mouseup(that, source);
+        that.raiseEvent('mouseup', { e: that, source: source });
     });
 }
 
 Lore.ControlsBase.prototype = {
     constructor: Lore.ControlsBase,
+
+    addEventListener: function(eventName, callback) {
+        if(!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
+        this.eventListeners[eventName].push(callback);
+    },
+
+    raiseEvent: function(eventName, data) {
+        if(!this.eventListeners[eventName]) return;
+
+        for(var i = 0; i < this.eventListeners[eventName].length; i++)
+            this.eventListeners[eventName][i](data);
+    }
 }

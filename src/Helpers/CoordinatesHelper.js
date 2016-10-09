@@ -138,15 +138,15 @@ Lore.CoordinatesHelper.defaults = {
     axis: {
         x: {
             length: 50.0,
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         y: {
             length: 50.0,
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         z: {
             length: 50.0,
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         }
     },
     ticks: {
@@ -154,31 +154,31 @@ Lore.CoordinatesHelper.defaults = {
             count: 10,
             length: 5.0,
             offset: new Lore.Vector3f(),
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         y: {
             count: 10,
             length: 5.0,
             offset: new Lore.Vector3f(),
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         z: {
             count: 10,
             length: 5.0,
             offset: new Lore.Vector3f(),
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         }
     },
     box: {
         enabled: true,
         x: {
-            color: new Lore.Color.fromHex('#999999')
+            color: Lore.Color.fromHex('#999999')
         },
         y: {
-            color: new Lore.Color.fromHex('#999999')
+            color: Lore.Color.fromHex('#999999')
         },
         z: {
-            color: new Lore.Color.fromHex('#999999')
+            color: Lore.Color.fromHex('#999999')
         }
     },
 }

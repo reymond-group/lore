@@ -1,4 +1,4 @@
-Lore.OrbitalControls = function(renderer, radius) {
+Lore.OrbitalControls = function(renderer, radius, lookAt) {
     Lore.ControlsBase.call(this, renderer);
     this.up = Lore.Vector3f.up();
     this.radius = radius;
@@ -10,7 +10,7 @@ Lore.OrbitalControls = function(renderer, radius) {
     this.dPan = new Lore.Vector3f();
 
     this.spherical = new Lore.SphericalCoords();
-    this.lookAt = new Lore.Vector3f();
+    this.lookAt = lookAt || new Lore.Vector3f();
 
     this.scale = 0.95;
     this.zoomed = false;
@@ -21,13 +21,16 @@ Lore.OrbitalControls = function(renderer, radius) {
 
     var that = this;
 
-    this.mousedrag = function(e, source) {
-        that.update(e, source);
-    };
+    this.addEventListener('mousedrag', function(e) {
+        that.update(e.e, e.source);
+    });
 
-    this.mousewheel = function(e) {
-        that.update({ x: 0, y: -e }, 'wheel');
-    };
+    this.addEventListener('mousewheel', function(e) {
+        that.update({ x: 0, y: -e.e }, 'wheel');
+    });
+
+    // Initial update
+    this.update({ x: 0, y: 0 }, 'left');
 }
 
 Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.prototype), {

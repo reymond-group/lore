@@ -2,7 +2,8 @@ Lore.HelperBase = function(renderer, geometryName, shaderName) {
     Lore.Node.call(this);
 
     this.renderer = renderer;
-    this.program = this.renderer.createProgram(Lore.Shaders[shaderName]);
+    this.shader = Lore.Shaders[shaderName];
+    this.program = this.renderer.createProgram(this.shader);
     this.geometry = this.renderer.createGeometry(geometryName, this.program);
 }
 

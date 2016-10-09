@@ -156,7 +156,7 @@ Lore.Matrix4f.prototype = {
         this.entries[5] *= y;
         this.entries[6] *= y;
         this.entries[7] *= y;
-        
+
         this.entries[8] *= z;
         this.entries[9] *= z;
         this.entries[10] *= z;
@@ -460,7 +460,7 @@ Lore.Matrix4f.prototype = {
     },
 
     toString: function() {
-        console.log(this.entries[0] + ', ' + this.entries[4] + ', ' + this.entries[8]  + ', ' + this.entries[12]); 
+        console.log(this.entries[0] + ', ' + this.entries[4] + ', ' + this.entries[8]  + ', ' + this.entries[12]);
         console.log(this.entries[1] + ', ' + this.entries[5] + ', ' + this.entries[9]  + ', ' + this.entries[13]);
         console.log(this.entries[2] + ', ' + this.entries[6] + ', ' + this.entries[10] + ', ' + this.entries[14]);
         console.log(this.entries[3] + ', ' + this.entries[7] + ', ' + this.entries[11] + ', ' + this.entries[15]);
@@ -589,4 +589,138 @@ Lore.Matrix4f.compose = function(position, quaternion, scale) {
     m.setPosition(position);
 
     return m;
+}
+
+Lore.Matrix4f.invert = function(matrix) {
+    // Fugly implementation lifted from MESA (originally in C++)
+    var im = new Lore.Matrix4f();
+
+    var m = matrix.entries;
+
+    im.entries[0] = m[5] * m[10] * m[15] -
+        m[5] * m[11] * m[14] -
+        m[9] * m[6] * m[15] +
+        m[9] * m[7] * m[14] +
+        m[13] * m[6] * m[11] -
+        m[13] * m[7] * m[10];
+
+    im.entries[4] = -m[4] * m[10] * m[15] +
+        m[4] * m[11] * m[14] +
+        m[8] * m[6] * m[15] -
+        m[8] * m[7] * m[14] -
+        m[12] * m[6] * m[11] +
+        m[12] * m[7] * m[10];
+
+    im.entries[8] = m[4] * m[9] * m[15] -
+        m[4] * m[11] * m[13] -
+        m[8] * m[5] * m[15] +
+        m[8] * m[7] * m[13] +
+        m[12] * m[5] * m[11] -
+        m[12] * m[7] * m[9];
+
+    im.entries[12] = -m[4] * m[9] * m[14] +
+        m[4] * m[10] * m[13] +
+        m[8] * m[5] * m[14] -
+        m[8] * m[6] * m[13] -
+        m[12] * m[5] * m[10] +
+        m[12] * m[6] * m[9];
+
+    im.entries[1] = -m[1] * m[10] * m[15] +
+        m[1] * m[11] * m[14] +
+        m[9] * m[2] * m[15] -
+        m[9] * m[3] * m[14] -
+        m[13] * m[2] * m[11] +
+        m[13] * m[3] * m[10];
+
+    im.entries[5] = m[0] * m[10] * m[15] -
+        m[0] * m[11] * m[14] -
+        m[8] * m[2] * m[15] +
+        m[8] * m[3] * m[14] +
+        m[12] * m[2] * m[11] -
+        m[12] * m[3] * m[10];
+
+    im.entries[9] = -m[0] * m[9] * m[15] +
+        m[0] * m[11] * m[13] +
+        m[8] * m[1] * m[15] -
+        m[8] * m[3] * m[13] -
+        m[12] * m[1] * m[11] +
+        m[12] * m[3] * m[9];
+
+    im.entries[13] = m[0] * m[9] * m[14] -
+        m[0] * m[10] * m[13] -
+        m[8] * m[1] * m[14] +
+        m[8] * m[2] * m[13] +
+        m[12] * m[1] * m[10] -
+        m[12] * m[2] * m[9];
+
+    im.entries[2] = m[1] * m[6] * m[15] -
+        m[1] * m[7] * m[14] -
+        m[5] * m[2] * m[15] +
+        m[5] * m[3] * m[14] +
+        m[13] * m[2] * m[7] -
+        m[13] * m[3] * m[6];
+
+    im.entries[6] = -m[0] * m[6] * m[15] +
+        m[0] * m[7] * m[14] +
+        m[4] * m[2] * m[15] -
+        m[4] * m[3] * m[14] -
+        m[12] * m[2] * m[7] +
+        m[12] * m[3] * m[6];
+
+    im.entries[10] = m[0] * m[5] * m[15] -
+        m[0] * m[7] * m[13] -
+        m[4] * m[1] * m[15] +
+        m[4] * m[3] * m[13] +
+        m[12] * m[1] * m[7] -
+        m[12] * m[3] * m[5];
+
+    im.entries[14] = -m[0] * m[5] * m[14] +
+        m[0] * m[6] * m[13] +
+        m[4] * m[1] * m[14] -
+        m[4] * m[2] * m[13] -
+        m[12] * m[1] * m[6] +
+        m[12] * m[2] * m[5];
+
+    im.entries[3] = -m[1] * m[6] * m[11] +
+        m[1] * m[7] * m[10] +
+        m[5] * m[2] * m[11] -
+        m[5] * m[3] * m[10] -
+        m[9] * m[2] * m[7] +
+        m[9] * m[3] * m[6];
+
+    im.entries[7] = m[0] * m[6] * m[11] -
+        m[0] * m[7] * m[10] -
+        m[4] * m[2] * m[11] +
+        m[4] * m[3] * m[10] +
+        m[8] * m[2] * m[7] -
+        m[8] * m[3] * m[6];
+
+    im.entries[11] = -m[0] * m[5] * m[11] +
+        m[0] * m[7] * m[9] +
+        m[4] * m[1] * m[11] -
+        m[4] * m[3] * m[9] -
+        m[8] * m[1] * m[7] +
+        m[8] * m[3] * m[5];
+
+    im.entries[15] = m[0] * m[5] * m[10] -
+        m[0] * m[6] * m[9] -
+        m[4] * m[1] * m[10] +
+        m[4] * m[2] * m[9] +
+        m[8] * m[1] * m[6] -
+        m[8] * m[2] * m[5];
+
+    var det = m[0] * im.entries[0] +
+        m[1] * im.entries[4] +
+        m[2] * im.entries[8] +
+        m[3] * im.entries[12];
+
+    if (det == 0)
+        throw 'Determinant is zero.';
+
+    det = 1.0 / det;
+
+    for (var i = 0; i < 16; i++)
+        im.entries[i] = im.entries[i] * det;
+
+    return im;
 }

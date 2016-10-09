@@ -25,6 +25,61 @@ Lore.Keyboard = {
 }
 
 Lore.Shaders = {};
+
+Lore.init = function(canvas) {
+    // Init UI
+    var ui = new Lore.UI(canvas);
+
+
+    // Start the 3D stuff
+    var cc = Lore.Color.fromHex('#222222');
+
+    var renderer = new Lore.Renderer(canvas, {
+        clearColor: cc,
+        verbose: true,
+        fps: document.getElementById('fps'),
+        antialiasing: true
+    });
+
+    var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
+        position: new Lore.Vector3f(0, 0, 0),
+        axis: {
+            x: { length: 1000, color: Lore.Color.fromHex('#cccccc') },
+            y: { length: 1000, color: Lore.Color.fromHex('#cccccc') },
+            z: { length: 1000, color: Lore.Color.fromHex('#cccccc') }
+        },
+        ticks: {
+          x: { length: 20, color: Lore.Color.fromHex('#cccccc') },
+          y: { length: 20, color: Lore.Color.fromHex('#cccccc') },
+          z: { length: 20, color: Lore.Color.fromHex('#cccccc') }
+        },
+        box: {
+          x: { color: Lore.Color.fromHex('#666666') },
+          y: { color: Lore.Color.fromHex('#666666') },
+          z: { color: Lore.Color.fromHex('#666666') }
+        }
+    });
+/*
+    var size = 1000;
+    var positions = new Float32Array(size * 3);
+    var colors = new Float32Array(size * 3)
+
+    for(var i = 0; i < size * 3; i++) {
+      positions[i] = Lore.Statistics.randomNormalScaled(0, 2000);
+      colors[i] = Math.random();
+    }
+
+    pointHelper.setPositions(positions);
+    pointHelper.setColors(colors);
+*/
+    renderer.render = function(camera, geometries) {
+        for(var i = 0; i < geometries.length; i++) {
+            geometries[i].draw(renderer);
+        }
+    }
+
+    return renderer;
+}
 Lore.DrawModes = {
     points: 0,
     lines: 1,
@@ -73,6 +128,32 @@ Lore.Color.fromHex = function(hex) {
 
     return result ? new Lore.Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
 }
+
+Lore.Color.hueToRgb = function(p, q, t) {
+    if(t < 0) t += 1;
+    if(t > 1) t -= 1;
+    if(t < 0.1667) return p + (q - p) * 6 * t;
+    if(t < 0.5) return q;
+    if(t < 0.6667) return p + (q - p) * (0.6667 - t) * 6;
+    return p;
+}
+
+Lore.Color.hslToRgb = function(h, s, l) {
+    var r, g, b;
+
+    if(s == 0) {
+        r = g = b = l;
+    }
+    else {
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = Lore.Color.hueToRgb(p, q, h + 0.3333);
+        g = Lore.Color.hueToRgb(p, q, h);
+        b = Lore.Color.hueToRgb(p, q, h - 0.3333);
+    }
+
+    return [r, g, b];
+}
 Lore.Renderer = function(targetId, options) {
     this.canvas = document.getElementById(targetId);
     this.antialiasing = options.antialiasing === false ? false : true;
@@ -88,6 +169,8 @@ Lore.Renderer = function(targetId, options) {
     this.geometries = [];
     this.render = function(camera, geometries) {};
 
+    this.effect = null;
+
     this.lastTiming = performance.now();
 
     // Disable context menu on right click
@@ -99,6 +182,9 @@ Lore.Renderer = function(targetId, options) {
     });
 
     this.init();
+
+    // Attach the controls last
+    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, new Lore.Vector3f(500, 500, 500));
 }
 
 Lore.Renderer.prototype = {
@@ -108,7 +194,7 @@ Lore.Renderer.prototype = {
     init: function() {
         var _this = this;
 
-        var settings = { antialias: this.antialiasing, premultipliedAlpha: false, alpha: false };
+        var settings = { antialias: this.antialiasing };
 
         this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
 
@@ -130,8 +216,7 @@ Lore.Renderer.prototype = {
         }
 
         // Blending
-        g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
-
+        //g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
         // Extensions
         var oes = 'OES_standard_derivatives';
         var extOes = g.getExtension(oes);
@@ -145,22 +230,44 @@ Lore.Renderer.prototype = {
             console.warn('Could not load extension: ' + wdb + '.');
         }
 
+        var wdt = 'WEBGL_depth_texture';
+        var extWdt = g.getExtension(wdt);
+        if(extWdt === null) {
+            console.warn('Could not load extension: ' + wdt + '.');
+        }
+
         var cc = this.clearColor.components;
         g.clearColor(cc[0], cc[1], cc[2], cc[3]);
         g.clearDepth(this.clearDepth);
 
         if (this.enableDepthTest) {
             g.enable(g.DEPTH_TEST);
-            g.depthFunc(g.LEQUAL);
+            g.depthFunc(g.LESS);
+            console.log('enable depth test');
+            //g.depthFunc(g.LEQUAL);
         }
+
+        g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+        g.enable(g.BLEND);
 
         this.updateViewport(0, 0, this.canvas.width, this.canvas.height);
         window.addEventListener('resize', function(event) {
             _this.updateViewport(0, 0, _this.canvas.width, _this.canvas.height);
         });
 
+        // Init effect(s)
+        this.effect = new Lore.Effect(this, 'defaultEffect');
+
         this.ready = true;
         this.animate();
+    },
+
+    getWidth: function() {
+        return this.canvas.width;
+    },
+
+    getHeight: function() {
+        return this.canvas.height;
     },
 
     updateViewport: function(x, y, width, height) {
@@ -182,12 +289,16 @@ Lore.Renderer.prototype = {
             this.fpsElement.innerHTML = this.fps;
         }
 
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        this.effect.bind();
         this.render(this.camera, this.geometries);
+        this.effect.unbind();
+
+        this.camera.isProjectionMatrixStale = false;
+        this.camera.isViewMatrixStale = false;
     },
 
     createProgram: function(shader) {
-        shader.init(this.gl);
+        var program = shader.init(this.gl);
         this.shaders.push(shader);
         return this.shaders.length - 1;
     },
@@ -557,13 +668,11 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         // Update the modelView and projection matrices
         if (renderer.camera.isProjectionMatrixStale) {
             this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
-            renderer.camera.isProjectionMatrixStale = false;
         }
 
         if (renderer.camera.isViewMatrixStale) {
             var modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
             this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
-            renderer.camera.isViewMatrixStale = false;
         }
 
         this.shader.updateUniforms();
@@ -674,8 +783,103 @@ Lore.Attribute.prototype = {
         }
     }
 }
+Lore.Effect = function(renderer, shaderName) {
+    this.renderer = renderer;
+    this.gl = this.renderer.gl;
+
+    this.framebuffer = this.initFramebuffer();
+    this.texture = this.initTexture();
+    this.renderbuffer = this.initRenderbuffer();
+
+    this.shader = this.renderer.shaders[this.renderer.createProgram(Lore.Shaders[shaderName])];
+
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+}
+
+Lore.Effect.prototype = {
+    constructor: Lore.Effect,
+
+    initBuffer: function() {
+      var g = this.gl;
+      var texCoordLocation = g.getAttribLocation(this.shader.program, 'v_coord');
+
+      // provide texture coordinates for the rectangle.
+      var texCoordBuffer = g.createBuffer();
+      g.bindBuffer(g.ARRAY_BUFFER, texCoordBuffer);
+      g.bufferData(g.ARRAY_BUFFER, new Float32Array([
+           1.0,  1.0,
+          -1.0,  1.0,
+          -1.0, -1.0,
+          -1.0, -1.0,
+           1.0, -1.0,
+           1.0,  1.0]), g.STATIC_DRAW);
+
+      g.enableVertexAttribArray(texCoordLocation);
+      g.vertexAttribPointer(texCoordLocation, 2, g.FLOAT, false, 0, 0);
+
+      return texCoordBuffer;
+    },
+
+    initTexture: function() {
+        var g = this.gl;
+
+        var texture = g.createTexture();
+        g.bindTexture(g.TEXTURE_2D, texture);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.NEAREST);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.NEAREST);
+
+        g.bindTexture(g.TEXTURE_2D, texture);
+        g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, this.renderer.getWidth(), this.renderer.getHeight(), 0, g.RGBA, g.UNSIGNED_BYTE, null);
+
+        g.framebufferTexture2D(g.FRAMEBUFFER, g.COLOR_ATTACHMENT0, g.TEXTURE_2D, texture, 0);
+
+        return texture;
+    },
+
+    initFramebuffer: function() {
+        var g = this.gl;
+
+        var framebuffer = g.createFramebuffer();
+        g.bindFramebuffer(g.FRAMEBUFFER, framebuffer);
+        return framebuffer;
+    },
+
+    initRenderbuffer: function() {
+      var g = this.gl;
+
+      var renderbuffer = g.createRenderbuffer();
+      g.bindRenderbuffer(g.RENDERBUFFER, renderbuffer);
+
+      g.renderbufferStorage(g.RENDERBUFFER, g.DEPTH_COMPONENT16, this.renderer.getWidth(), this.renderer.getHeight());
+      g.framebufferRenderbuffer(g.FRAMEBUFFER, g.DEPTH_ATTACHMENT, g.RENDERBUFFER, renderbuffer);
+
+      // g.renderbufferStorage(g.RENDERBUFFER, g.DEPTH_STENCIL, this.renderer.getWidth(), this.renderer.getHeight());
+      // g.framebufferRenderbuffer(g.FRAMEBUFFER, g.DEPTH_STENCIL_ATTACHMENT, g.RENDERBUFFER, renderbuffer);
+
+      return renderbuffer;
+    },
+
+    bind: function() {
+        var g = this.gl;
+        g.bindFramebuffer(g.FRAMEBUFFER, this.framebuffer);
+        g.clear(g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT);
+    },
+
+    unbind: function() {
+        var g = this.gl;
+        g.bindRenderbuffer(g.RENDERBUFFER, null);
+        g.bindFramebuffer(g.FRAMEBUFFER, null);
+
+        this.initBuffer();
+        this.shader.use();
+        g.drawArrays(g.TRIANGLES, 0, 6);
+    }
+}
 Lore.ControlsBase = function(renderer) {
     this.canvas = renderer.canvas;
+    this.eventListeners = {};
     this.mouse = {
         previousPosition: {
             x: null,
@@ -693,6 +897,10 @@ Lore.ControlsBase = function(renderer) {
             left: false,
             middle: false,
             right: false
+        },
+        normalizedPosition: {
+            x: 0.0,
+            y: 0.0
         }
     };
 
@@ -701,12 +909,6 @@ Lore.ControlsBase = function(renderer) {
         ctrl: false,
         shift: false
     }
-
-    this.mousemove = function(e) {};
-    this.mouseup = function(e, source) {};
-    this.mousedown = function(e, source) {};
-    this.mousedrag = function(e, source) {};
-    this.mousewheel = function(e) {};
 
     var that = this;
     this.canvas.addEventListener('mousemove', function(e) {
@@ -719,14 +921,14 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.x += 0.01 * that.mouse.delta.x;
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
-            that.mousemove(that.mouse.delta);
+            that.raiseEvent('mousemove', { e: that.mouse.delta });
             // Give priority to left, then middle, then right
             if (that.mouse.state.left) {
-                that.mousedrag(that.mouse.delta, 'left');
+                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'left' });
             } else if (that.mouse.state.middle) {
-                that.mousedrag(that.mouse.delta, 'middle');
+                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'middle' });
             } else if (that.mouse.state.right) {
-                that.mousedrag(that.mouse.delta, 'right');
+                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'right' });
             }
         }
 
@@ -736,9 +938,9 @@ Lore.ControlsBase = function(renderer) {
 
     var wheelevent = 'mousewheel';
     if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
-    
+
     this.canvas.addEventListener(wheelevent, function(e) {
-        that.mousewheel(e.wheelDelta);
+        that.raiseEvent('mousewheel', { e: e.wheelDelta });
     });
 
     this.canvas.addEventListener('keydown', function(e) {
@@ -749,6 +951,8 @@ Lore.ControlsBase = function(renderer) {
         } else if (e.which == 18) {
             that.keyboard.alt = true;
         }
+
+        that.raiseEvent('keydown', { e: e.which })
     });
 
     this.canvas.addEventListener('keyup', function(e) {
@@ -759,6 +963,8 @@ Lore.ControlsBase = function(renderer) {
         } else if (e.which == 18) {
             that.keyboard.alt = false;
         }
+
+        that.raiseEvent('keyup', { e: e.which });
     });
 
     this.canvas.addEventListener('mousedown', function(e) {
@@ -776,7 +982,12 @@ Lore.ControlsBase = function(renderer) {
             source = 'right';
         }
 
-        that.mousedown(that, source);
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((e.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousedown', { e: that, source: source });
     });
 
     this.canvas.addEventListener('mouseup', function(e) {
@@ -798,14 +1009,26 @@ Lore.ControlsBase = function(renderer) {
         that.mouse.previousPosition.x = null;
         that.mouse.previousPosition.y = null;
 
-        that.mouseup(that, source);
+        that.raiseEvent('mouseup', { e: that, source: source });
     });
 }
 
 Lore.ControlsBase.prototype = {
     constructor: Lore.ControlsBase,
+
+    addEventListener: function(eventName, callback) {
+        if(!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
+        this.eventListeners[eventName].push(callback);
+    },
+
+    raiseEvent: function(eventName, data) {
+        if(!this.eventListeners[eventName]) return;
+
+        for(var i = 0; i < this.eventListeners[eventName].length; i++)
+            this.eventListeners[eventName][i](data);
+    }
 }
-Lore.OrbitalControls = function(renderer, radius) {
+Lore.OrbitalControls = function(renderer, radius, lookAt) {
     Lore.ControlsBase.call(this, renderer);
     this.up = Lore.Vector3f.up();
     this.radius = radius;
@@ -817,7 +1040,7 @@ Lore.OrbitalControls = function(renderer, radius) {
     this.dPan = new Lore.Vector3f();
 
     this.spherical = new Lore.SphericalCoords();
-    this.lookAt = new Lore.Vector3f();
+    this.lookAt = lookAt || new Lore.Vector3f();
 
     this.scale = 0.95;
     this.zoomed = false;
@@ -828,13 +1051,16 @@ Lore.OrbitalControls = function(renderer, radius) {
 
     var that = this;
 
-    this.mousedrag = function(e, source) {
-        that.update(e, source);
-    };
+    this.addEventListener('mousedrag', function(e) {
+        that.update(e.e, e.source);
+    });
 
-    this.mousewheel = function(e) {
-        that.update({ x: 0, y: -e }, 'wheel');
-    };
+    this.addEventListener('mousewheel', function(e) {
+        that.update({ x: 0, y: -e.e }, 'wheel');
+    });
+
+    // Initial update
+    this.update({ x: 0, y: 0 }, 'left');
 }
 
 Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.prototype), {
@@ -916,7 +1142,7 @@ Lore.CameraBase = function() {
     this.renderer = null;
     this.isProjectionMatrixStale = false;
     this.isViewMatrixStale = false;
-    
+
     this.projectionMatrix = new Lore.ProjectionMatrix();
     this.viewMatrix = new Lore.Matrix4f();
 }
@@ -938,7 +1164,8 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
     },
 
     updateViewMatrix: function() {
-        var viewMatrix = Lore.Matrix4f.compose(this.position, this.rotation, this.scale);
+        this.update();
+        var viewMatrix = this.modelMatrix.clone();
         viewMatrix.invert();
         this.viewMatrix = viewMatrix;
         this.isViewMatrixStale = true;
@@ -1327,12 +1554,49 @@ Lore.Vector3f.prototype = {
                this.components[2] * v.components[2];
     },
 
-    cross: function(v) {    
+    cross: function(v) {
         return new Lore.Vector3f(
             this.components[1] * v.components[2] - this.components[2] * v.components[1],
             this.components[2] * v.components[0] - this.components[0] * v.components[2],
             this.components[0] * v.components[1] - this.components[1] * v.components[0]
         );
+    },
+
+    project: function(camera) {
+        return this.applyProjection(Lore.Matrix4f.multiply(camera.projectionMatrix, Lore.Matrix4f.invert(camera.modelMatrix)));
+    },
+
+    unproject: function(camera) {
+        return this.applyProjection(Lore.Matrix4f.multiply(camera.modelMatrix, Lore.Matrix4f.invert(camera.projectionMatrix)));
+    },
+
+    applyProjection: function(m) {
+        var x = this.components[0];
+        var y = this.components[1];
+        var z = this.components[2];
+
+        var e = m.entries;
+        var p = 1.0 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+
+        this.components[0] = (e[0] * x + e[4] * y + e[8] * z + e[12]) * p;
+    		this.components[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * p;
+    		this.components[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * p;
+
+        return this;
+    },
+
+    toDirection: function(m) {
+        var x = this.components[0];
+        var y = this.components[1];
+        var z = this.components[2];
+
+        var e = m.entries;
+
+        this.components[0] = e[0] * x + e[4] * y + e[8] * z;
+    		this.components[1] = e[1] * x + e[5] * y + e[9] * z;
+    		this.components[2] = e[2] * x + e[6] * y + e[10] * z;
+
+        this.normalize();
     },
 
     applyQuaternion: function(q) {
@@ -1369,7 +1633,7 @@ Lore.Vector3f.prototype = {
     },
 
     toString: function() {
-        return '(' + this.components[0] + ', ' + this.components[1] + ', ' 
+        return '(' + this.components[0] + ', ' + this.components[1] + ', '
                    + this.components[2] + ')';
     }
 }
@@ -1620,7 +1884,7 @@ Lore.Matrix4f.prototype = {
         this.entries[5] *= y;
         this.entries[6] *= y;
         this.entries[7] *= y;
-        
+
         this.entries[8] *= z;
         this.entries[9] *= z;
         this.entries[10] *= z;
@@ -1924,7 +2188,7 @@ Lore.Matrix4f.prototype = {
     },
 
     toString: function() {
-        console.log(this.entries[0] + ', ' + this.entries[4] + ', ' + this.entries[8]  + ', ' + this.entries[12]); 
+        console.log(this.entries[0] + ', ' + this.entries[4] + ', ' + this.entries[8]  + ', ' + this.entries[12]);
         console.log(this.entries[1] + ', ' + this.entries[5] + ', ' + this.entries[9]  + ', ' + this.entries[13]);
         console.log(this.entries[2] + ', ' + this.entries[6] + ', ' + this.entries[10] + ', ' + this.entries[14]);
         console.log(this.entries[3] + ', ' + this.entries[7] + ', ' + this.entries[11] + ', ' + this.entries[15]);
@@ -2053,6 +2317,140 @@ Lore.Matrix4f.compose = function(position, quaternion, scale) {
     m.setPosition(position);
 
     return m;
+}
+
+Lore.Matrix4f.invert = function(matrix) {
+    // Fugly implementation lifted from MESA (originally in C++)
+    var im = new Lore.Matrix4f();
+
+    var m = matrix.entries;
+
+    im.entries[0] = m[5] * m[10] * m[15] -
+        m[5] * m[11] * m[14] -
+        m[9] * m[6] * m[15] +
+        m[9] * m[7] * m[14] +
+        m[13] * m[6] * m[11] -
+        m[13] * m[7] * m[10];
+
+    im.entries[4] = -m[4] * m[10] * m[15] +
+        m[4] * m[11] * m[14] +
+        m[8] * m[6] * m[15] -
+        m[8] * m[7] * m[14] -
+        m[12] * m[6] * m[11] +
+        m[12] * m[7] * m[10];
+
+    im.entries[8] = m[4] * m[9] * m[15] -
+        m[4] * m[11] * m[13] -
+        m[8] * m[5] * m[15] +
+        m[8] * m[7] * m[13] +
+        m[12] * m[5] * m[11] -
+        m[12] * m[7] * m[9];
+
+    im.entries[12] = -m[4] * m[9] * m[14] +
+        m[4] * m[10] * m[13] +
+        m[8] * m[5] * m[14] -
+        m[8] * m[6] * m[13] -
+        m[12] * m[5] * m[10] +
+        m[12] * m[6] * m[9];
+
+    im.entries[1] = -m[1] * m[10] * m[15] +
+        m[1] * m[11] * m[14] +
+        m[9] * m[2] * m[15] -
+        m[9] * m[3] * m[14] -
+        m[13] * m[2] * m[11] +
+        m[13] * m[3] * m[10];
+
+    im.entries[5] = m[0] * m[10] * m[15] -
+        m[0] * m[11] * m[14] -
+        m[8] * m[2] * m[15] +
+        m[8] * m[3] * m[14] +
+        m[12] * m[2] * m[11] -
+        m[12] * m[3] * m[10];
+
+    im.entries[9] = -m[0] * m[9] * m[15] +
+        m[0] * m[11] * m[13] +
+        m[8] * m[1] * m[15] -
+        m[8] * m[3] * m[13] -
+        m[12] * m[1] * m[11] +
+        m[12] * m[3] * m[9];
+
+    im.entries[13] = m[0] * m[9] * m[14] -
+        m[0] * m[10] * m[13] -
+        m[8] * m[1] * m[14] +
+        m[8] * m[2] * m[13] +
+        m[12] * m[1] * m[10] -
+        m[12] * m[2] * m[9];
+
+    im.entries[2] = m[1] * m[6] * m[15] -
+        m[1] * m[7] * m[14] -
+        m[5] * m[2] * m[15] +
+        m[5] * m[3] * m[14] +
+        m[13] * m[2] * m[7] -
+        m[13] * m[3] * m[6];
+
+    im.entries[6] = -m[0] * m[6] * m[15] +
+        m[0] * m[7] * m[14] +
+        m[4] * m[2] * m[15] -
+        m[4] * m[3] * m[14] -
+        m[12] * m[2] * m[7] +
+        m[12] * m[3] * m[6];
+
+    im.entries[10] = m[0] * m[5] * m[15] -
+        m[0] * m[7] * m[13] -
+        m[4] * m[1] * m[15] +
+        m[4] * m[3] * m[13] +
+        m[12] * m[1] * m[7] -
+        m[12] * m[3] * m[5];
+
+    im.entries[14] = -m[0] * m[5] * m[14] +
+        m[0] * m[6] * m[13] +
+        m[4] * m[1] * m[14] -
+        m[4] * m[2] * m[13] -
+        m[12] * m[1] * m[6] +
+        m[12] * m[2] * m[5];
+
+    im.entries[3] = -m[1] * m[6] * m[11] +
+        m[1] * m[7] * m[10] +
+        m[5] * m[2] * m[11] -
+        m[5] * m[3] * m[10] -
+        m[9] * m[2] * m[7] +
+        m[9] * m[3] * m[6];
+
+    im.entries[7] = m[0] * m[6] * m[11] -
+        m[0] * m[7] * m[10] -
+        m[4] * m[2] * m[11] +
+        m[4] * m[3] * m[10] +
+        m[8] * m[2] * m[7] -
+        m[8] * m[3] * m[6];
+
+    im.entries[11] = -m[0] * m[5] * m[11] +
+        m[0] * m[7] * m[9] +
+        m[4] * m[1] * m[11] -
+        m[4] * m[3] * m[9] -
+        m[8] * m[1] * m[7] +
+        m[8] * m[3] * m[5];
+
+    im.entries[15] = m[0] * m[5] * m[10] -
+        m[0] * m[6] * m[9] -
+        m[4] * m[1] * m[10] +
+        m[4] * m[2] * m[9] +
+        m[8] * m[1] * m[6] -
+        m[8] * m[2] * m[5];
+
+    var det = m[0] * im.entries[0] +
+        m[1] * im.entries[4] +
+        m[2] * im.entries[8] +
+        m[3] * im.entries[12];
+
+    if (det == 0)
+        throw 'Determinant is zero.';
+
+    det = 1.0 / det;
+
+    for (var i = 0; i < 16; i++)
+        im.entries[i] = im.entries[i] * det;
+
+    return im;
 }
 Lore.Quaternion = function(x, y, z, w) {
     if (arguments.length === 1) {
@@ -2639,11 +3037,30 @@ Lore.Statistics.randomNormalScaled = function(mean, sd) {
     var r = Lore.Statistics.randomNormalInRange(-1, 1);
     return r * sd + mean;
 }
+
+Lore.Statistics.normalize = function(arr) {
+    var max = Number.MIN_VALUE;
+    var min = Number.MAX_VALUE;
+
+    for(var i = 0; i < arr.length; i++) {
+        var val = arr[i];
+        if(val > max) max = val;
+        if(val < min) min = val;
+    }
+
+    var diff = max - min;
+    for(var i = 0; i < arr.length; i++) {
+        arr[i] = (arr[i] - min) / diff;
+    }
+
+    return [min, max];
+}
 Lore.HelperBase = function(renderer, geometryName, shaderName) {
     Lore.Node.call(this);
 
     this.renderer = renderer;
-    this.program = this.renderer.createProgram(Lore.Shaders[shaderName]);
+    this.shader = Lore.Shaders[shaderName];
+    this.program = this.renderer.createProgram(this.shader);
     this.geometry = this.renderer.createGeometry(geometryName, this.program);
 }
 
@@ -2658,23 +3075,94 @@ Lore.HelperBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         this.geometry.draw(this.renderer);
     }
 });
-Lore.PointHelper = function(renderer, geometryName, shaderName) {
+Lore.PointHelper = function(renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-
+    this.opts = Lore.Utils.extend(true, Lore.PointHelper.defaults, options);
+    this.indices = null;
+    this.octree = null;
     this.geometry.setMode(Lore.DrawModes.points);
 }
 
 Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
     constructor: Lore.PointHelper,
 
+    getMaxLength: function(x, y, z) {
+        return Math.max(x.length, Math.max(y.length, z.length));
+    },
+
     setPositions: function(positions) {
         this.setAttribute('position', positions);
     },
 
+    setPositionsXYZ: function(x, y, z, length) {
+        var positions = new Float32Array(length * 3);
+        for(var i = 0; i < length; i++) {
+            var j = 3 * i;
+            positions[j] = x[i] || 0;
+            positions[j + 1] = y[i] || 0;
+            positions[j + 2] = z[i] || 0;
+        }
+
+        if(this.opts.octree) {
+            var initialBounds = Lore.AABB.fromPoints(positions);
+            var indices = new Uint32Array(length);
+            for(var i = 0; i < length; i++) indices[i] = i;
+
+            this.octree = new Lore.Octree();
+            this.octree.build(indices, positions, initialBounds);
+        }
+
+
+
+        this.setAttribute('position', positions);
+    },
+
+    setPositionsXYZColor: function(x, y, z, color) {
+        var length = this.getMaxLength(x, y, z);
+        this.setPositionsXYZ(x, y, z, length);
+        this.setColor(color, length);
+    },
+
+    setPositionsXYZHues: function(x, y, z, hues) {
+        var length = this.getMaxLength(x, y, z);
+        this.setPositionsXYZ(x, y, z, length);
+        this.setHues(hues, length);
+    },
+
+    setHues: function(hues, length) {
+        var colors = new Float32Array(length * 3);
+
+        for(var i = 0; i < length; i++) {
+            var hue = hues[i] || 0;
+            var rgb = Lore.Color.hslToRgb(hue, 0.5, 0.5);
+            colors[i * 3] = rgb[0];
+            colors[i * 3 + 1] = rgb[1];
+            colors[i * 3 + 2] = rgb[2];
+        }
+
+        this.setColors(colors);
+    },
+
     setColors: function(colors) {
         this.setAttribute('color', colors);
+    },
+
+    setColor: function(color, length) {
+        var c = new Float32Array(length * 3);
+
+        for(var i = 0; i < length * 3; i += 3) {
+            c[i] = color.components[0];
+            c[i + 1] = color.components[1];
+            c[i + 2] = color.components[2];
+        }
+
+        this.setColors(c);
     }
 });
+
+Lore.PointHelper.defaults = {
+    octree: true
+}
 Lore.CoordinatesHelper = function(renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
     this.opts = Lore.Utils.extend(true, Lore.CoordinatesHelper.defaults, options);
@@ -2815,15 +3303,15 @@ Lore.CoordinatesHelper.defaults = {
     axis: {
         x: {
             length: 50.0,
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         y: {
             length: 50.0,
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         z: {
             length: 50.0,
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         }
     },
     ticks: {
@@ -2831,33 +3319,219 @@ Lore.CoordinatesHelper.defaults = {
             count: 10,
             length: 5.0,
             offset: new Lore.Vector3f(),
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         y: {
             count: 10,
             length: 5.0,
             offset: new Lore.Vector3f(),
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         },
         z: {
             count: 10,
             length: 5.0,
             offset: new Lore.Vector3f(),
-            color: new Lore.Color.fromHex('#222222')
+            color: Lore.Color.fromHex('#222222')
         }
     },
     box: {
         enabled: true,
         x: {
-            color: new Lore.Color.fromHex('#999999')
+            color: Lore.Color.fromHex('#999999')
         },
         y: {
-            color: new Lore.Color.fromHex('#999999')
+            color: Lore.Color.fromHex('#999999')
         },
         z: {
-            color: new Lore.Color.fromHex('#999999')
+            color: Lore.Color.fromHex('#999999')
         }
     },
+}
+Lore.OctreeHelper = function(renderer, geometryName, shaderName, octree, options) {
+    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
+    this.opts = Lore.Utils.extend(true, Lore.OctreeHelper.defaults, options);
+    this.octree = octree;
+    this.raycaster = new Lore.Raycaster();
+
+    var that = this;
+
+    renderer.controls.addEventListener('mousedown', function(e) {
+        var mouse = e.e.mouse.normalizedPosition;
+        that.raycaster.set(that.renderer.camera, mouse.x, mouse.y);
+        console.log(that.octree.raySearch(that.raycaster));
+    });
+
+    this.init();
+}
+
+Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
+    constructor: Lore.OctreeHelper,
+
+    init: function() {
+        if(this.opts.visualize === 'center')
+            this.drawCenters();
+        else if(this.opts.visualize === 'cubes')
+            this.drawBoxes();
+    },
+
+
+    drawCenters: function() {
+        this.geometry.setMode(Lore.DrawModes.points);
+
+        var aabbs = this.octree.aabbs;
+        var length = Object.keys(aabbs).length;
+        var colors = new Float32Array(length * 3);
+        var positions = new Float32Array(length * 3);
+
+        var i = 0;
+        for(key in aabbs) {
+            var c = aabbs[key].center.components;
+            var k = i * 3;
+            colors[k] = 1;
+            colors[k + 1] = 1;
+            colors[k + 2] = 1;
+
+            positions[k] = c[0];
+            positions[k + 1] = c[1];
+            positions[k + 2] = c[2];
+
+            i++;
+        }
+
+        this.setAttribute('position', new Float32Array(positions));
+        this.setAttribute('color', new Float32Array(colors));
+    },
+
+    drawBoxes: function() {
+        this.geometry.setMode(Lore.DrawModes.lines);
+
+        var aabbs = this.octree.aabbs;
+        var length = Object.keys(aabbs).length;
+        var colors = new Float32Array(length * 24);
+        var positions = new Float32Array(length * 24);
+
+        var i = 0;
+        for(key in aabbs) {
+            var corners = Lore.AABB.getCorners(aabbs[key]);
+            for(var j = 0; j < 24; j++) {
+                positions[i + j] = corners[j];
+                colors[i + j] = 1;
+            }
+
+            i += 24;
+        }
+
+        this.setAttribute('position', new Float32Array(positions));
+        this.setAttribute('color', new Float32Array(colors));
+    }
+});
+
+
+Lore.OctreeHelper.defaults = {
+    visualize: false
+}
+Lore.FileReaderBase = function(elementId) {
+    this.elementId = elementId;
+    this.element = document.getElementById(this.elementId);
+    this.eventListeners = {};
+    var that = this;
+    this.element.addEventListener('change', function() {
+        var fileReader = new FileReader();
+
+        fileReader.onload = function() {
+            that.loaded(fileReader.result);
+        }
+
+        fileReader.readAsBinaryString(this.files[0]);
+    });
+}
+
+Lore.FileReaderBase.prototype = {
+    constructor: Lore.FileReaderBase,
+
+    addEventListener: function(eventName, callback) {
+        if(!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
+        this.eventListeners[eventName].push(callback);
+    },
+
+    raiseEvent: function(eventName, data) {
+        if(!this.eventListeners[eventName]) return;
+
+        for(var i = 0; i < this.eventListeners[eventName].length; i++)
+            this.eventListeners[eventName][i](data);
+    },
+
+    loaded: function(data) {
+
+    }
+}
+Lore.CsvFileReader = function(elementId, options) {
+    Lore.FileReaderBase.call(this, elementId);
+
+    this.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
+    this.columns = [];
+}
+
+Lore.CsvFileReader.prototype = Object.assign(Object.create(Lore.FileReaderBase.prototype), {
+    constructor: Lore.CsvFileReader,
+
+    loaded: function(data) {
+        data = data.replace('\n\n', '\n');
+        data = data.replace(/^\s+|\s+$/g, '');
+        var lines = data.split('\n');
+        var length = lines.length;
+        var init = true;
+        var loadCols = this.opts.cols;
+
+        var h = this.opts.header ? 1 : 0;
+        for(var i = h; i < length; i++) {
+            var values = lines[i].split(this.opts.separator);
+
+            if(loadCols.length == 0)
+                for(var j = 0; j < values.length; j++) loadCols.push[j];
+
+            if(init) {
+                for(var j = 0; j < loadCols.length; j++) this.createArray(j, this.opts.types[j], length - h);
+                init = false;
+            }
+
+            for(var j = 0; j < loadCols.length; j++) {
+                this.columns[j][i - h] = values[loadCols[j]];
+            }
+        }
+
+        this.raiseEvent('loaded', this.columns);
+    },
+
+    createArray: function(index, type, length) {
+        if(type == 'Int8Array')
+            this.columns[index] = new Int8Array(length);
+        else if(type == 'Uint8Array')
+            this.columns[index] = new Uint8Array(length);
+        else if(type == 'Uint8ClampedArray')
+            this.columns[index] = new Uint8ClampedArray(length);
+        else if(type == 'Int16Array')
+            this.columns[index] = new Int16Array(length);
+        else if(type == 'Uint16Array')
+            this.columns[index] = new Uint16Array(length);
+        else if(type == 'Int32Array')
+            this.columns[index] = new Int32Array(length);
+        else if(type == 'Uint32Array')
+            this.columns[index] = new Uint32Array(length);
+        else if(type == 'Float32Array')
+            this.columns[index] = new Float32Array(length);
+        else if(type == 'Float64Array')
+            this.columns[index] = new Float64Array(length);
+        else
+            this.columns[index] = new Array(length);
+    }
+});
+
+Lore.CsvFileReader.defaults = {
+    separator: ',',
+    cols: [],
+    types: [],
+    header: true
 }
 Lore.Utils = {};
 
@@ -2891,14 +3565,43 @@ Lore.Utils.extend = function () {
 
     return extended;
 };
-Lore.Shaders['default'] = new Lore.Shader('Default', {}, [
+
+Lore.Utils.arrayContains = function(array, value) {
+    for(var i = 0; i < array.length; i++) {
+        if(array[i] === value) return true;
+    }
+
+    return false;
+};
+
+Lore.Utils.concatTypedArrays = function(a, b) {
+    var c = new a.constructor(a.length + b.length);
+    c.set(a);
+    c.set(b, a.length);
+
+    return c;
+};
+
+Lore.Utils.msb = function(n) {
+    return (n & 0x80000000) ? 31 : Lore.Utils.msb((n << 1) | 1) - 1;
+};
+
+Lore.Utils.mergePointDistances = function(a, b) {
+    var newObj = {};
+
+    newObj.indices = Lore.Utils.concatTypedArrays(a.indices, b.indices);
+    newObj.distancesSq = Lore.Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
+    return newObj;
+};
+Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 1, 'float') }, [
+    'uniform float size;',
     'attribute vec3 position;',
     'attribute vec3 color;',
     'varying vec3 vColor;',
     'void main() {',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
         'vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
-        'gl_PointSize = 5.0 * (1000.0 / length(mvPosition.xyz));',
+        'gl_PointSize = 5.0; //size;',
         'vColor = color;',
     '}'
 ], [
@@ -2913,21 +3616,1116 @@ Lore.Shaders['circle'] = new Lore.Shader('Circle', {}, [
     'varying vec3 vColor;',
     'void main() {',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-        'gl_PointSize = 6.0;',
+        'gl_PointSize = 10.0;',
         'vColor = color;',
     '}'
 ], [
     'varying vec3 vColor;',
     'void main() {',
-        'float r = 0.0, delta = 0.0, alpha = 1.0;',
+        'float r = 1.0, delta = 0.0, alpha = 1.0;',
         'vec2 cxy = 2.0 * gl_PointCoord - 1.0;',
         'r = dot(cxy, cxy);',
-        '//#ifdef GL_OES_standard_derivatives',
-            '//delta = fwidth(r);',
-            '//alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);',
-        '//#else',
-            'if(r > 1.0) discard;',
-        '//#endif',
+        '#ifdef GL_OES_standard_derivatives',
+            'delta = fwidth(r);',
+            'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);',
+        '#endif',
         'gl_FragColor = vec4(vColor, alpha);',
     '}'
 ]);
+Lore.Shaders['defaultEffect'] = new Lore.Shader('DefaultEffect', {}, [
+    'attribute vec2 v_coord;',
+    'uniform sampler2D fbo_texture;',
+    'varying vec2 f_texcoord;',
+    'void main() {',
+        'gl_Position = vec4(v_coord, 0.0, 1.0);',
+        'f_texcoord = (v_coord + 1.0) / 2.0;',
+    '}'
+], [
+    'uniform sampler2D fbo_texture;',
+    'varying vec2 f_texcoord;',
+    'void main(void) {',
+        'vec4 color = texture2D(fbo_texture, f_texcoord);',
+        'gl_FragColor = color;',
+    '}'
+]);
+Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
+    'attribute vec2 v_coord;',
+    'uniform sampler2D fbo_texture;',
+    'varying vec2 f_texcoord;',
+    'void main() {',
+        'gl_Position = vec4(v_coord, 0.0, 1.0);',
+        'f_texcoord = (v_coord + 1.0) / 2.0;',
+    '}'
+], [
+    '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
+    '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
+    '#define FXAA_SPAN_MAX     8.0',
+
+    'vec4 applyFXAA(vec2 fragCoord, sampler2D tex)',
+    '{',
+        'vec4 color;',
+        'vec2 inverseVP = vec2(1.0 / 750.0, 1.0 / 750.0);',
+        'vec3 rgbNW = texture2D(tex, (fragCoord + vec2(-1.0, -1.0)) * inverseVP).xyz;',
+        'vec3 rgbNE = texture2D(tex, (fragCoord + vec2(1.0, -1.0)) * inverseVP).xyz;',
+        'vec3 rgbSW = texture2D(tex, (fragCoord + vec2(-1.0, 1.0)) * inverseVP).xyz;',
+        'vec3 rgbSE = texture2D(tex, (fragCoord + vec2(1.0, 1.0)) * inverseVP).xyz;',
+        'vec3 rgbM  = texture2D(tex, fragCoord  * inverseVP).xyz;',
+        'vec3 luma = vec3(0.299, 0.587, 0.114);',
+        'float lumaNW = dot(rgbNW, luma);',
+        'float lumaNE = dot(rgbNE, luma);',
+        'float lumaSW = dot(rgbSW, luma);',
+        'float lumaSE = dot(rgbSE, luma);',
+        'float lumaM  = dot(rgbM,  luma);',
+        'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
+        'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
+
+        'vec2 dir;',
+        'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
+        'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
+
+        'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+        'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
+
+        'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+
+        'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz + texture2D(tex, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
+
+        'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz + texture2D(tex, fragCoord * inverseVP + dir * 0.5).xyz);',
+
+        'float lumaB = dot(rgbB, luma);',
+        'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
+            'color = vec4(rgbA, 1.0);',
+        'else',
+            'color = vec4(rgbB, 1.0);',
+        'return color;',
+    '}',
+
+    'uniform sampler2D fbo_texture;',
+    'varying vec2 f_texcoord;',
+    'void main(void) {',
+        'vec4 color = applyFXAA(f_texcoord * 750.0, fbo_texture);',
+        'gl_FragColor = color;',
+    '}'
+]);
+/**
+ * @class
+ * An octree constructed using the point cloud.
+ * @property {number} threshold - A threshold indicating whether or not a further subdivision is needed based on the number of data points in the current node.
+ * @property {number} maxDepth - A maximum depth of the octree.
+ * @property {Object} points - An object storing the points belonging to each node indexed by the location id of the node.
+ * @property {Object} aabbs - An object storing the axis-aligned bounding boxes belonging to each node indexed by the location id of the node.
+ * @constructor
+ * @param {number} threshold - A threshold indicating whether or not a further subdivision is needed based on the number of data points in the current node.
+ * @param {number} maxDepth - A maximum depth of the octree.
+ */
+Lore.Octree = function(threshold, maxDepth) {
+    this.threshold = threshold || 500;
+    this.maxDepth = maxDepth || 8;
+    this.points = {};
+    this.aabbs = {};
+}
+
+Lore.Octree.prototype = {
+    constructor: Lore.Octree,
+    /**
+     * Builds the octree by assigning the indices of data points and axis-aligned bounding boxes to assoziative arrays indexed by the location code.
+     * @param {Uint32Array} pointIndices - An set of points that are either sub-divided into sub nodes or assigned to the current node.
+     * @param {Float32Array} vertices - An array containing the positions of all the vertices.
+     * @param {PLOTTER.AABB} aabb - The bounding box of the current node.
+     * @param {number} locCode - A binary code encoding the id and the level of the current node.
+     */
+    build: function(pointIndices, vertices, aabb, locCode) {
+        locCode = locCode || 1;
+
+        // Set the location code of the axis-aligned bounding box
+        aabb.setLocCode(locCode);
+
+        // Store the axis aligned bounding box of this node
+        // and set the points belonging to the node to null
+        this.points[locCode] = null;
+        this.aabbs[locCode] = aabb;
+
+        // Check if this node reaches the maximum depth or the threshold
+        var depth = this.getDepth(locCode);
+        if(pointIndices.length <= this.threshold || depth >= this.maxDepth) {
+            this.points[locCode] = new Uint32Array(pointIndices.length);
+            for(var i = 0; i < pointIndices.length; i++) {
+                this.points[locCode][i] = pointIndices[i];
+            }
+            return true;
+        }
+
+        var childPointCounts = new Uint32Array(8);
+        var codes = new Float32Array(pointIndices.length);
+
+        for(var i = 0; i < pointIndices.length; i++) {
+            // Points are indices to the vertices array
+            // which stores x,y,z coordinates linear
+            var k = pointIndices[i] * 3;
+
+            // Assign point to subtree, this gives a code
+            // 000, 001, 010, 011, 100, 101, 110, 111
+            // (-> 8 possible subtrees)
+            if(vertices[k + 0] >= aabb.center.components[0]) codes[i] |= 4;
+            if(vertices[k + 1] >= aabb.center.components[1]) codes[i] |= 2;
+            if(vertices[k + 2] >= aabb.center.components[2]) codes[i] |= 1;
+
+            childPointCounts[codes[i]]++;
+        }
+
+        var nextPoints = new Array(8);
+        var nextAabb = new Array(8);
+
+        for(var i = 0; i < 8; i++) {
+            if(childPointCounts[i] == 0) continue;
+            nextPoints[i] = new Uint32Array(childPointCounts[i]);
+
+            for(var j = 0, k = 0; j < pointIndices.length; j++) {
+                if(codes[j] == i) {
+                    nextPoints[i][k++] = pointIndices[j];
+                }
+            }
+            var o = Lore.Octree.OctreeOffsets[i];
+            var offset = new Lore.Vector3f(o[0], o[1], o[2]);
+            offset.multiplyScalar(aabb.radius);
+            nextAabb[i] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
+        }
+
+        for(var i = 0; i < 8; i++) {
+            if(childPointCounts[i] == 0) continue;
+            var nextLocCode = this.generateLocCode(locCode, i);
+            this.build(nextPoints[i], vertices, nextAabb[i], nextLocCode);
+        }
+    },
+
+    /**
+     * Returns an array containing the location codes of all the axis-aligned
+     * bounding boxes inside this octree.
+     */
+    getLocCodes: function() {
+        return Object.keys(this.aabbs);
+    },
+
+    /**
+     * Calculates the depth of the node from its location code.
+     * @param {number} locCode - A binary code encoding the id and the level of the current node.
+     * @returns {number} The depth of the node with the provided location code.
+     */
+    getDepth: function(locCode) {
+        // If the msb is at position 6 (e.g. 1000000) the
+        // depth is 2, since the locCode contains two nodes (2 x 3 bits)
+        return Lore.Utils.msb(locCode) / 3;
+    },
+
+    /**
+     * Generates a location code for a node based on the full code of the parent and the code of the current node.
+     * @param {number} The full location code of the parent node.
+     * @param {number} The 3 bit code of the current node.
+     * @returns {number} The full location code for the current node.
+     */
+    generateLocCode: function(parentCode, nodeCode) {
+        // Insert the code of this new node, just before the msb (that is set to 1)
+        // of the parents code
+        var msb = Lore.Utils.msb(parentCode);
+
+        if(msb ==  -1) {
+            return nodeCode | 8;
+        }
+        else {
+            // Left-shift the parent code by msb
+            parentCode = parentCode <<= 3;
+            // OR parent code with node code
+            return parentCode | nodeCode;
+        }
+    },
+
+    /**
+     * The callback that is called when a node of the octree is visited.
+     * @callback PLOTTER.Octree~traverseCallback
+     * @param {Uint32Array} points - The points associated with the node.
+     * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
+     * @param {number} locCode - The location code of the node.
+     */
+    /**
+     * Traverses the octree depth-first.
+     * @param {PLOTTER.Octree~traverseCallback} traverseCallback - Is called for each node where a axis-aligned bounding box exists.
+     * @param {number} locCode - The location code of the node that serves as the starting node for the traversion.
+     */
+    traverse: function(traverseCallback, locCode) {
+        locCode = locCode || 1;
+
+        for(var i = 0; i < 8; i++) {
+            var next = locCode << 3 | i;
+
+            // If it has an aabb, it exists
+            if(this.aabbs[next]) {
+                traverseCallback(this.points[next], this.aabbs[next], next);
+                this.traverse(traverseCallback, next);
+            }
+        }
+    },
+
+    /**
+     * The callback that is called when a node of the octree is visited which meets the condition.
+     * @callback PLOTTER.Octree~traverseIfCallback
+     * @param {Uint32Array} points - The points associated with the node.
+     * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
+     * @param {number} locCode - The location code of the node.
+     */
+    /**
+     * The callback that is called to test a node.
+     * @callback PLOTTER.Octree~conditionCallback
+     * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
+     * @param {number} locCode - The location code of the node.
+     */
+    /**
+     * Traverses the octree depth-first, does not visit nodes / subtrees if a condition is not met.
+     * @param {PLOTTER.Octree~traverseIfCallback} traverseIfCallback - Is called for each node where a axis-aligned bounding box exists and returns either true or false, with false stopping further exploration of the subtree.
+     * @param {PLOTTER.Octree~conditionCallback} conditionCallback - Is called to test whether or not a subtree should be explored.
+     * @param {number} locCode - The location code of the node that serves as the starting node for the traversion.
+     */
+    traverseIf: function(traverseIfCallback, conditionCallback, locCode) {
+        locCode = locCode || 1;
+
+        for(var i = 0; i < 8; i++) {
+            var next = locCode << 3 | i;
+
+            // If it has an aabb, it exists
+            if(this.aabbs[next]) {
+                if(!conditionCallback(this.aabbs[next], next)) continue;
+                traverseIfCallback(this.points[next], this.aabbs[next], next);
+                this.traverseIf(traverseIfCallback, conditionCallback, next);
+            }
+        }
+    },
+
+    /**
+     * Searches for octree nodes that are intersected by the ray and returns all the points associated with those nodes.
+     * @param {Lore.Raycaster} raycaster - The raycaster used for checking for intersects.
+     * @returns {Array} A set of points which are associated with octree nodes intersected by the ray.
+     */
+    raySearch: function(raycaster) {
+        var result = [];
+
+        // Info: shouldn't be necessary any more
+        // Always add the points from the root
+        // The root has the location code 1
+        // for(var i = 0; i < this.points[1].length; i++) {
+        //     result.push(this.points[1][i]);
+        //}
+
+        // Calculate the direction, and the percentage
+        // of the direction, of the ray
+        var dir = raycaster.direction.clone();
+        dir.normalize();
+        var inverseDir = new Lore.Vector3f(1, 1, 1);
+        inverseDir.divide(dir);
+
+        this.traverseIf(function(points, aabb, locCode) {
+            // If there is an aabb, that contains no points but only
+            // nodes, skip here
+            if(!points) return;
+            for(var i = 0; i < points.length; i++) {
+                result.push({ index: points[i], locCode: locCode });
+            }
+        }, function(aabb, locCode) {
+            return aabb.cylinderTest(raycaster.origin, inverseDir, raycaster.far, raycaster.threshold);
+        });
+
+        return result;
+    },
+
+    /**
+     * Returns an array containing all the centers of the axis-aligned bounding boxes
+     * in this octree that have points associated with them.
+     * @returns {Array} An array containing the centers as Lore.Vector3f objects.
+     */
+    getCenters: function(threshold) {
+        threshold = threshold || 0;
+        var centers = new Array();
+
+        this.traverse(function(points, aabb, next) {
+            if(points && points.length > threshold) {
+                centers.push(aabb.center);
+            }
+        });
+
+        return centers;
+    },
+
+    /**
+     * This function returns the closest box in the octree to the point given as an argument.
+     * @param {Lore.Vector3f} point - The point.
+     * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
+     * @param {number} locCode - The starting locCode, if not set, starts at the root.
+     * @returns {Lore.AABB} The closest axis-aligned bounding box to the input point.
+     */
+    getClosestBox: function(point, threshold, locCode) {
+        locCode = locCode || 1;
+
+        var closest = -1;
+        var minDist = Number.MAX_VALUE;
+
+        for(var i = 0; i < 8; i++) {
+            var next = locCode << 3 | i;
+
+            // If it has an aabb, it exists
+            if(this.aabbs[next]) {
+                // Continue if under threshold
+                if(this.points[next] && this.points[next].length < threshold)
+                    continue;
+
+                var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
+                if(dist < minDist) {
+                    minDist = dist;
+                    closest = next;
+                }
+            }
+        }
+
+        if(closest < 0)
+            return this.aabbs[locCode];
+        else
+            return this.getClosestBox(point, threshold, closest);
+    },
+
+    /**
+     * This function returns the farthest box in the octree to the point given as an argument.
+     * @param {Lore.Vector3f} point - The point.
+     * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
+     * @param {number} locCode - The starting locCode, if not set, starts at the root.
+     * @returns {Lore.AABB} The farthest axis-aligned bounding box to the input point.
+     */
+    getFarthestBox: function(point, threshold, locCode) {
+        locCode = locCode || 1;
+
+        var farthest = -1;
+        var maxDist = Number.MIN_VALUE;
+
+        for(var i = 0; i < 8; i++) {
+            var next = locCode << 3 | i;
+
+            // If it has an aabb, it exists
+            if(this.aabbs[next]) {
+                // Continue if under threshold
+                if(this.points[next] && this.points[next].length < threshold)
+                    continue;
+
+                var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
+                if(dist > maxDist) {
+                    maxDist = dist;
+                    farthest = next;
+                }
+            }
+        }
+
+        if(farthest < 0)
+            return this.aabbs[locCode];
+        else
+            return this.getFarthestBox(point, threshold, farthest);
+    },
+
+    /**
+     * Finds the closest point inside the octree to the point provided as an argument.
+     * @param {Lore.Vector3f} point - The point.
+     * @param {Float32Array} - An array containing the positions of the points.
+     * @param {number} threshold - Only consider points inside a axis-aligned bounding box with a minimum of [threshold] points.
+     * @param {number} locCode - If specified, the axis-aligned bounding box in which the point is searched for. If not set, all boxes are searched.
+     * @returns {Lore.Vector3f} The position of the closest point.
+     */
+    getClosestPoint: function(point, positions, threshold, locCode) {
+        threshold = threshold || 0;
+        var minDist = Number.MAX_VALUE;
+        var result = null;
+
+        var box = null;
+
+        if(locCode)
+            box = this.aabbs[locCode];
+        else
+            box = this.getClosestBox(point, threshold);
+
+        var boxPoints = this.points[box.getLocCode()];
+
+        // If the box does not contain any points
+        if(!boxPoints) return null;
+
+        for(var i = 0; i < boxPoints.length; i++) {
+            var index = boxPoints[i];
+            index *= 3;
+            var x = positions[index];
+            var y = positions[index + 1];
+            var z = positions[index + 2];
+
+            var pc = point.components;
+
+            var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
+            if(distSq < minDist) {
+                minDist = distSq;
+                result = { x: x, y: y, z: z};
+            }
+        }
+
+        if(!result) return null;
+
+        return new Lore.Vector3f(result.x, result.y, result.z);
+    },
+
+    /**
+     * Finds the farthest point inside the octree to the point provided as an argument.
+     * @param {Lore.Vector3f} point - The point.
+     * @param {Float32Array} - An array containing the positions of the points.
+     * @param {number} threshold - Only consider points inside a axis-aligned bounding box with a minimum of [threshold] points.
+     * @param {number} locCode - If specified, the axis-aligned bounding box in which the point is searched for. If not set, all boxes are searched.
+     * @returns {Lore.Vector3f} The position of the farthest point.
+     */
+    getFarthestPoint: function(point, positions, threshold, locCode) {
+        threshold = threshold || 0;
+        var maxDist = Number.MIN_VALUE;
+        var result = null;
+
+        // Get farthest box
+        var box = null;
+
+        if(locCode)
+            box = this.aabbs[locCode];
+        else
+            box = this.getFArthestBox(point, threshold);
+
+        var boxPoints = this.points[box.getLocCode()];
+
+        // If the box does not contain any points
+        if(!boxPoints) return null;
+
+        for(var i = 0; i < boxPoints.length; i++) {
+            var index = boxPoints[i];
+            index *= 3;
+            var x = positions[index];
+            var y = positions[index + 1];
+            var z = positions[index + 2];
+
+            var pc = point.components;
+
+            var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
+            if(distSq > maxDist) {
+                maxDist = distSq;
+                result = { x: x, y: y, z: z};
+            }
+        }
+
+        if(!result) return null;
+
+        return new Lore.Vector3f(result.x, result.y, result.z);
+    },
+
+    /**
+     * Returns the parent of a given location code by simply shifting it to the right by tree, removing the current code.
+     * @param {number} locCode - The location code of a node.
+     */
+    getParent: function(locCode) {
+        return locCode >>> 3;
+    },
+
+    /**
+     * Find neighbouring axis-aligned bounding boxes.
+     * @param {number} locCode - The location code of the axis-aligned bounding box whose neighbours will be returned
+     * @returns {Array} An array of location codes of the neighbouring axis-aligned bounding boxes.
+     */
+    getNeighbours: function(locCode) {
+        var self = this;
+        var locCodes = new Array();
+        this.traverseIf(function(points, aabbs, code) {
+            if(points && points.length > 0 && code != locCode) {
+                locCodes.push(code);
+            }
+        }, function(aabb, code) {
+            // Exit branch if this node is not a neighbour
+            return aabb.testAABB(self.aabbs[locCode]);
+        });
+
+        return locCodes;
+    },
+
+    /**
+     * The callback that is called when the nearest neighbours have been found.
+     * @callback PLOTTER.Plot~kNNCallback
+     * @param {Uint32Array} e - An array containing containing the k-nearest neighbours ordered by distance (ascending).
+     */
+    /**
+     * Returns the k-nearest neighbours of a vertex.
+     * @param {number} k - The number of nearest neighbours to return.
+     * @param {number} point - The index of a vertex.
+     * @param {number} locCode - The location code of the axis-aligned bounding box containing the vertex.
+     * @param {Float32Array} positions - The position information for the points indexed in this octree.
+     * @param {PLOTTER.Plot~kNNCallback} kNNCallback - The callback that is called after the k-nearest neighbour search has finished.
+     */
+    kNearestNeighbours: function(k, point, locCode, positions, kNNCallback) {
+        k += 1; // Account for the fact, that the point itself should be returned as well.
+        var length = this.positions / 3;
+        var index = point * 3;
+        var p = { x: positions[index], y: positions[index + 1], z: positions[index + 2] };
+
+        // Calculte the distances to the other cells
+        var px = p.components[0];
+        var py = p.components[1];
+        var pz = p.components[2];
+        var cellDistances = this.getCellDistancesToPoint(px, py, pz, locCode);
+
+        // Calculte the distances to the other points in the same cell
+        var pointDistances = this.pointDistancesSq(px, py, pz, locCode, positions)
+
+        // Sort the indices according to distance
+        var radixSort = new RadixSort();
+	    var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+
+        // Sort the neighbours according to distance
+	    var sortedCellDistances = radixSort.sort(cellDistances.distancesSq, true);
+
+        // Since the closest points always stay the closest points event when adding
+        // the points of another cell, instead of resizing the array, just define
+        // an offset
+        var pointOffset = 0;
+
+        // Get all the neighbours from this cell that are closer than the once from
+        var indexCount = 0;
+        var indices = new Uint32Array(k);
+        for(var i = 0; indexCount < k && i < sortedPointDistances.array.length; i++) {
+            // Break if closest neighbouring cell is closer than the closest remaining point
+            if(sortedPointDistances.array[i] > sortedCellDistances.array[0]) {
+                // Set the offset to the most distant closest member
+                pointOffset = i;
+                break;
+            }
+
+            indices[i] = pointDistances.indices[sortedPointDistances.indices[i]];
+            indexCount++;
+        }
+
+        // If enough neighbours have been found in the same cell, no need to continue
+        if(indexCount == k) {
+            // kNNCallback(indices);
+            return indices;
+        }
+
+        for(var i = 0; i < sortedCellDistances.array.length; i++) {
+            // Get the points from the cell and merge them with the already found ones
+            var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
+            var newPointDistances = this.pointDistancesSq(px, py, pz, locCode, positions);
+
+            pointDistances = Lore.Utils.mergePointDistances(pointDistances, newPointDistances);
+
+            // Sort the merged points
+            var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+
+            for(var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
+                if(sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
+                    pointOffset = j;
+                    break;
+                }
+
+                indices[j] = pointDistances.indices[sortedNewPointDistances.indices[j]];
+                indexCount++;
+            }
+
+            if(indexCount == k || indexCount >= length - 1) {
+                // kNNCallback(indices);
+                return indices;
+            }
+        }
+
+        //kNNCallback(indices);
+        return indices;
+        /*
+        // Check the points contained in the
+        for(var i = cellOffset; i < sortedCellDistances.array.length; i++) {
+            // Get the points from the cell and merge them with the already found ones
+            var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
+            var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+
+            pointDistances = PLOTTER.Helpers.mergePointDistances(pointDistances, newPointDistances);
+
+            // Sort the merged points
+            var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+            for(var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
+                if(sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
+                    pointOffset = j;
+                    break;
+                }
+
+                indices[j] = pointDistances.indices[sortedNewPointDistances.indices[j]];
+                indexCount++;
+            }
+
+            if(indexCount == k) {
+                kNNCallback(indices);
+                return;
+            }
+        }
+        */
+
+    },
+
+    /**
+     * Calculates the distances from a given point to all of the cells containing points
+     * @param {number} x - The x-value of the coordinate.
+     * @param {number} y - The y-value of the coordinate.
+     * @param {number} z - The z-value of the coordinate.
+     * @param {number} locCode - The location code of the cell containing the point.
+     * @returns {Object} An object containing arrays for the locCodes and the squred distances.
+     */
+    getCellDistancesToPoint: function(x, y, z, locCode) {
+        var locCodes = new Array();
+
+        this.traverse(function(points, aabb, code) {
+            if(points && points.length > 0 && code != locCode) {
+                locCodes.push(code);
+            }
+        });
+
+        var dists = new Float32Array(locCodes.length);
+        for(var i = 0; i < locCodes.length; i++) {
+            dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
+        }
+
+        return { locCodes: locCodes, distancesSq: dists };
+    },
+
+    /**
+     * Expands the current neighbourhood around the cell where the point specified by x, y, z is in.
+     * @param {number} x - The x-value of the coordinate.
+     * @param {number} y - The y-value of the coordinate.
+     * @param {number} z - The z-value of the coordinate.
+     * @param {number} locCode - The location code of the cell containing the point.
+     * @param {Object} cellDistances - The object containing location codes and distances.
+     * @returns {number} The number of added location codes.
+     */
+    expandNeighbourhood: function(x, y, z, locCode, cellDistances) {
+        var locCodes = cellDistances.locCodes;
+        var distancesSq = cellDistances.distancesSq;
+        var length = locCodes.length;
+
+        for(var i = length - 1; i >= 0; i--) {
+            var neighbours = this.getNeighbours(locCodes[i]);
+
+
+            for(var j = 0; j < neighbours.length; j++) {
+                if(neighbours[j] == locCode) console.log(locCode);
+                if(neighbours[j] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
+                    locCodes.push(neighbours[j]);
+                }
+            }
+        }
+
+        // Update the distances
+        var l1 = locCodes.length;
+        var l2 = distancesSq.length;
+
+        if(l1 == l2) return;
+
+        var dists = new Float32Array(l1 - l2);
+        for(var i = l2, c = 0; i < l1; i++, c++) {
+            dists[c] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
+        }
+
+        cellDistances.distancesSq = Lore.Utils.concatTypedArrays(distancesSq, dists);
+
+        return locCodes.length - length;
+    },
+
+    /**
+     * Returns a list of the cells neighbouring the cell with the provided locCode and the point specified by x, y and z.
+     * @param {number} x - The x-value of the coordinate.
+     * @param {number} y - The y-value of the coordinate.
+     * @param {number} z - The z-value of the coordinate.
+     * @param {number} locCode - The number of the axis-aligned bounding box.
+     * @returns {Object} An object containing arrays for the locCodes and the squred distances.
+     */
+    cellDistancesSq: function(x, y, z, locCode) {
+        var locCodes = this.getNeighbours(locCode);
+
+        var dists = new Float32Array(locCodes.length);
+        for(var i = 0; i < locCodes.length; i++) {
+            dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
+        }
+
+        return { locCodes: locCodes, distancesSq: dists };
+    },
+
+    /**
+     * Returns a list of the the squared distances of the points contained in the axis-aligned bounding box to the provided coordinates.
+     * @param {number} x - The x-value of the coordinate.
+     * @param {number} y - The y-value of the coordinate.
+     * @param {number} z - The z-value of the coordinate.
+     * @param {number} locCode - The number of the axis-aligned bounding box.
+     * @param {Float32Array} positions - The array containing the vertex coordinates.
+     * @returns {Object} An object containing arrays for the indices and distances.
+     */
+    pointDistancesSq: function(x, y, z, locCode, positions) {
+        var points = this.points[locCode];
+        var indices = new Uint32Array(points.length);
+        var dists = new Float32Array(points.length);
+
+        for(var i = 0; i < points.length; i++) {
+            var index = points[i] * 3;
+            var x2 = positions[index];
+            var y2 = positions[index + 1];
+            var z2 = positions[index + 2];
+
+            indices[i] = points[i];
+            dists[i] = Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2) + Math.pow(z2 - z, 2);
+        }
+        return { indices: indices, distancesSq: dists };
+    }
+}
+
+/**
+ * Clones an octree.
+ * @param {Lore.Octree} original - The octree to be cloned.
+ * @returns {Lore.Octree} The cloned octree.
+ */
+Lore.Octree.clone = function(original) {
+    var clone = new Lore.Octree();
+
+    clone.threshold = original.threshold;
+    clone.maxDepth = original.maxDepth;
+    clone.points = original.points;
+
+    for (var property in original.aabbs) {
+        if (original.aabbs.hasOwnProperty(property)) {
+            clone.aabbs[property] = Lore.AABB.clone(original.aabbs[property]);
+        }
+    }
+
+    return clone;
+}
+
+/**
+ * An array containing 8 arrays to calculate the offset of child nodes given the center and the radius of a parent node.
+ */
+Lore.Octree.OctreeOffsets = [
+    [-0.5, -0.5, -0.5],
+	[-0.5, -0.5, +0.5],
+	[-0.5, +0.5, -0.5],
+	[-0.5, +0.5, +0.5],
+	[+0.5, -0.5, -0.5],
+	[+0.5, -0.5, +0.5],
+	[+0.5, +0.5, -0.5],
+	[+0.5, +0.5, +0.5]
+];
+/**
+ * @class
+ * Axis-aligned bounding boxes with the constraint that they are cubes with equal sides.
+ * @property {Lore.Vector3f} center - The center of this axis-aligned bounding box.
+ * @property {number} radius - The radius of this axis-aligned bounding box.
+ * @property {number} locCode - The location code of this axis-aligned bounding box in the octree.
+ * @property {number} left - The distance of the left plane to the world ZY plane.
+ * @property {number} right - The distance of the right plane to the world ZY plane.
+ * @property {number} back - The distance of the back plane to the world XY plane.
+ * @property {number} front - The distance of the front plane to the world XY plane.
+ * @property {number} bottom - The distance of the bottom plane to the world XZ plane.
+ * @property {number} top - The distance of the top plane to the world XZ plane.
+ * @property {Array} neighbours - The neighbours of this axis-aligned bounding box in an an octree.
+ * @property {Float32Array} min - An array specifying the minimum corner point (x, y, z) of the axis-aligned bounding box.
+ * @property {Float32Array} max - An array specifying the maximum corner point (x, y, z) of the axis-aligned bounding box.
+ * @constructor
+ * @param {Lore.Vector3f} center - A radius for this axis-aligned bounding box.
+ * @param {number} radius - A radius for this axis-aligned bounding box.
+ */
+Lore.AABB = function(center, radius) {
+    this.center = center || new Lore.Vector3f();
+    this.radius = radius || 0;
+    this.locCode = 0;
+    this.left = 0;
+    this.right = 0;
+    this.back = 0;
+    this.front = 0;
+    this.bottom = 0;
+    this.top = 0;
+    this.neightbours = new Array(6);
+    this.min = new Float32Array(3);
+    this.max = new Float32Array(3);
+
+    this.updateDimensions();
+}
+
+Lore.AABB.prototype = {
+    constructor: Lore.AABB,
+
+    /**
+     * Calculates the distance of the axis-aligned bounding box's planes to the world planes.
+     */
+    updateDimensions: function() {
+        var cx = this.center.components[0];
+        var cy = this.center.components[1];
+        var cz = this.center.components[2];
+
+        this.min[0] = cx - this.radius;
+        this.min[1] = cy - this.radius;
+        this.min[2] = cz - this.radius;
+        this.max[0] = cx + this.radius;
+        this.max[1] = cy + this.radius;
+        this.max[2] = cz + this.radius;
+
+        // Precalculate to simplify ray test
+        this.left = cx - this.radius;
+        this.right = cx + this.radius;
+        this.back = cz - this.radius;
+        this.front = cz + this.radius;
+        this.bottom = cy - this.radius;
+        this.top = cy + this.radius;
+    },
+
+    /**
+     * Sets the location code of this axis-aligned bounding box.
+     * @param {number} locCode - The location code.
+     */
+    setLocCode: function(locCode) {
+        this.locCode = locCode;
+    },
+
+    /**
+     * Gets the location code of this axis-aligned bounding box.
+     * @returns {number} The location code.
+     */
+    getLocCode: function() {
+        return this.locCode;
+    },
+
+    /**
+     * Tests whether or not this axis-aligned bounding box is intersected by a ray.
+     * @param {Lore.Vector3f} origin - The origin of the ray.
+     * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
+     * @param {number} dist - The maximum distance from the origin that still counts as an intersect (the far property of the Lore.Raycaster object).
+     * @returns {boolean} - Whether or not there is an intersect.
+     */
+    rayTest: function(origin, inverseDir, dist) {
+        // dir is the precomputed inverse of the direction of the ray,
+        // this means that the costly divisions can be omitted
+        var oc = origin.components;
+        var ic = inverseDir.components;
+
+        var t0 = (this.left - oc[0]) * ic[0];
+        var t1 = (this.right - oc[0]) * ic[0];
+        var t2 = (this.bottom - oc[1]) * ic[1];
+        var t3 = (this.top - oc[1]) * ic[1];
+        var t4 = (this.back - oc[2]) * ic[2];
+        var t5 = (this.front - oc[2]) * ic[2];
+
+        var maxT = Math.min(Math.max(t0, t1), Math.max(t2, t3), Math.max(t4, t5));
+
+        // Ray intersects in reverse direction, which means
+        // that the box is behind the camera
+        if(maxT < 0) return false;
+
+        var minT = Math.max(Math.min(t0, t1), Math.min(t2, t3), Math.min(t4, t5));
+
+        if (minT > maxT || minT > dist) return false;
+
+        // Intersection happens when minT is larger or equal to maxT
+        // and minT is smaller than the distance (distance == radius == ray.far)
+        return true;
+    },
+
+    /**
+     * Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.
+     * @param {Lore.Vector3f} origin - The origin of the ray.
+     * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
+     * @param {number} dist - The maximum distance from the origin that still counts as an intersect (the far property of the Lore.Raycaster object).
+     * @param {number} radius - The radius of the cylinder
+     * @returns {boolean} - Whether or not there is an intersect.
+     */
+    cylinderTest: function(origin, inverseDir, dist, radius) {
+        // Instead of testing an actual cylinder against this aabb, we simply
+        // expand the radius of the box temporarily.
+        this.radius += radius;
+        this.updateDimensions();
+
+        // Do the normal ray intersection test
+        var result = this.rayTest(origin, inverseDir, dist);
+
+        this.radius -= radius;
+        this.updateDimensions();
+
+        return result;
+    },
+
+    /**
+     * Returns the square distance of this axis-aligned bounding box to the point supplied as an argument.
+     * @param {number} x - The x component of the point coordinate.
+     * @param {number} y - The y component of the point coordinate.
+     * @param {number} z - The z component of the point coordinate.
+     * @returns {number} The square distance of this axis-aligned bounding box to the input point.
+     */
+    distanceToPointSq: function(x, y, z) {
+        // From book, real time collision detection
+        var sqDist = 0;
+        var p = [ x, y, z ];
+        // Add the distances for each axis
+        for(var i = 0; i < 3; i++) {
+            if(p[i] < this.min[i])
+                sqDist += Math.pow(this.min[i] - p[i], 2);
+            if(p[i] > this.max[i])
+                sqDist += Math.pow(p[i] - this.max[i], 2);
+        }
+
+        return sqDist;
+    },
+
+    /**
+     * Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
+     * This method can also be used to assert whether or not two boxes are neighbours.
+     * @param {Lore.AABB} aabb - The axis-aligned bounding box to test against.
+     * @returns {boolean} - Whether or not there is an overlap.
+     */
+    testAABB: function(aabb) {
+        for(var i = 0; i < 3; i++) {
+            if(this.max[i] < aabb.min[i] || this.min[i] > aabb.max[i]) return false;
+        }
+        return true;
+    }
+}
+
+/**
+ * Creates a axis-aligned bounding box surrounding a set of vertices.
+ * @param {Uint32Array} vertices - The vertices which will all be inside the axis-aligned bounding box.
+ * @returns {Lore.AABB} An axis-aligned bounding box surrounding the vertices.
+ */
+Lore.AABB.fromPoints = function(vertices) {
+    var x = vertices[0];
+    var y = vertices[1];
+    var z = vertices[2];
+
+    var min = new Lore.Vector3f(x, y, z);
+    var max = new Lore.Vector3f(x, y, z);
+
+    var minc = min.components;
+    var maxc = max.components;
+
+    for(var i = 1; i < vertices.length / 3; i++) {
+        if(vertices[i * 3 + 0] < minc[0]) minc[0] = vertices[i * 3 + 0];
+        if(vertices[i * 3 + 1] < minc[1]) minc[1] = vertices[i * 3 + 1];
+        if(vertices[i * 3 + 2] < minc[2]) minc[2] = vertices[i * 3 + 2];
+        if(vertices[i * 3 + 0] > maxc[0]) maxc[0] = vertices[i * 3 + 0];
+        if(vertices[i * 3 + 1] > maxc[1]) maxc[1] = vertices[i * 3 + 1];
+        if(vertices[i * 3 + 2] > maxc[2]) maxc[2] = vertices[i * 3 + 2];
+    }
+
+    // Calculate the radius in each direction
+    var radii = new Lore.Vector3f.subtract(max, min);
+    radii.multiplyScalar(0.5);
+
+    var rx = radii.components[0];
+    var ry = radii.components[1];
+    var rz = radii.components[2];
+
+    var center = new Lore.Vector3f(rx, ry, rz);
+    center.add(min);
+    // Since the octree always stores cubes, there is of course only
+    // one radius - take the biggest one
+    var radius = Math.max(rx, ry, rz);
+    return new Lore.AABB(center, radius);
+}
+
+Lore.AABB.getCorners = function(aabb) {
+    var c = aabb.center.components;
+    var x = c[0];
+    var y = c[1];
+    var z = c[2];
+    var r = aabb.radius;
+
+    return [
+        x + r, y + r, z + r,
+        x + r, y + r, z - r,
+        x + r, y - r, z + r,
+        x - r, y + r, z + r,
+        x + r, y - r, z - r,
+        x - r, y - r, z + r,
+        x - r, y + r, z - r,
+        x - r, y - r, z - r
+    ]
+}
+
+/**
+ * Clones an axis-aligned bounding box.
+ * @param {Lore.AABB} original - The axis-aligned bounding box to be cloned.
+ * @returns {Lore.AABB} The cloned axis-aligned bounding box.
+ */
+Lore.AABB.clone = function(original) {
+    var clone = new Lore.AABB();
+    clone.back = original.back;
+    clone.bottom = original.bottom;
+    clone.center = new Lore.Vector3f(original.center.components[0], original.center.components[1], original.center.components[2]);
+    clone.front = original.front;
+    clone.left = original.left;
+    clone.locCode = original.locCode;
+    clone.max = original.max;
+    clone.min = original.min;
+    clone.radius = original.radius;
+    clone.right = original.right;
+    clone.top = original.top;
+
+    return clone;
+}
+Lore.Raycaster = function() {
+    this.origin = new Lore.Vector3f();
+    this.direction = new Lore.Vector3f();
+    this.near = 0;
+    this.far = 1000;
+    this.threshold = 0.5;
+}
+
+Lore.Raycaster.prototype = {
+    constructor: Lore.Raycaster,
+
+    set: function(camera, mouseX, mouseY) {
+        this.near = camera.near;
+        this.far = camera.far;
+
+        this.origin.set(mouseX, mouseY, (camera.near + camera.far) / (camera.near - camera.far));
+        this.origin.unproject(camera);
+
+        this.direction.set(0.0, 0.0, -1.0);
+        this.direction.toDirection(camera.modelMatrix);
+    }
+}
+Lore.UI = function(renderCanvas) {
+    this.canvas = document.createElement('canvas');
+    this.renderCanvasElement = document.getElementById(renderCanvas);
+
+    this.init();
+    this.resize();
+}
+
+Lore.UI.prototype = {
+    constructor: Lore.UI,
+
+    init: function() {
+        this.canvas.style.cssText = 'position: absolute; pointer-events: none;';
+
+        // Append the UI canvas before the render canvas
+        this.renderCanvasElement.parentNode.insertBefore(this.canvas, this.renderCanvasElement);
+    },
+
+    setWidth: function(value) {
+        this.canvas.width = value;
+    },
+
+    setHeight: function(value) {
+        this.canvas.height = value;
+    },
+
+    setTop: function(value) {
+        this.canvas.style.top = value;
+    },
+
+    setLeft: function(value) {
+        this.canvas.style.left = value;
+    },
+
+    resize: function() {
+        this.setWidth(this.renderCanvasElement.width);
+        this.setHeight(this.renderCanvasElement.height);
+        this.setTop(this.renderCanvasElement.offsetTop);
+        this.setLeft(this.renderCanvasElement.offsetLeft);
+    }
+}

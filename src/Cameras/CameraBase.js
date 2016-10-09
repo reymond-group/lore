@@ -4,7 +4,7 @@ Lore.CameraBase = function() {
     this.renderer = null;
     this.isProjectionMatrixStale = false;
     this.isViewMatrixStale = false;
-    
+
     this.projectionMatrix = new Lore.ProjectionMatrix();
     this.viewMatrix = new Lore.Matrix4f();
 }
@@ -26,7 +26,8 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
     },
 
     updateViewMatrix: function() {
-        var viewMatrix = Lore.Matrix4f.compose(this.position, this.rotation, this.scale);
+        this.update();
+        var viewMatrix = this.modelMatrix.clone();
         viewMatrix.invert();
         this.viewMatrix = viewMatrix;
         this.isViewMatrixStale = true;

@@ -13,6 +13,8 @@ Lore.Renderer = function(targetId, options) {
     this.geometries = [];
     this.render = function(camera, geometries) {};
 
+    this.effect = null;
+
     this.lastTiming = performance.now();
 
     // Disable context menu on right click
@@ -24,6 +26,9 @@ Lore.Renderer = function(targetId, options) {
     });
 
     this.init();
+
+    // Attach the controls last
+    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, new Lore.Vector3f(500, 500, 500));
 }
 
 Lore.Renderer.prototype = {
@@ -33,7 +38,7 @@ Lore.Renderer.prototype = {
     init: function() {
         var _this = this;
 
-        var settings = { antialias: this.antialiasing, premultipliedAlpha: false, alpha: false };
+        var settings = { antialias: this.antialiasing };
 
         this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
 
@@ -55,8 +60,7 @@ Lore.Renderer.prototype = {
         }
 
         // Blending
-        g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
-
+        //g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
         // Extensions
         var oes = 'OES_standard_derivatives';
         var extOes = g.getExtension(oes);
@@ -70,22 +74,44 @@ Lore.Renderer.prototype = {
             console.warn('Could not load extension: ' + wdb + '.');
         }
 
+        var wdt = 'WEBGL_depth_texture';
+        var extWdt = g.getExtension(wdt);
+        if(extWdt === null) {
+            console.warn('Could not load extension: ' + wdt + '.');
+        }
+
         var cc = this.clearColor.components;
         g.clearColor(cc[0], cc[1], cc[2], cc[3]);
         g.clearDepth(this.clearDepth);
 
         if (this.enableDepthTest) {
             g.enable(g.DEPTH_TEST);
-            g.depthFunc(g.LEQUAL);
+            g.depthFunc(g.LESS);
+            console.log('enable depth test');
+            //g.depthFunc(g.LEQUAL);
         }
+
+        g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+        g.enable(g.BLEND);
 
         this.updateViewport(0, 0, this.canvas.width, this.canvas.height);
         window.addEventListener('resize', function(event) {
             _this.updateViewport(0, 0, _this.canvas.width, _this.canvas.height);
         });
 
+        // Init effect(s)
+        this.effect = new Lore.Effect(this, 'defaultEffect');
+
         this.ready = true;
         this.animate();
+    },
+
+    getWidth: function() {
+        return this.canvas.width;
+    },
+
+    getHeight: function() {
+        return this.canvas.height;
     },
 
     updateViewport: function(x, y, width, height) {
@@ -107,12 +133,16 @@ Lore.Renderer.prototype = {
             this.fpsElement.innerHTML = this.fps;
         }
 
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        this.effect.bind();
         this.render(this.camera, this.geometries);
+        this.effect.unbind();
+
+        this.camera.isProjectionMatrixStale = false;
+        this.camera.isViewMatrixStale = false;
     },
 
     createProgram: function(shader) {
-        shader.init(this.gl);
+        var program = shader.init(this.gl);
         this.shaders.push(shader);
         return this.shaders.length - 1;
     },

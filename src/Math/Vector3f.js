@@ -133,12 +133,49 @@ Lore.Vector3f.prototype = {
                this.components[2] * v.components[2];
     },
 
-    cross: function(v) {    
+    cross: function(v) {
         return new Lore.Vector3f(
             this.components[1] * v.components[2] - this.components[2] * v.components[1],
             this.components[2] * v.components[0] - this.components[0] * v.components[2],
             this.components[0] * v.components[1] - this.components[1] * v.components[0]
         );
+    },
+
+    project: function(camera) {
+        return this.applyProjection(Lore.Matrix4f.multiply(camera.projectionMatrix, Lore.Matrix4f.invert(camera.modelMatrix)));
+    },
+
+    unproject: function(camera) {
+        return this.applyProjection(Lore.Matrix4f.multiply(camera.modelMatrix, Lore.Matrix4f.invert(camera.projectionMatrix)));
+    },
+
+    applyProjection: function(m) {
+        var x = this.components[0];
+        var y = this.components[1];
+        var z = this.components[2];
+
+        var e = m.entries;
+        var p = 1.0 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+
+        this.components[0] = (e[0] * x + e[4] * y + e[8] * z + e[12]) * p;
+    		this.components[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * p;
+    		this.components[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * p;
+
+        return this;
+    },
+
+    toDirection: function(m) {
+        var x = this.components[0];
+        var y = this.components[1];
+        var z = this.components[2];
+
+        var e = m.entries;
+
+        this.components[0] = e[0] * x + e[4] * y + e[8] * z;
+    		this.components[1] = e[1] * x + e[5] * y + e[9] * z;
+    		this.components[2] = e[2] * x + e[6] * y + e[10] * z;
+
+        this.normalize();
     },
 
     applyQuaternion: function(q) {
@@ -175,7 +212,7 @@ Lore.Vector3f.prototype = {
     },
 
     toString: function() {
-        return '(' + this.components[0] + ', ' + this.components[1] + ', ' 
+        return '(' + this.components[0] + ', ' + this.components[1] + ', '
                    + this.components[2] + ')';
     }
 }
