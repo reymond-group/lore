@@ -28,7 +28,8 @@ Lore.Renderer = function(targetId, options) {
     this.init();
 
     // Attach the controls last
-    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, new Lore.Vector3f(500, 500, 500));
+    var center = options.center ? options.center : new Lore.Vector3f();
+    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, center);
 }
 
 Lore.Renderer.prototype = {

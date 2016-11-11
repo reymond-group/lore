@@ -38,15 +38,16 @@ Lore.init = function(canvas) {
         clearColor: cc,
         verbose: true,
         fps: document.getElementById('fps'),
-        antialiasing: true
+        antialiasing: true,
+        center: new Lore.Vector3f(150, 150, 150)
     });
 
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 1000, color: Lore.Color.fromHex('#cccccc') },
-            y: { length: 1000, color: Lore.Color.fromHex('#cccccc') },
-            z: { length: 1000, color: Lore.Color.fromHex('#cccccc') }
+            x: { length: 300, color: Lore.Color.fromHex('#cccccc') },
+            y: { length: 300, color: Lore.Color.fromHex('#cccccc') },
+            z: { length: 300, color: Lore.Color.fromHex('#cccccc') }
         },
         ticks: {
           x: { length: 20, color: Lore.Color.fromHex('#cccccc') },

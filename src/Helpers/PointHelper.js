@@ -46,6 +46,12 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColor(color, length);
     },
 
+    setPositionsXYZRGB: function(x, y, z, r, g, b) {
+        var length = this.getMaxLength(x, y, z);
+        this.setPositionsXYZ(x, y, z, length);
+        this.setRGB(r, g, b, length);
+    },
+
     setPositionsXYZHues: function(x, y, z, hues) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
@@ -68,6 +74,19 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
     setColors: function(colors) {
         this.setAttribute('color', colors);
+    },
+
+    setRGB: function(r, g, b, length) {
+        var c = new Float32Array(length * 3);
+
+        for(var i = 0; i < length; i++) {
+            var j = 3 * i;
+            c[j] = r[i];
+            c[j + 1] = g[i];
+            c[j + 2] = b[i];
+        }
+        
+        this.setColors(c);
     },
 
     setColor: function(color, length) {

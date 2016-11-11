@@ -38,15 +38,16 @@ Lore.init = function(canvas) {
         clearColor: cc,
         verbose: true,
         fps: document.getElementById('fps'),
-        antialiasing: true
+        antialiasing: true,
+        center: new Lore.Vector3f(150, 150, 150)
     });
 
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 1000, color: Lore.Color.fromHex('#cccccc') },
-            y: { length: 1000, color: Lore.Color.fromHex('#cccccc') },
-            z: { length: 1000, color: Lore.Color.fromHex('#cccccc') }
+            x: { length: 300, color: Lore.Color.fromHex('#cccccc') },
+            y: { length: 300, color: Lore.Color.fromHex('#cccccc') },
+            z: { length: 300, color: Lore.Color.fromHex('#cccccc') }
         },
         ticks: {
           x: { length: 20, color: Lore.Color.fromHex('#cccccc') },
@@ -184,7 +185,8 @@ Lore.Renderer = function(targetId, options) {
     this.init();
 
     // Attach the controls last
-    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, new Lore.Vector3f(500, 500, 500));
+    var center = options.center ? options.center : new Lore.Vector3f();
+    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, center);
 }
 
 Lore.Renderer.prototype = {
@@ -3123,6 +3125,12 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColor(color, length);
     },
 
+    setPositionsXYZRGB: function(x, y, z, r, g, b) {
+        var length = this.getMaxLength(x, y, z);
+        this.setPositionsXYZ(x, y, z, length);
+        this.setRGB(r, g, b, length);
+    },
+
     setPositionsXYZHues: function(x, y, z, hues) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
@@ -3145,6 +3153,19 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
     setColors: function(colors) {
         this.setAttribute('color', colors);
+    },
+
+    setRGB: function(r, g, b, length) {
+        var c = new Float32Array(length * 3);
+
+        for(var i = 0; i < length; i++) {
+            var j = 3 * i;
+            c[j] = r[i];
+            c[j + 1] = g[i];
+            c[j + 2] = b[i];
+        }
+        
+        this.setColors(c);
     },
 
     setColor: function(color, length) {

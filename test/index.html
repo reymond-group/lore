@@ -18,17 +18,16 @@
 
     var csvReader = new Lore.CsvFileReader('csv', {
         header: true,
-        cols: [0, 1, 2, 3],
-        types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Float32Array'],
-        separator: ' '
+        cols: [0, 1, 2, 3, 4, 5],
+        types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array'],
+        separator: ','
     });
 
     csvReader.addEventListener('loaded', function(e) {
         var pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'default');
         pointHelper.geometry.isVisible = true;
         var minmax = Lore.Statistics.normalize(e[3]);
-        pointHelper.setPositionsXYZHues(e[0], e[1], e[2], e[3]);
-
+        pointHelper.setPositionsXYZRGB(e[0], e[1], e[2], e[3], e[4], e[5]);
         var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper.octree);
     });
   </script>
