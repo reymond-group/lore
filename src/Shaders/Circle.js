@@ -8,6 +8,7 @@ Lore.Shaders['circle'] = new Lore.Shader('Circle', {}, [
         'vColor = color;',
     '}'
 ], [
+    'uniform sampler2D tex',
     'varying vec3 vColor;',
     'void main() {',
         'float r = 1.0, delta = 0.0, alpha = 1.0;',

@@ -58,11 +58,22 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setHues(hues, length);
     },
 
+    setPositionsXYZHSL: function(x, y, z, h, s, l) {
+      var length = this.getMaxLength(x, y, z);
+      this.setPositionsXYZ(x, y, z, length);
+      this.setHSL(h, s, l, length);
+    },
+
     setHues: function(hues, length) {
         var colors = new Float32Array(length * 3);
 
         for(var i = 0; i < length; i++) {
             var hue = hues[i] || 0;
+            // Rescale
+            hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
+            // Invert hue
+            hue = 1 - hue;
+            hue = this.shiftHue(hue, -0.2);
             var rgb = Lore.Color.hslToRgb(hue, 0.5, 0.5);
             colors[i * 3] = rgb[0];
             colors[i * 3 + 1] = rgb[1];
@@ -70,6 +81,33 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         }
 
         this.setColors(colors);
+    },
+
+    setHSL: function(h, s, l, length) {
+        var colors = new Float32Array(length * 3);
+
+        for(var i = 0; i < length; i++) {
+            var hue = h[i] || 0;
+            // Rescale
+            hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
+            // Invert hue
+            hue = 1 - hue;
+            hue = this.shiftHue(hue, -0.2);
+            var rgb = Lore.Color.hslToRgb(hue, s[i], l[i]);
+            colors[i * 3] = rgb[0];
+            colors[i * 3 + 1] = rgb[1];
+            colors[i * 3 + 2] = rgb[2];
+        }
+
+        this.setColors(colors);
+    },
+
+    shiftHue: function(hue, value) {
+        hue += value;
+        if(hue > 1) hue = hue - 1;
+        if(hue < 0) hue = 1 + hue;
+
+        return hue;
     },
 
     setColors: function(colors) {

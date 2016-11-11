@@ -64,3 +64,7 @@ Lore.Statistics.normalize = function(arr) {
 
     return [min, max];
 }
+
+Lore.Statistics.scale = function(value, oldMin, oldMax, newMin, newMax) {
+    return (newMax - newMin) * (value - oldMin) / (oldMax - oldMin) + newMin;
+}
