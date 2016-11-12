@@ -207,7 +207,7 @@ Lore.Octree.prototype = {
 
         // Calculate the direction, and the percentage
         // of the direction, of the ray
-        var dir = raycaster.direction.clone();
+        var dir = raycaster.ray.direction.clone();
         dir.normalize();
         var inverseDir = new Lore.Vector3f(1, 1, 1);
         inverseDir.divide(dir);
@@ -220,7 +220,7 @@ Lore.Octree.prototype = {
                 result.push({ index: points[i], locCode: locCode });
             }
         }, function(aabb, locCode) {
-            return aabb.cylinderTest(raycaster.origin, inverseDir, raycaster.far, raycaster.threshold);
+            return aabb.cylinderTest(raycaster.ray.source, inverseDir, raycaster.far, raycaster.threshold);
         });
 
         return result;

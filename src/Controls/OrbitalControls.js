@@ -59,12 +59,14 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
                 this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
                 this.camera.updateProjectionMatrix();
                 this.zoomed = true;
+                this.raiseEvent('zoomchanged', this.camera.zoom);
             }
             else if(e.y < 0) {
                 // Zoom In
                 this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
                 this.camera.updateProjectionMatrix();
                 this.zoomed = true;
+                this.raiseEvent('zoomchanged', this.camera.zoom);
             }
         }
 

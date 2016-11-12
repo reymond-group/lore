@@ -27,7 +27,7 @@ Lore.AABB = function(center, radius) {
     this.front = 0;
     this.bottom = 0;
     this.top = 0;
-    this.neightbours = new Array(6);
+    this.neighbours = new Array(6);
     this.min = new Float32Array(3);
     this.max = new Float32Array(3);
 
@@ -79,15 +79,15 @@ Lore.AABB.prototype = {
 
     /**
      * Tests whether or not this axis-aligned bounding box is intersected by a ray.
-     * @param {Lore.Vector3f} origin - The origin of the ray.
+     * @param {Lore.Vector3f} source - The source of the ray.
      * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
-     * @param {number} dist - The maximum distance from the origin that still counts as an intersect (the far property of the Lore.Raycaster object).
+     * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
      * @returns {boolean} - Whether or not there is an intersect.
      */
-    rayTest: function(origin, inverseDir, dist) {
+    rayTest: function(source, inverseDir, dist) {
         // dir is the precomputed inverse of the direction of the ray,
         // this means that the costly divisions can be omitted
-        var oc = origin.components;
+        var oc = source.components;
         var ic = inverseDir.components;
 
         var t0 = (this.left - oc[0]) * ic[0];
@@ -114,20 +114,20 @@ Lore.AABB.prototype = {
 
     /**
      * Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.
-     * @param {Lore.Vector3f} origin - The origin of the ray.
+     * @param {Lore.Vector3f} source - The source of the ray.
      * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
-     * @param {number} dist - The maximum distance from the origin that still counts as an intersect (the far property of the Lore.Raycaster object).
+     * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
      * @param {number} radius - The radius of the cylinder
      * @returns {boolean} - Whether or not there is an intersect.
      */
-    cylinderTest: function(origin, inverseDir, dist, radius) {
+    cylinderTest: function(source, inverseDir, dist, radius) {
         // Instead of testing an actual cylinder against this aabb, we simply
         // expand the radius of the box temporarily.
         this.radius += radius;
         this.updateDimensions();
 
         // Do the normal ray intersection test
-        var result = this.rayTest(origin, inverseDir, dist);
+        var result = this.rayTest(source, inverseDir, dist);
 
         this.radius -= radius;
         this.updateDimensions();
@@ -220,14 +220,14 @@ Lore.AABB.getCorners = function(aabb) {
     var r = aabb.radius;
 
     return [
-        x + r, y + r, z + r,
-        x + r, y + r, z - r,
-        x + r, y - r, z + r,
-        x - r, y + r, z + r,
-        x + r, y - r, z - r,
-        x - r, y - r, z + r,
-        x - r, y + r, z - r,
-        x - r, y - r, z - r
+        [ x - r, y - r, z - r ],
+        [ x - r, y - r, z + r ],
+        [ x - r, y + r, z - r ],
+        [ x - r, y + r, z + r ],
+        [ x + r, y - r, z - r ],
+        [ x + r, y - r, z + r ],
+        [ x + r, y + r, z - r ],
+        [ x + r, y + r, z + r ]
     ]
 }
 

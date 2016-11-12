@@ -158,8 +158,8 @@ Lore.Vector3f.prototype = {
         var p = 1.0 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
 
         this.components[0] = (e[0] * x + e[4] * y + e[8] * z + e[12]) * p;
-    		this.components[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * p;
-    		this.components[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * p;
+    	this.components[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * p;
+    	this.components[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * p;
 
         return this;
     },
@@ -198,6 +198,18 @@ Lore.Vector3f.prototype = {
         this.components[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
 
         return this;
+    },
+
+    distanceToSq: function(v) {
+        var dx = this.components[0] - v.components[0];
+        var dy = this.components[1] - v.components[1];
+        var dz = this.components[2] - v.components[2];
+
+		return dx * dx + dy * dy + dz * dz;
+    },
+
+    distanceTo: function(v) {
+        return Math.sqrt(this.distanceToSq(v));
     },
 
     clone: function() {

@@ -86,8 +86,9 @@ Lore.Shader.prototype = {
     updateUniforms: function() {
         for (var uniform in this.uniforms) {
             var unif = this.uniforms[uniform];
-            if (unif.stale)
+            if (unif.stale) {
                 Lore.Uniform.Set(this.gl, this.program, unif);
+            }
         }
     },
 

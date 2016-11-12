@@ -48,5 +48,6 @@ Lore.Uniform.Set = function(gl, program, uniform) {
 
     // TODO: Add SAMPLER_2D and SAMPLER_CUBE
 
-    uniform.stale = false;
+    // Had to set this to true because point sizes did not update...
+    uniform.stale = true;
 }

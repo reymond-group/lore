@@ -4,6 +4,7 @@ Lore.PointHelper = function(renderer, geometryName, shaderName, options) {
     this.indices = null;
     this.octree = null;
     this.geometry.setMode(Lore.DrawModes.points);
+    this.initPointSize();
 }
 
 Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
@@ -46,10 +47,12 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColor(color, length);
     },
 
-    setPositionsXYZRGB: function(x, y, z, r, g, b) {
+    setPositionsXYZRGB: function(x, y, z, r, g, b, normalize) {
+        normalize = normalize ? true : false;
+
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
-        this.setRGB(r, g, b, length);
+        this.setRGB(r, g, b, length, normalize);
     },
 
     setPositionsXYZHues: function(x, y, z, hues) {
@@ -114,14 +117,36 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setAttribute('color', colors);
     },
 
-    setRGB: function(r, g, b, length) {
+    updateColor: function(index, color) {
+        this.updateAttribute('color', index, color.components);
+    },
+
+    setPointSize: function(size) {
+        this.geometry.shader.uniforms.size.value = size;
+    },
+
+    initPointSize: function() {
+        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom;
+    },
+
+    setRGB: function(r, g, b, length, normalize) {
         var c = new Float32Array(length * 3);
 
-        for(var i = 0; i < length; i++) {
-            var j = 3 * i;
-            c[j] = r[i];
-            c[j + 1] = g[i];
-            c[j + 2] = b[i];
+        if(normalize) {
+            for(var i = 0; i < length; i++) {
+                var j = 3 * i;
+                c[j] = r[i] / 255.0;
+                c[j + 1] = g[i] / 255.0;
+                c[j + 2] = b[i] / 255.0;
+            }
+        }
+        else {
+            for(var i = 0; i < length; i++) {
+                var j = 3 * i;
+                c[j] = r[i];
+                c[j + 1] = g[i];
+                c[j + 2] = b[i];
+            }
         }
         
         this.setColors(c);
