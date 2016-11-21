@@ -1,5 +1,6 @@
 Lore.Renderer = function(targetId, options) {
     this.canvas = document.getElementById(targetId);
+    this.parent = this.canvas.parentElement;
     this.antialiasing = options.antialiasing === false ? false : true;
     this.verbose = options.verbose === true ? true : false;
     this.fpsElement = options.fps;
@@ -7,8 +8,7 @@ Lore.Renderer = function(targetId, options) {
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
-
-    this.camera = options.camera || new Lore.OrthographicCamera(500 / -2, 500 / 2, 500 / 2, 500 / -2);
+    this.camera = options.camera || new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
     this.shaders = []
     this.geometries = [];
     this.render = function(camera, geometries) {};
@@ -95,28 +95,37 @@ Lore.Renderer.prototype = {
         g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
         g.enable(g.BLEND);
 
-        this.updateViewport(0, 0, this.canvas.width, this.canvas.height);
+        this.updateViewport(0, 0, this.getWidth(), this.getHeight());
         window.addEventListener('resize', function(event) {
-            _this.updateViewport(0, 0, _this.canvas.width, _this.canvas.height);
+            _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
         });
 
         // Init effect(s)
-        this.effect = new Lore.Effect(this, 'defaultEffect');
+        this.effect = new Lore.Effect(this, 'fxaaEffect');
 
         this.ready = true;
         this.animate();
     },
 
     getWidth: function() {
-        return this.canvas.width;
+        return this.parent.offsetWidth;
     },
 
     getHeight: function() {
-        return this.canvas.height;
+        return this.parent.offsetHeight;
     },
 
     updateViewport: function(x, y, width, height) {
+        this.canvas.width = width;
+        this.canvas.height = height;
         this.gl.viewport(x, y, width, height);
+
+        this.camera.left = -width / 2;
+        this.camera.right = width / 2;
+        this.camera.top = height / 2;
+        this.camera.bottom = -height / 2;
+
+        this.camera.updateProjectionMatrix();
     },
 
     animate: function() {
@@ -134,9 +143,10 @@ Lore.Renderer.prototype = {
             this.fpsElement.innerHTML = this.fps;
         }
 
-        this.effect.bind();
+        // this.effect.bind();
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.render(this.camera, this.geometries);
-        this.effect.unbind();
+        // this.effect.unbind();
 
         this.camera.isProjectionMatrixStale = false;
         this.camera.isViewMatrixStale = false;

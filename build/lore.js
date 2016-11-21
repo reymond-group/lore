@@ -26,38 +26,41 @@ Lore.Keyboard = {
 
 Lore.Shaders = {};
 
-Lore.init = function(canvas) {
+Lore.init = function(canvas, options) {
+    this.opts = Lore.Utils.extend(true, Lore.defaults, options);
+
     // Init UI
     var ui = new Lore.UI(canvas);
 
 
     // Start the 3D stuff
-    var cc = Lore.Color.fromHex('#222222');
+    var cc = Lore.Color.fromHex(this.opts.clearColor);
 
     var renderer = new Lore.Renderer(canvas, {
         clearColor: cc,
         verbose: true,
         fps: document.getElementById('fps'),
-        antialiasing: true,
+        antialiasing: false,
         center: new Lore.Vector3f(150, 150, 150)
     });
 
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 300, color: Lore.Color.fromHex('#cccccc') },
-            y: { length: 300, color: Lore.Color.fromHex('#cccccc') },
-            z: { length: 300, color: Lore.Color.fromHex('#cccccc') }
+            x: { length: 500, color: Lore.Color.fromHex('#097692') },
+            y: { length: 500, color: Lore.Color.fromHex('#097692') },
+            z: { length: 500, color: Lore.Color.fromHex('#097692') }
         },
         ticks: {
-          x: { length: 20, color: Lore.Color.fromHex('#cccccc') },
-          y: { length: 20, color: Lore.Color.fromHex('#cccccc') },
-          z: { length: 20, color: Lore.Color.fromHex('#cccccc') }
+          x: { length: 10, color: Lore.Color.fromHex('#097692') },
+          y: { length: 10, color: Lore.Color.fromHex('#097692') },
+          z: { length: 10, color: Lore.Color.fromHex('#097692') }
         },
         box: {
-          x: { color: Lore.Color.fromHex('#666666') },
-          y: { color: Lore.Color.fromHex('#666666') },
-          z: { color: Lore.Color.fromHex('#666666') }
+          enabled: false,
+          x: { color: Lore.Color.fromHex('#004F6E') },
+          y: { color: Lore.Color.fromHex('#004F6E') },
+          z: { color: Lore.Color.fromHex('#004F6E') }
         }
     });
 /*
@@ -81,6 +84,10 @@ Lore.init = function(canvas) {
 
     return renderer;
 }
+
+Lore.defaults = {
+    clearColor: '#001821'
+};
 Lore.DrawModes = {
     points: 0,
     lines: 1,
@@ -157,6 +164,7 @@ Lore.Color.hslToRgb = function(h, s, l) {
 }
 Lore.Renderer = function(targetId, options) {
     this.canvas = document.getElementById(targetId);
+    this.parent = this.canvas.parentElement;
     this.antialiasing = options.antialiasing === false ? false : true;
     this.verbose = options.verbose === true ? true : false;
     this.fpsElement = options.fps;
@@ -164,8 +172,7 @@ Lore.Renderer = function(targetId, options) {
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
-
-    this.camera = options.camera || new Lore.OrthographicCamera(500 / -2, 500 / 2, 500 / 2, 500 / -2);
+    this.camera = options.camera || new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
     this.shaders = []
     this.geometries = [];
     this.render = function(camera, geometries) {};
@@ -252,28 +259,37 @@ Lore.Renderer.prototype = {
         g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
         g.enable(g.BLEND);
 
-        this.updateViewport(0, 0, this.canvas.width, this.canvas.height);
+        this.updateViewport(0, 0, this.getWidth(), this.getHeight());
         window.addEventListener('resize', function(event) {
-            _this.updateViewport(0, 0, _this.canvas.width, _this.canvas.height);
+            _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
         });
 
         // Init effect(s)
-        this.effect = new Lore.Effect(this, 'defaultEffect');
+        this.effect = new Lore.Effect(this, 'fxaaEffect');
 
         this.ready = true;
         this.animate();
     },
 
     getWidth: function() {
-        return this.canvas.width;
+        return this.parent.offsetWidth;
     },
 
     getHeight: function() {
-        return this.canvas.height;
+        return this.parent.offsetHeight;
     },
 
     updateViewport: function(x, y, width, height) {
+        this.canvas.width = width;
+        this.canvas.height = height;
         this.gl.viewport(x, y, width, height);
+
+        this.camera.left = -width / 2;
+        this.camera.right = width / 2;
+        this.camera.top = height / 2;
+        this.camera.bottom = -height / 2;
+
+        this.camera.updateProjectionMatrix();
     },
 
     animate: function() {
@@ -291,9 +307,10 @@ Lore.Renderer.prototype = {
             this.fpsElement.innerHTML = this.fps;
         }
 
-        this.effect.bind();
+        // this.effect.bind();
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.render(this.camera, this.geometries);
-        this.effect.unbind();
+        // this.effect.unbind();
 
         this.camera.isProjectionMatrixStale = false;
         this.camera.isViewMatrixStale = false;
@@ -905,7 +922,8 @@ Lore.ControlsBase = function(renderer) {
         normalizedPosition: {
             x: 0.0,
             y: 0.0
-        }
+        },
+        touches: 0
     };
 
     this.keyboard = {
@@ -938,6 +956,58 @@ Lore.ControlsBase = function(renderer) {
 
         that.mouse.previousPosition.x = e.pageX;
         that.mouse.previousPosition.y = e.pageY;
+    });
+
+    this.canvas.addEventListener('touchstart', function(e) {
+        that.mouse.touches++;
+        var touch = e.touches[0];
+        e.preventDefault();
+
+        that.mouse.touched = true;
+
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousedown', { e: that, source: 'touch' });
+    });
+
+    this.canvas.addEventListener('touchend', function(e) {
+        that.mouse.touches--;
+        e.preventDefault();
+
+        that.mouse.touched = false;
+
+        // Reset the previous position and delta of the mouse
+        that.mouse.previousPosition.x = null;
+        that.mouse.previousPosition.y = null;
+
+        that.raiseEvent('mouseup', { e: that, source: 'touch' });
+    });
+
+    this.canvas.addEventListener('touchmove', function(e) {
+        var touch = e.touches[0];
+        var source = 'left';
+        
+        if(that.mouse.touches == 2) source = 'right';
+
+        e.preventDefault();
+        
+        if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
+            that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
+            that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
+            
+            that.mouse.position.x += 0.01 * that.mouse.delta.x;
+            that.mouse.position.y += 0.01 * that.mouse.delta.y;
+
+            that.raiseEvent('mousemove', { e: that.mouse.delta });
+            // Touch move is the same as left button drag
+            that.raiseEvent('mousedrag', { e: that.mouse.delta, source: source});
+        }
+
+        that.mouse.previousPosition.x = touch.pageX;
+        that.mouse.previousPosition.y = touch.pageY;
     });
 
     var wheelevent = 'mousewheel';
@@ -3397,7 +3467,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // X ticks
         var pos = p[0];
         var col = xTicks.color.components;
-        for(var i = 0; i < xTicks.count; i++) {
+        for(var i = 0; i < xTicks.count - 1; i++) {
             pos += xTickOffset;
             // From
             positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -3406,7 +3476,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[0];
-        for(var i = 0; i < xTicks.count; i++) {
+        for(var i = 0; i < xTicks.count - 1; i++) {
             pos += xTickOffset;
             // From
             positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -3417,7 +3487,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Y ticks
         pos = p[1];
         col = yTicks.color.components;
-        for(var i = 0; i < yTicks.count; i++) {
+        for(var i = 0; i < yTicks.count - 1; i++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -3426,7 +3496,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[1];
-        for(var i = 0; i < yTicks.count; i++) {
+        for(var i = 0; i < yTicks.count - 1; i++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -3437,7 +3507,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Z ticks
         pos = p[2];
         col = zTicks.color.components;
-        for(var i = 0; i < zTicks.count; i++) {
+        for(var i = 0; i < zTicks.count - 1; i++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
@@ -3446,7 +3516,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[2];
-        for(var i = 0; i < zTicks.count; i++) {
+        for(var i = 0; i < zTicks.count - 1; i++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
@@ -3848,17 +3918,17 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
         'gl_FragColor = vec4(vColor, 1.0);',
     '}'
 ]);
-Lore.Shaders['circle'] = new Lore.Shader('Circle', {}, [
+Lore.Shaders['circle'] = new Lore.Shader('Circle', { size: new Lore.Uniform('size', 5.0, 'float') }, [
+    'uniform float size;',
     'attribute vec3 position;',
     'attribute vec3 color;',
     'varying vec3 vColor;',
     'void main() {',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-        'gl_PointSize = 10.0;',
+        'gl_PointSize = size;',
         'vColor = color;',
     '}'
 ], [
-    'uniform sampler2D tex',
     'varying vec3 vColor;',
     'void main() {',
         'float r = 1.0, delta = 0.0, alpha = 1.0;',

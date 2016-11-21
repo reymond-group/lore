@@ -70,7 +70,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // X ticks
         var pos = p[0];
         var col = xTicks.color.components;
-        for(var i = 0; i < xTicks.count; i++) {
+        for(var i = 0; i < xTicks.count - 1; i++) {
             pos += xTickOffset;
             // From
             positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -79,7 +79,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[0];
-        for(var i = 0; i < xTicks.count; i++) {
+        for(var i = 0; i < xTicks.count - 1; i++) {
             pos += xTickOffset;
             // From
             positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -90,7 +90,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Y ticks
         pos = p[1];
         col = yTicks.color.components;
-        for(var i = 0; i < yTicks.count; i++) {
+        for(var i = 0; i < yTicks.count - 1; i++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -99,7 +99,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[1];
-        for(var i = 0; i < yTicks.count; i++) {
+        for(var i = 0; i < yTicks.count - 1; i++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -110,7 +110,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Z ticks
         pos = p[2];
         col = zTicks.color.components;
-        for(var i = 0; i < zTicks.count; i++) {
+        for(var i = 0; i < zTicks.count - 1; i++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
@@ -119,7 +119,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[2];
-        for(var i = 0; i < zTicks.count; i++) {
+        for(var i = 0; i < zTicks.count - 1; i++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],

@@ -22,7 +22,8 @@ Lore.ControlsBase = function(renderer) {
         normalizedPosition: {
             x: 0.0,
             y: 0.0
-        }
+        },
+        touches: 0
     };
 
     this.keyboard = {
@@ -55,6 +56,58 @@ Lore.ControlsBase = function(renderer) {
 
         that.mouse.previousPosition.x = e.pageX;
         that.mouse.previousPosition.y = e.pageY;
+    });
+
+    this.canvas.addEventListener('touchstart', function(e) {
+        that.mouse.touches++;
+        var touch = e.touches[0];
+        e.preventDefault();
+
+        that.mouse.touched = true;
+
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousedown', { e: that, source: 'touch' });
+    });
+
+    this.canvas.addEventListener('touchend', function(e) {
+        that.mouse.touches--;
+        e.preventDefault();
+
+        that.mouse.touched = false;
+
+        // Reset the previous position and delta of the mouse
+        that.mouse.previousPosition.x = null;
+        that.mouse.previousPosition.y = null;
+
+        that.raiseEvent('mouseup', { e: that, source: 'touch' });
+    });
+
+    this.canvas.addEventListener('touchmove', function(e) {
+        var touch = e.touches[0];
+        var source = 'left';
+        
+        if(that.mouse.touches == 2) source = 'right';
+
+        e.preventDefault();
+        
+        if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
+            that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
+            that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
+            
+            that.mouse.position.x += 0.01 * that.mouse.delta.x;
+            that.mouse.position.y += 0.01 * that.mouse.delta.y;
+
+            that.raiseEvent('mousemove', { e: that.mouse.delta });
+            // Touch move is the same as left button drag
+            that.raiseEvent('mousedrag', { e: that.mouse.delta, source: source});
+        }
+
+        that.mouse.previousPosition.x = touch.pageX;
+        that.mouse.previousPosition.y = touch.pageY;
     });
 
     var wheelevent = 'mousewheel';

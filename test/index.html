@@ -7,8 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-  <canvas id="loreCanvas" height="750" width="750">
-  </canvas>
+  <div style="width: 100%; height: 500px">
+    <canvas id="loreCanvas" height="500" width="500">
+    </canvas>
+  </div>
   <p id="fps"></p>
   <input id="csv" type="file"></input>
 
@@ -18,15 +20,36 @@
 
     var csvReader = new Lore.CsvFileReader('csv', {
         header: false,
-        cols: [0, 1, 2, 3, 4, 5],
-        types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array'],
+        //cols: [0, 1, 2, 3, 4, 5],
+        cols: [0, 1, 2],
+        //types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array'],
+        types: ['Uint16Array', 'Uint16Array', 'Uint16Array'],
         separator: ','
     });
 
     csvReader.addEventListener('loaded', function(e) {
         var pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'default');
         pointHelper.geometry.isVisible = true;
-        pointHelper.setPositionsXYZRGB(e[0], e[1], e[2], e[3], e[4], e[5], true);
+        /*
+        var size = 250000;
+        e[0] = new Uint16Array(size);
+        e[1] = new Uint16Array(size);
+        e[2] = new Uint16Array(size);
+        e[3] = new Uint16Array(size);
+        e[4] = new Uint16Array(size);
+        e[5] = new Uint16Array(size);
+        for(var i = 0; i < size; i++) { 
+            e[0][i] = Math.round(Lore.Statistics.randomNormal() * 500) + 150;
+            e[1][i] = Math.round(Lore.Statistics.randomNormal() * 500) + 150;
+            e[2][i] = Math.round(Lore.Statistics.randomNormal() * 500) + 150;
+            e[3][i] = Math.round(Math.random() * 255);
+            e[4][i] = Math.round(Math.random() * 255);
+            e[5][i] = 128;
+        }
+        */
+        console.log(e);
+        pointHelper.setPositionsXYZColor(e[0], e[1], e[2], new Lore.Color(0.1, 0.2, 0.8));
+        // pointHelper.setPositionsXYZRGB(e[0], e[1], e[2], e[3], e[4], e[5], true);
         var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
     });
   </script>

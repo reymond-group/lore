@@ -26,38 +26,41 @@ Lore.Keyboard = {
 
 Lore.Shaders = {};
 
-Lore.init = function(canvas) {
+Lore.init = function(canvas, options) {
+    this.opts = Lore.Utils.extend(true, Lore.defaults, options);
+
     // Init UI
     var ui = new Lore.UI(canvas);
 
 
     // Start the 3D stuff
-    var cc = Lore.Color.fromHex('#222222');
+    var cc = Lore.Color.fromHex(this.opts.clearColor);
 
     var renderer = new Lore.Renderer(canvas, {
         clearColor: cc,
         verbose: true,
         fps: document.getElementById('fps'),
-        antialiasing: true,
+        antialiasing: false,
         center: new Lore.Vector3f(150, 150, 150)
     });
 
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 300, color: Lore.Color.fromHex('#cccccc') },
-            y: { length: 300, color: Lore.Color.fromHex('#cccccc') },
-            z: { length: 300, color: Lore.Color.fromHex('#cccccc') }
+            x: { length: 500, color: Lore.Color.fromHex('#097692') },
+            y: { length: 500, color: Lore.Color.fromHex('#097692') },
+            z: { length: 500, color: Lore.Color.fromHex('#097692') }
         },
         ticks: {
-          x: { length: 20, color: Lore.Color.fromHex('#cccccc') },
-          y: { length: 20, color: Lore.Color.fromHex('#cccccc') },
-          z: { length: 20, color: Lore.Color.fromHex('#cccccc') }
+          x: { length: 10, color: Lore.Color.fromHex('#097692') },
+          y: { length: 10, color: Lore.Color.fromHex('#097692') },
+          z: { length: 10, color: Lore.Color.fromHex('#097692') }
         },
         box: {
-          x: { color: Lore.Color.fromHex('#666666') },
-          y: { color: Lore.Color.fromHex('#666666') },
-          z: { color: Lore.Color.fromHex('#666666') }
+          enabled: false,
+          x: { color: Lore.Color.fromHex('#004F6E') },
+          y: { color: Lore.Color.fromHex('#004F6E') },
+          z: { color: Lore.Color.fromHex('#004F6E') }
         }
     });
 /*
@@ -81,3 +84,7 @@ Lore.init = function(canvas) {
 
     return renderer;
 }
+
+Lore.defaults = {
+    clearColor: '#001821'
+};
