@@ -81,8 +81,8 @@ Lore.Renderer.prototype = {
             console.warn('Could not load extension: ' + wdt + '.');
         }
 
-        var cc = this.clearColor.components;
-        g.clearColor(cc[0], cc[1], cc[2], cc[3]);
+
+        this.setClearColor(this.clearColor);
         g.clearDepth(this.clearDepth);
 
         if (this.enableDepthTest) {
@@ -95,7 +95,10 @@ Lore.Renderer.prototype = {
         g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
         g.enable(g.BLEND);
 
-        this.updateViewport(0, 0, this.getWidth(), this.getHeight());
+        setTimeout(function() {
+            _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+        }, 200);
+
         window.addEventListener('resize', function(event) {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
         });
@@ -105,6 +108,12 @@ Lore.Renderer.prototype = {
 
         this.ready = true;
         this.animate();
+    },
+
+    setClearColor: function(color) {
+        this.clearColor = color;
+        var cc = this.clearColor.components;
+        this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
     },
 
     getWidth: function() {

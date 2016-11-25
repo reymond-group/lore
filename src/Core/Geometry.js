@@ -18,6 +18,10 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         return this;
     },
 
+    updateAttribute: function(name, data) {
+        this.attributes[name].update(this.gl, data);
+    },
+
     getAttribute: function(name) {
         return this.attributes[name];
     },

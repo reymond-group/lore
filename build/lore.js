@@ -245,8 +245,8 @@ Lore.Renderer.prototype = {
             console.warn('Could not load extension: ' + wdt + '.');
         }
 
-        var cc = this.clearColor.components;
-        g.clearColor(cc[0], cc[1], cc[2], cc[3]);
+
+        this.setClearColor(this.clearColor);
         g.clearDepth(this.clearDepth);
 
         if (this.enableDepthTest) {
@@ -259,7 +259,10 @@ Lore.Renderer.prototype = {
         g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
         g.enable(g.BLEND);
 
-        this.updateViewport(0, 0, this.getWidth(), this.getHeight());
+        setTimeout(function() {
+            _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+        }, 200);
+
         window.addEventListener('resize', function(event) {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
         });
@@ -269,6 +272,12 @@ Lore.Renderer.prototype = {
 
         this.ready = true;
         this.animate();
+    },
+
+    setClearColor: function(color) {
+        this.clearColor = color;
+        var cc = this.clearColor.components;
+        this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
     },
 
     getWidth: function() {
@@ -632,6 +641,10 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         this.attributes[name] = new Lore.Attribute(data, length, name);
         this.attributes[name].createBuffer(this.gl, this.shader.program);
         return this;
+    },
+
+    updateAttribute: function(name, data) {
+        this.attributes[name].update(this.gl, data);
     },
 
     getAttribute: function(name) {
@@ -3213,11 +3226,20 @@ Lore.HelperBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
 
     updateAttribute: function(name, index, value) {
         var attr = this.geometry.attributes[name];
+        
         var j = index * attr.attributeLength;
 
         for(var i = 0; i < attr.attributeLength; i++)
             attr.data[j + i] = value[i] || attr.data[j + i];
         
+        attr.stale = true;
+    },
+
+    updateAttributeAll: function(name, values) {
+        var attr = this.geometry.attributes[name];
+        for(var i = 0; i < attr.data.length; i++)
+            attr.data[i] = values[i];
+
         attr.stale = true;
     },
 
@@ -3344,6 +3366,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setAttribute('color', colors);
     },
 
+    updateColors: function(colors) {
+        this.updateAttributeAll('color', colors);
+    },
+
     updateColor: function(index, color) {
         this.updateAttribute('color', index, color.components);
     },
@@ -3379,6 +3405,19 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(c);
     },
 
+    updateRGB: function(r, g, b) {
+        var c = new Float32Array(r.length * 3);
+
+        for(var i = 0; i < r.length; i++) {
+            var j = 3 * i;
+            c[j] = r[i];
+            c[j + 1] = g[i];
+            c[j + 2] = b[i];
+        }
+        
+        this.updateColors(c);
+    },
+
     setColor: function(color, length) {
         var c = new Float32Array(length * 3);
 
@@ -3387,7 +3426,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             c[i + 1] = color.components[1];
             c[i + 2] = color.components[2];
         }
-
+        
         this.setColors(c);
     }
 });

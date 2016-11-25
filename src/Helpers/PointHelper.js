@@ -117,6 +117,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setAttribute('color', colors);
     },
 
+    updateColors: function(colors) {
+        this.updateAttributeAll('color', colors);
+    },
+
     updateColor: function(index, color) {
         this.updateAttribute('color', index, color.components);
     },
@@ -152,6 +156,19 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(c);
     },
 
+    updateRGB: function(r, g, b) {
+        var c = new Float32Array(r.length * 3);
+
+        for(var i = 0; i < r.length; i++) {
+            var j = 3 * i;
+            c[j] = r[i];
+            c[j + 1] = g[i];
+            c[j + 2] = b[i];
+        }
+        
+        this.updateColors(c);
+    },
+
     setColor: function(color, length) {
         var c = new Float32Array(length * 3);
 
@@ -160,7 +177,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             c[i + 1] = color.components[1];
             c[i + 2] = color.components[2];
         }
-
+        
         this.setColors(c);
     }
 });
