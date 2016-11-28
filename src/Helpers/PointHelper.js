@@ -126,11 +126,15 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     },
 
     setPointSize: function(size) {
-        this.geometry.shader.uniforms.size.value = size;
+        this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
+    },
+
+    setFogDistance: function(fogDistance) {
+        this.geometry.shader.uniforms.fogDistance.value = fogDistance;
     },
 
     initPointSize: function() {
-        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom;
+        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
     },
 
     setRGB: function(r, g, b, length, normalize) {
@@ -183,5 +187,6 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 });
 
 Lore.PointHelper.defaults = {
-    octree: true
+    octree: true,
+    pointScale: 1.0
 }

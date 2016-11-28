@@ -14,7 +14,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
     'vec4 applyFXAA(vec2 fragCoord, sampler2D tex)',
     '{',
         'vec4 color;',
-        'vec2 inverseVP = vec2(1.0 / 750.0, 1.0 / 750.0);',
+        'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
         'vec3 rgbNW = texture2D(tex, (fragCoord + vec2(-1.0, -1.0)) * inverseVP).xyz;',
         'vec3 rgbNE = texture2D(tex, (fragCoord + vec2(1.0, -1.0)) * inverseVP).xyz;',
         'vec3 rgbSW = texture2D(tex, (fragCoord + vec2(-1.0, 1.0)) * inverseVP).xyz;',
@@ -53,7 +53,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
     'uniform sampler2D fbo_texture;',
     'varying vec2 f_texcoord;',
     'void main(void) {',
-        'vec4 color = applyFXAA(f_texcoord * 750.0, fbo_texture);',
+        'vec4 color = applyFXAA(f_texcoord * vec2(500.0, 500.0), fbo_texture);',
         'gl_FragColor = color;',
     '}'
 ]);

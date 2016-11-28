@@ -10,7 +10,7 @@ Lore.Renderer = function(targetId, options) {
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
     this.camera = options.camera || new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
     this.shaders = []
-    this.geometries = [];
+    this.geometries = {};
     this.render = function(camera, geometries) {};
 
     this.effect = null;
@@ -169,7 +169,7 @@ Lore.Renderer.prototype = {
 
     createGeometry: function(name, shader) {
         var geometry = new Lore.Geometry(name, this.gl, this.shaders[shader]);
-        this.geometries.push(geometry);
+        this.geometries[name] = geometry;
         return geometry;
     }
 }

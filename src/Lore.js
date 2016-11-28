@@ -41,15 +41,15 @@ Lore.init = function(canvas, options) {
         verbose: true,
         fps: document.getElementById('fps'),
         antialiasing: false,
-        center: new Lore.Vector3f(150, 150, 150)
+        center: new Lore.Vector3f(125, 125, 125)
     });
 
-    var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
+    var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 500, color: Lore.Color.fromHex('#097692') },
-            y: { length: 500, color: Lore.Color.fromHex('#097692') },
-            z: { length: 500, color: Lore.Color.fromHex('#097692') }
+            x: { length: 250, color: Lore.Color.fromHex('#097692') },
+            y: { length: 250, color: Lore.Color.fromHex('#097692') },
+            z: { length: 250, color: Lore.Color.fromHex('#097692') }
         },
         ticks: {
           x: { length: 10, color: Lore.Color.fromHex('#097692') },
@@ -77,8 +77,8 @@ Lore.init = function(canvas, options) {
     pointHelper.setColors(colors);
 */
     renderer.render = function(camera, geometries) {
-        for(var i = 0; i < geometries.length; i++) {
-            geometries[i].draw(renderer);
+        for(key in geometries) {
+            geometries[key].draw(renderer);
         }
     }
 

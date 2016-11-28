@@ -41,15 +41,15 @@ Lore.init = function(canvas, options) {
         verbose: true,
         fps: document.getElementById('fps'),
         antialiasing: false,
-        center: new Lore.Vector3f(150, 150, 150)
+        center: new Lore.Vector3f(125, 125, 125)
     });
 
-    var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'default', {
+    var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 500, color: Lore.Color.fromHex('#097692') },
-            y: { length: 500, color: Lore.Color.fromHex('#097692') },
-            z: { length: 500, color: Lore.Color.fromHex('#097692') }
+            x: { length: 250, color: Lore.Color.fromHex('#097692') },
+            y: { length: 250, color: Lore.Color.fromHex('#097692') },
+            z: { length: 250, color: Lore.Color.fromHex('#097692') }
         },
         ticks: {
           x: { length: 10, color: Lore.Color.fromHex('#097692') },
@@ -77,8 +77,8 @@ Lore.init = function(canvas, options) {
     pointHelper.setColors(colors);
 */
     renderer.render = function(camera, geometries) {
-        for(var i = 0; i < geometries.length; i++) {
-            geometries[i].draw(renderer);
+        for(key in geometries) {
+            geometries[key].draw(renderer);
         }
     }
 
@@ -174,7 +174,7 @@ Lore.Renderer = function(targetId, options) {
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
     this.camera = options.camera || new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
     this.shaders = []
-    this.geometries = [];
+    this.geometries = {};
     this.render = function(camera, geometries) {};
 
     this.effect = null;
@@ -333,7 +333,7 @@ Lore.Renderer.prototype = {
 
     createGeometry: function(name, shader) {
         var geometry = new Lore.Geometry(name, this.gl, this.shaders[shader]);
-        this.geometries.push(geometry);
+        this.geometries[name] = geometry;
         return geometry;
     }
 }
@@ -861,8 +861,8 @@ Lore.Effect.prototype = {
         g.bindTexture(g.TEXTURE_2D, texture);
         g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
         g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.NEAREST);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.NEAREST);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
 
         g.bindTexture(g.TEXTURE_2D, texture);
         g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, this.renderer.getWidth(), this.renderer.getHeight(), 0, g.RGBA, g.UNSIGNED_BYTE, null);
@@ -956,7 +956,6 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.x += 0.01 * that.mouse.delta.x;
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
-            that.raiseEvent('mousemove', { e: that.mouse.delta });
             // Give priority to left, then middle, then right
             if (that.mouse.state.left) {
                 that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'left' });
@@ -966,6 +965,13 @@ Lore.ControlsBase = function(renderer) {
                 that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'right' });
             }
         }
+
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((e.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousemove', { e: that });
 
         that.mouse.previousPosition.x = e.pageX;
         that.mouse.previousPosition.y = e.pageY;
@@ -977,11 +983,6 @@ Lore.ControlsBase = function(renderer) {
         e.preventDefault();
 
         that.mouse.touched = true;
-
-        // Set normalized mouse position
-        var rect = that.canvas.getBoundingClientRect();
-        that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
-        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
 
         that.raiseEvent('mousedown', { e: that, source: 'touch' });
     });
@@ -1014,7 +1015,6 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.x += 0.01 * that.mouse.delta.x;
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
-            that.raiseEvent('mousemove', { e: that.mouse.delta });
             // Touch move is the same as left button drag
             that.raiseEvent('mousedrag', { e: that.mouse.delta, source: source});
         }
@@ -1024,9 +1024,10 @@ Lore.ControlsBase = function(renderer) {
     });
 
     var wheelevent = 'mousewheel';
-    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
+    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll'; 
 
     this.canvas.addEventListener(wheelevent, function(e) {
+        e.preventDefault();
         that.raiseEvent('mousewheel', { e: e.wheelDelta });
     });
 
@@ -1068,11 +1069,6 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.state.right = true;
             source = 'right';
         }
-
-        // Set normalized mouse position
-        var rect = that.canvas.getBoundingClientRect();
-        that.mouse.normalizedPosition.x =  ((e.clientX - rect.left) / that.canvas.width) * 2 - 1;
-        that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
 
         that.raiseEvent('mousedown', { e: that, source: source });
     });
@@ -1152,6 +1148,18 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
 
 Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.prototype), {
     constructor: Lore.OrbitalControls,
+    setRadius: function(radius) {
+        this.radius = radius;
+        this.camera.position = new Lore.Vector3f(0, 0, radius);
+        console.log(this.camera);
+        this.camera.updateProjectionMatrix();
+        this.camera.updateViewMatrix();
+        this.update();
+    },
+    setLookAt: function(lookAt) {
+        this.lookAt = lookAt;
+        this.update();
+    },
     update: function(e, source) {
         if(source == 'left') {
 	        // Rotate
@@ -3375,11 +3383,15 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     },
 
     setPointSize: function(size) {
-        this.geometry.shader.uniforms.size.value = size;
+        this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
+    },
+
+    setFogDistance: function(fogDistance) {
+        this.geometry.shader.uniforms.fogDistance.value = fogDistance;
     },
 
     initPointSize: function() {
-        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom;
+        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
     },
 
     setRGB: function(r, g, b, length, normalize) {
@@ -3432,7 +3444,8 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 });
 
 Lore.PointHelper.defaults = {
-    octree: true
+    octree: true,
+    pointScale: 1.0
 }
 Lore.CoordinatesHelper = function(renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
@@ -3621,28 +3634,40 @@ Lore.CoordinatesHelper.defaults = {
 Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
     this.opts = Lore.Utils.extend(true, Lore.OctreeHelper.defaults, options);
+    this.eventListeners = {};
     this.target = target;
     this.octree = this.target.octree;
     this.raycaster = new Lore.Raycaster();
+    this.hovered = null;
+    this.selected = null;
 
     var that = this;
 
     renderer.controls.addEventListener('mousedown', function(e) {
+        if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
         var mouse = e.e.mouse.normalizedPosition;
 
-        that.raycaster.set(that.renderer.camera, mouse.x, mouse.y);
-
-        var tmp = that.octree.raySearch(that.raycaster);
-        var result = that.rayIntersections(tmp);
-    
-        result.sort(function(a, b) { return a.distance - b.distance });
+        var result = that.getIntersections(mouse);
         
-        if(result.length > 0)
-            that.target.updateColor(result[0].index, new Lore.Color(1, 1, 1, 1))
+        if(result.length > 0) {
+            that.raiseEvent('singleselectedchanged', { e: result[0] });
+        }
+    });
+
+    renderer.controls.addEventListener('mousemove', function(e) {
+        if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
+        var mouse = e.e.mouse.normalizedPosition;
+
+        var result = that.getIntersections(mouse);
+        
+        if(result.length > 0) {
+            that.raiseEvent('singlehoveredchanged', { e: result[0] });
+            that.raiseEvent('hoveredchanged', { e: result });
+        }
     });
 
     renderer.controls.addEventListener('zoomchanged', function(zoom) {
-        that.target.setPointSize(zoom * 1.5);
+        that.target.setPointSize(zoom * window.devicePixelRatio);
     });
 
     this.init();
@@ -3658,6 +3683,28 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
             this.drawBoxes();
     },
 
+    getIntersections: function(mouse) {
+        this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
+
+        var tmp = this.octree.raySearch(this.raycaster);
+        var result = this.rayIntersections(tmp);
+    
+        result.sort(function(a, b) { return a.distance - b.distance });
+        
+        return result;
+    },
+
+    addEventListener: function(eventName, callback) {
+        if(!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
+        this.eventListeners[eventName].push(callback);
+    },
+
+    raiseEvent: function(eventName, data) {
+        if(!this.eventListeners[eventName]) return;
+
+        for(var i = 0; i < this.eventListeners[eventName].length; i++)
+            this.eventListeners[eventName][i](data);
+    },
 
     drawCenters: function() {
         this.geometry.setMode(Lore.DrawModes.points);
@@ -3940,15 +3987,57 @@ Lore.Utils.mergePointDistances = function(a, b) {
     newObj.distancesSq = Lore.Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
     return newObj;
 };
-Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float') }, [
+Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
+                                                       fogDistance: new Lore.Uniform('fogDistance', 0, 'float') }, [
     'uniform float size;',
+    'uniform float fogDistance;',
+    'attribute vec3 position;',
+    'attribute vec3 color;',
+    'varying vec3 vColor;',
+    'vec3 rgb2hsv(vec3 c) {',
+        'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);',
+        'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));',
+        'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));',
+
+        'float d = q.x - min(q.w, q.y);',
+        'float e = 1.0e-10;',
+        'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);',
+    '}',
+    'vec3 hsv2rgb(vec3 c) {',
+        'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);',
+        'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);',
+        'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
+    '}',
+    'void main() {',
+        'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+        'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);',
+        'float fog_start = 0.0;',
+        'float fog_end = fogDistance;',
+        'float dist = abs(mv_pos.z - fog_start);',
+        'gl_PointSize = size;',
+        'if(fogDistance > 0.0) {',
+            'vec3 hsv = rgb2hsv(color);',
+            'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);',
+            'vColor = hsv2rgb(hsv);',
+        '}',
+        'else {',
+            'vColor = color;',
+        '}',
+    '}'
+], [
+    'varying vec3 vColor;',
+    'void main() {',
+        'gl_FragColor = vec4(vColor, 1.0);',
+    '}'
+]);
+Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', { }, [
     'attribute vec3 position;',
     'attribute vec3 color;',
     'varying vec3 vColor;',
     'void main() {',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-        'vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
-        'gl_PointSize = size;',
+        'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);',
+        'gl_PointSize = 1.0;',
         'vColor = color;',
     '}'
 ], [
@@ -4012,7 +4101,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
     'vec4 applyFXAA(vec2 fragCoord, sampler2D tex)',
     '{',
         'vec4 color;',
-        'vec2 inverseVP = vec2(1.0 / 750.0, 1.0 / 750.0);',
+        'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
         'vec3 rgbNW = texture2D(tex, (fragCoord + vec2(-1.0, -1.0)) * inverseVP).xyz;',
         'vec3 rgbNE = texture2D(tex, (fragCoord + vec2(1.0, -1.0)) * inverseVP).xyz;',
         'vec3 rgbSW = texture2D(tex, (fragCoord + vec2(-1.0, 1.0)) * inverseVP).xyz;',
@@ -4051,7 +4140,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
     'uniform sampler2D fbo_texture;',
     'varying vec2 f_texcoord;',
     'void main(void) {',
-        'vec4 color = applyFXAA(f_texcoord * 750.0, fbo_texture);',
+        'vec4 color = applyFXAA(f_texcoord * vec2(500.0, 500.0), fbo_texture);',
         'gl_FragColor = color;',
     '}'
 ]);

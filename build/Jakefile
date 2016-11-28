@@ -37,6 +37,7 @@ var files = [
   '../src/IO/CsvFileReader.js',
   '../src/Utils/Utils.js',
   '../src/Shaders/Default.js',
+  '../src/Shaders/Coordinates.js',
   '../src/Shaders/Circle.js',
   '../src/Shaders/DefaultEffect.js',
   '../src/Shaders/FXAAEffect.js',

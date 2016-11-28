@@ -43,7 +43,6 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.x += 0.01 * that.mouse.delta.x;
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
-            that.raiseEvent('mousemove', { e: that.mouse.delta });
             // Give priority to left, then middle, then right
             if (that.mouse.state.left) {
                 that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'left' });
@@ -53,6 +52,13 @@ Lore.ControlsBase = function(renderer) {
                 that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'right' });
             }
         }
+
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((e.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousemove', { e: that });
 
         that.mouse.previousPosition.x = e.pageX;
         that.mouse.previousPosition.y = e.pageY;
@@ -64,11 +70,6 @@ Lore.ControlsBase = function(renderer) {
         e.preventDefault();
 
         that.mouse.touched = true;
-
-        // Set normalized mouse position
-        var rect = that.canvas.getBoundingClientRect();
-        that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
-        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
 
         that.raiseEvent('mousedown', { e: that, source: 'touch' });
     });
@@ -101,7 +102,6 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.x += 0.01 * that.mouse.delta.x;
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
-            that.raiseEvent('mousemove', { e: that.mouse.delta });
             // Touch move is the same as left button drag
             that.raiseEvent('mousedrag', { e: that.mouse.delta, source: source});
         }
@@ -111,9 +111,10 @@ Lore.ControlsBase = function(renderer) {
     });
 
     var wheelevent = 'mousewheel';
-    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
+    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll'; 
 
     this.canvas.addEventListener(wheelevent, function(e) {
+        e.preventDefault();
         that.raiseEvent('mousewheel', { e: e.wheelDelta });
     });
 
@@ -156,12 +157,14 @@ Lore.ControlsBase = function(renderer) {
             source = 'right';
         }
 
-        // Set normalized mouse position
-        var rect = that.canvas.getBoundingClientRect();
-        that.mouse.normalizedPosition.x =  ((e.clientX - rect.left) / that.canvas.width) * 2 - 1;
-        that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
-
         that.raiseEvent('mousedown', { e: that, source: source });
+    });
+
+    this.canvas.addEventListener('click', function(e) {
+        var btn = e.button;
+        var source = 'left';
+
+        that.raiseEvent('click', { e: that, source: source });
     });
 
     this.canvas.addEventListener('mouseup', function(e) {

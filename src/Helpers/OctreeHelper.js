@@ -1,28 +1,40 @@
 Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
     this.opts = Lore.Utils.extend(true, Lore.OctreeHelper.defaults, options);
+    this.eventListeners = {};
     this.target = target;
     this.octree = this.target.octree;
     this.raycaster = new Lore.Raycaster();
+    this.hovered = null;
+    this.selected = null;
 
     var that = this;
 
     renderer.controls.addEventListener('mousedown', function(e) {
+        if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
         var mouse = e.e.mouse.normalizedPosition;
 
-        that.raycaster.set(that.renderer.camera, mouse.x, mouse.y);
-
-        var tmp = that.octree.raySearch(that.raycaster);
-        var result = that.rayIntersections(tmp);
-    
-        result.sort(function(a, b) { return a.distance - b.distance });
+        var result = that.getIntersections(mouse);
         
-        if(result.length > 0)
-            that.target.updateColor(result[0].index, new Lore.Color(1, 1, 1, 1))
+        if(result.length > 0) {
+            that.raiseEvent('singleselectedchanged', { e: result[0] });
+        }
+    });
+
+    renderer.controls.addEventListener('mousemove', function(e) {
+        if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
+        var mouse = e.e.mouse.normalizedPosition;
+
+        var result = that.getIntersections(mouse);
+        
+        if(result.length > 0) {
+            that.raiseEvent('singlehoveredchanged', { e: result[0] });
+            that.raiseEvent('hoveredchanged', { e: result });
+        }
     });
 
     renderer.controls.addEventListener('zoomchanged', function(zoom) {
-        that.target.setPointSize(zoom * 1.5);
+        that.target.setPointSize(zoom * window.devicePixelRatio);
     });
 
     this.init();
@@ -38,6 +50,28 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
             this.drawBoxes();
     },
 
+    getIntersections: function(mouse) {
+        this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
+
+        var tmp = this.octree.raySearch(this.raycaster);
+        var result = this.rayIntersections(tmp);
+    
+        result.sort(function(a, b) { return a.distance - b.distance });
+        
+        return result;
+    },
+
+    addEventListener: function(eventName, callback) {
+        if(!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
+        this.eventListeners[eventName].push(callback);
+    },
+
+    raiseEvent: function(eventName, data) {
+        if(!this.eventListeners[eventName]) return;
+
+        for(var i = 0; i < this.eventListeners[eventName].length; i++)
+            this.eventListeners[eventName][i](data);
+    },
 
     drawCenters: function() {
         this.geometry.setMode(Lore.DrawModes.points);

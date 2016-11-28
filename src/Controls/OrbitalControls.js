@@ -35,6 +35,18 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
 
 Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.prototype), {
     constructor: Lore.OrbitalControls,
+    setRadius: function(radius) {
+        this.radius = radius;
+        this.camera.position = new Lore.Vector3f(0, 0, radius);
+        console.log(this.camera);
+        this.camera.updateProjectionMatrix();
+        this.camera.updateViewMatrix();
+        this.update();
+    },
+    setLookAt: function(lookAt) {
+        this.lookAt = lookAt;
+        this.update();
+    },
     update: function(e, source) {
         if(source == 'left') {
 	        // Rotate
