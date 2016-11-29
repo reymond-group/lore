@@ -3,6 +3,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     this.opts = Lore.Utils.extend(true, Lore.OctreeHelper.defaults, options);
     this.eventListeners = {};
     this.target = target;
+    this.renderer = renderer;
     this.octree = this.target.octree;
     this.raycaster = new Lore.Raycaster();
     this.hovered = null;
@@ -17,24 +18,44 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var result = that.getIntersections(mouse);
         
         if(result.length > 0) {
-            that.raiseEvent('singleselectedchanged', { e: result[0] });
+            that.selected = result[0];
+            that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
+            that.raiseEvent('selectedchanged', { e: this.selected });
+        }
+        else {
+            that.selected = null;
+            that.raiseEvent('selectedchanged', { e: null });
         }
     });
 
     renderer.controls.addEventListener('mousemove', function(e) {
         if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
         var mouse = e.e.mouse.normalizedPosition;
-
-        var result = that.getIntersections(mouse);
         
+        var result = that.getIntersections(mouse);
         if(result.length > 0) {
-            that.raiseEvent('singlehoveredchanged', { e: result[0] });
-            that.raiseEvent('hoveredchanged', { e: result });
+            that.hovered = result[0];
+            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
+            that.raiseEvent('hoveredchanged', { e: this.hovered });
+        }
+        else {
+            that.hovered = null;
+            that.raiseEvent('hoveredchanged', { e: null });
         }
     });
 
     renderer.controls.addEventListener('zoomchanged', function(zoom) {
-        that.target.setPointSize(zoom * window.devicePixelRatio);
+        that.target.setPointSize(zoom * window.devicePixelRatio + 0.05);
+    });
+
+    renderer.controls.addEventListener('updated', function() {
+        if(that.selected)
+            that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
+        
+        if(that.hovered)
+            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
+
+        that.raiseEvent('updated');
     });
 
     this.init();
@@ -178,7 +199,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                 result.push({
                     distance: dist,
                     index: index,
-                    locCode: locCode
+                    locCode: locCode,
+                    position: v
                 });
             }
         }

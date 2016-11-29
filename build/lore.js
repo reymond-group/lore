@@ -1073,6 +1073,13 @@ Lore.ControlsBase = function(renderer) {
         that.raiseEvent('mousedown', { e: that, source: source });
     });
 
+    this.canvas.addEventListener('click', function(e) {
+        var btn = e.button;
+        var source = 'left';
+
+        that.raiseEvent('click', { e: that, source: source });
+    });
+
     this.canvas.addEventListener('mouseup', function(e) {
         var btn = e.button;
         var source = 'left';
@@ -3657,9 +3664,8 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     renderer.controls.addEventListener('mousemove', function(e) {
         if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
         var mouse = e.e.mouse.normalizedPosition;
-
-        var result = that.getIntersections(mouse);
         
+        var result = that.getIntersections(mouse);
         if(result.length > 0) {
             that.raiseEvent('singlehoveredchanged', { e: result[0] });
             that.raiseEvent('hoveredchanged', { e: result });
@@ -3667,7 +3673,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     });
 
     renderer.controls.addEventListener('zoomchanged', function(zoom) {
-        that.target.setPointSize(zoom * window.devicePixelRatio);
+        that.target.setPointSize(zoom * window.devicePixelRatio + 0.05);
     });
 
     this.init();

@@ -38,7 +38,7 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
     setRadius: function(radius) {
         this.radius = radius;
         this.camera.position = new Lore.Vector3f(0, 0, radius);
-        console.log(this.camera);
+
         this.camera.updateProjectionMatrix();
         this.camera.updateViewMatrix();
         this.update();
@@ -118,5 +118,7 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         if(this.zoomed) {
             this.zoomed = false;
         }
+
+        this.raiseEvent('updated');
     }
 });
