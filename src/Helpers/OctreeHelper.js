@@ -19,8 +19,8 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         
         if(result.length > 0) {
             that.selected = result[0];
-            that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
-            that.raiseEvent('selectedchanged', { e: this.selected });
+            that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+            that.raiseEvent('selectedchanged', { e: that.selected });
         }
         else {
             that.selected = null;
@@ -35,8 +35,8 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var result = that.getIntersections(mouse);
         if(result.length > 0) {
             that.hovered = result[0];
-            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
-            that.raiseEvent('hoveredchanged', { e: this.hovered });
+            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+            that.raiseEvent('hoveredchanged', { e: that.hovered });
         }
         else {
             that.hovered = null;
@@ -50,10 +50,10 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
 
     renderer.controls.addEventListener('updated', function() {
         if(that.selected)
-            that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
+            that.selected.screenPosition = that.renderer.camera.sceneToScreen(that.selected.position, renderer);
         
         if(that.hovered)
-            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position);
+            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
 
         that.raiseEvent('updated');
     });

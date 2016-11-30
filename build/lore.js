@@ -1158,7 +1158,7 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
     setRadius: function(radius) {
         this.radius = radius;
         this.camera.position = new Lore.Vector3f(0, 0, radius);
-        console.log(this.camera);
+
         this.camera.updateProjectionMatrix();
         this.camera.updateViewMatrix();
         this.update();
@@ -1238,6 +1238,8 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         if(this.zoomed) {
             this.zoomed = false;
         }
+
+        this.raiseEvent('updated');
     }
 });
 Lore.CameraBase = function() {
@@ -1281,7 +1283,20 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
 
     getViewMatrix: function() {
         return this.viewMatrix.entries;
-    }
+    },
+
+    sceneToScreen: function(v, renderer) {
+        var vector = v.clone();
+        var canvas = renderer.canvas;
+        vector.project(this);
+        
+        // Map to 2D screen space
+        // Correct for high dpi display by dividing by device pixel ratio
+        var x = Math.round((vector.components[0] + 1) * canvas.width  / 2) / window.devicePixelRatio;
+        var y = Math.round((-vector.components[1] + 1) * canvas.height / 2) / window.devicePixelRatio;
+
+        return [ x, y ];
+    },
 });
 Lore.OrthographicCamera = function(left, right, top, bottom, near, far) {
     Lore.CameraBase.call(this);
@@ -3643,6 +3658,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     this.opts = Lore.Utils.extend(true, Lore.OctreeHelper.defaults, options);
     this.eventListeners = {};
     this.target = target;
+    this.renderer = renderer;
     this.octree = this.target.octree;
     this.raycaster = new Lore.Raycaster();
     this.hovered = null;
@@ -3657,7 +3673,13 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var result = that.getIntersections(mouse);
         
         if(result.length > 0) {
-            that.raiseEvent('singleselectedchanged', { e: result[0] });
+            that.selected = result[0];
+            that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+            that.raiseEvent('selectedchanged', { e: that.selected });
+        }
+        else {
+            that.selected = null;
+            that.raiseEvent('selectedchanged', { e: null });
         }
     });
 
@@ -3667,13 +3689,28 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         
         var result = that.getIntersections(mouse);
         if(result.length > 0) {
-            that.raiseEvent('singlehoveredchanged', { e: result[0] });
-            that.raiseEvent('hoveredchanged', { e: result });
+            that.hovered = result[0];
+            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+            that.raiseEvent('hoveredchanged', { e: that.hovered });
+        }
+        else {
+            that.hovered = null;
+            that.raiseEvent('hoveredchanged', { e: null });
         }
     });
 
     renderer.controls.addEventListener('zoomchanged', function(zoom) {
         that.target.setPointSize(zoom * window.devicePixelRatio + 0.05);
+    });
+
+    renderer.controls.addEventListener('updated', function() {
+        if(that.selected)
+            that.selected.screenPosition = that.renderer.camera.sceneToScreen(that.selected.position, renderer);
+        
+        if(that.hovered)
+            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+
+        that.raiseEvent('updated');
     });
 
     this.init();
@@ -3817,7 +3854,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                 result.push({
                     distance: dist,
                     index: index,
-                    locCode: locCode
+                    locCode: locCode,
+                    position: v
                 });
             }
         }
