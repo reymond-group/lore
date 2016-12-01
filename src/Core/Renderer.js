@@ -152,10 +152,10 @@ Lore.Renderer.prototype = {
             this.fpsElement.innerHTML = this.fps;
         }
 
-        // this.effect.bind();
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        this.effect.bind();
+        // this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.render(this.camera, this.geometries);
-        // this.effect.unbind();
+        this.effect.unbind();
 
         this.camera.isProjectionMatrixStale = false;
         this.camera.isViewMatrixStale = false;
