@@ -1,4 +1,4 @@
-Lore.PointHelper = function(renderer, geometryName, shaderName, options) {
+Lore.PointHelper = function (renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
     this.opts = Lore.Utils.extend(true, Lore.PointHelper.defaults, options);
     this.indices = null;
@@ -10,27 +10,27 @@ Lore.PointHelper = function(renderer, geometryName, shaderName, options) {
 Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
     constructor: Lore.PointHelper,
 
-    getMaxLength: function(x, y, z) {
+    getMaxLength: function (x, y, z) {
         return Math.max(x.length, Math.max(y.length, z.length));
     },
 
-    setPositions: function(positions) {
+    setPositions: function (positions) {
         this.setAttribute('position', positions);
     },
 
-    setPositionsXYZ: function(x, y, z, length) {
+    setPositionsXYZ: function (x, y, z, length) {
         var positions = new Float32Array(length * 3);
-        for(var i = 0; i < length; i++) {
+        for (var i = 0; i < length; i++) {
             var j = 3 * i;
             positions[j] = x[i] || 0;
             positions[j + 1] = y[i] || 0;
             positions[j + 2] = z[i] || 0;
         }
 
-        if(this.opts.octree) {
+        if (this.opts.octree) {
             var initialBounds = Lore.AABB.fromPoints(positions);
             var indices = new Uint32Array(length);
-            for(var i = 0; i < length; i++) indices[i] = i;
+            for (var i = 0; i < length; i++) indices[i] = i;
 
             this.octree = new Lore.Octree();
             this.octree.build(indices, positions, initialBounds);
@@ -41,13 +41,13 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setAttribute('position', positions);
     },
 
-    setPositionsXYZColor: function(x, y, z, color) {
+    setPositionsXYZColor: function (x, y, z, color) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setColor(color, length);
     },
 
-    setPositionsXYZRGB: function(x, y, z, r, g, b, normalize) {
+    setPositionsXYZRGB: function (x, y, z, r, g, b, normalize) {
         normalize = normalize ? true : false;
 
         var length = this.getMaxLength(x, y, z);
@@ -55,22 +55,22 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setRGB(r, g, b, length, normalize);
     },
 
-    setPositionsXYZHues: function(x, y, z, hues) {
+    setPositionsXYZHues: function (x, y, z, hues) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setHues(hues, length);
     },
 
-    setPositionsXYZHSL: function(x, y, z, h, s, l) {
-      var length = this.getMaxLength(x, y, z);
-      this.setPositionsXYZ(x, y, z, length);
-      this.setHSL(h, s, l, length);
+    setPositionsXYZHSL: function (x, y, z, h, s, l) {
+        var length = this.getMaxLength(x, y, z);
+        this.setPositionsXYZ(x, y, z, length);
+        this.setHSL(h, s, l, length);
     },
 
-    setHues: function(hues, length) {
+    setHues: function (hues, length) {
         var colors = new Float32Array(length * 3);
 
-        for(var i = 0; i < length; i++) {
+        for (var i = 0; i < length; i++) {
             var hue = hues[i] || 0;
             // Rescale
             hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
@@ -86,10 +86,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(colors);
     },
 
-    setHSL: function(h, s, l, length) {
+    setHSL: function (h, s, l, length) {
         var colors = new Float32Array(length * 3);
 
-        for(var i = 0; i < length; i++) {
+        for (var i = 0; i < length; i++) {
             var hue = h[i] || 0;
             // Rescale
             hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
@@ -105,83 +105,90 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(colors);
     },
 
-    shiftHue: function(hue, value) {
+    shiftHue: function (hue, value) {
         hue += value;
-        if(hue > 1) hue = hue - 1;
-        if(hue < 0) hue = 1 + hue;
+        if (hue > 1) hue = hue - 1;
+        if (hue < 0) hue = 1 + hue;
 
         return hue;
     },
 
-    setColors: function(colors) {
+    setColors: function (colors) {
         this.setAttribute('color', colors);
     },
 
-    updateColors: function(colors) {
+    updateColors: function (colors) {
         this.updateAttributeAll('color', colors);
     },
 
-    updateColor: function(index, color) {
+    updateColor: function (index, color) {
         this.updateAttribute('color', index, color.components);
     },
 
-    setPointSize: function(size) {
+    setPointSize: function (size) {
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
     },
 
-    setFogDistance: function(fogDistance) {
+    setFogDistance: function (fogDistance) {
         this.geometry.shader.uniforms.fogDistance.value = fogDistance;
     },
 
-    initPointSize: function() {
+    initPointSize: function () {
         this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
     },
+    
+    getCutoff: function() {
+        return this.geometry.shader.uniforms.cutoff.value;
+    },
 
-    setRGB: function(r, g, b, length, normalize) {
+    setCutoff: function (cutoff) {
+        this.geometry.shader.uniforms.cutoff.value = cutoff;
+    },
+
+    setRGB: function (r, g, b, length, normalize) {
         var c = new Float32Array(length * 3);
 
-        if(normalize) {
-            for(var i = 0; i < length; i++) {
+        if (normalize) {
+            for (var i = 0; i < length; i++) {
                 var j = 3 * i;
                 c[j] = r[i] / 255.0;
                 c[j + 1] = g[i] / 255.0;
                 c[j + 2] = b[i] / 255.0;
             }
-        }
-        else {
-            for(var i = 0; i < length; i++) {
+        } else {
+            for (var i = 0; i < length; i++) {
                 var j = 3 * i;
                 c[j] = r[i];
                 c[j + 1] = g[i];
                 c[j + 2] = b[i];
             }
         }
-        
+
         this.setColors(c);
     },
 
-    updateRGB: function(r, g, b) {
+    updateRGB: function (r, g, b) {
         var c = new Float32Array(r.length * 3);
 
-        for(var i = 0; i < r.length; i++) {
+        for (var i = 0; i < r.length; i++) {
             var j = 3 * i;
             c[j] = r[i];
             c[j + 1] = g[i];
             c[j + 2] = b[i];
         }
-        
+
         this.updateColors(c);
     },
 
-    setColor: function(color, length) {
+    setColor: function (color, length) {
         var c = new Float32Array(length * 3);
 
-        for(var i = 0; i < length * 3; i += 3) {
+        for (var i = 0; i < length * 3; i += 3) {
             c[i] = color.components[0];
             c[i + 1] = color.components[1];
             c[i + 2] = color.components[2];
         }
-        
+
         this.setColors(c);
     }
 });

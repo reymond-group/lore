@@ -94,6 +94,7 @@ Lore.Shader.prototype = {
 
     use: function() {
       this.gl.useProgram(this.program);
+      this.updateUniforms();
     }
 }
 

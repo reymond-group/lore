@@ -1,6 +1,7 @@
-Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
+Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lore.Uniform('resolution', [ 500.0, 500.0 ], 'float_vec2') }, [
     'attribute vec2 v_coord;',
     'uniform sampler2D fbo_texture;',
+    'uniform vec2 resolution;',
     'varying vec2 f_texcoord;',
     'void main() {',
         'gl_Position = vec4(v_coord, 0.0, 1.0);',
@@ -389,8 +390,9 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
     '}',
 
     'uniform sampler2D fbo_texture;',
+    'uniform vec2 resolution;',
     'varying vec2 f_texcoord;',
     'void main(void) {',
-        'gl_FragColor = fxaa(f_texcoord, fbo_texture, vec2(1.0 / 500.0, 1.0 / 500.0), 0.75, 0.166, 0.0833);',
+        'gl_FragColor = fxaa(f_texcoord, fbo_texture, vec2(1.0 / resolution.x, 1.0 / resolution.y), 0.75, 0.166, 0.0833);',
     '}'
 ]);

@@ -43,7 +43,7 @@ Lore.init = function(canvas, options) {
         antialiasing: false,
         center: new Lore.Vector3f(125, 125, 125)
     });
-
+    
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
@@ -63,6 +63,7 @@ Lore.init = function(canvas, options) {
           z: { color: Lore.Color.fromHex('#004F6E') }
         }
     });
+    
 /*
     var size = 1000;
     var positions = new Float32Array(size * 3);

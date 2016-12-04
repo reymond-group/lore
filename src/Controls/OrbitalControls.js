@@ -15,7 +15,7 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
     this.scale = 0.95;
     this.zoomed = false;
 
-    this.camera.position = new Lore.Vector3f(0, 0, radius);
+    this.camera.position = new Lore.Vector3f(radius, radius, radius);
     this.camera.updateProjectionMatrix();
     this.camera.updateViewMatrix();
 
@@ -44,7 +44,8 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         this.update();
     },
     setLookAt: function(lookAt) {
-        this.lookAt = lookAt;
+        this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
+        this.lookAt = lookAt.clone();
         this.update();
     },
     update: function(e, source) {

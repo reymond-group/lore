@@ -7,18 +7,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-  <div style="width: 500px; height: 500px">
-    <canvas id="loreCanvas" height="500" width="500">
+  <div style="width: 100%; height: 500px">
+    <canvas id="loreCanvas" style="height:100%; width:100%">
     </canvas>
   </div>
   <p id="fps"></p>
   <input id="csv" type="file"></input>
   <br />
   <input id="radius" type="text"></input>
-  <input id="radius-button" type="button" value="Set"></input>
+  <input id="radius-button" type="button" value="Set Radius"></input>
   <br />
   <input id="fog" type="text"></input>
-  <input id="fog-button" type="button" value="Set"></input>
+  <input id="fog-button" type="button" value="Set Fog Distance"></input>
+  <br />
+  <input id="cutoff" type="text"></input>
+  <input id="cutoff-button" type="button" value="Set Cutoff"></input>
+  
   <script src="../build/lore.js"></script>
   <script>
     var lore = Lore.init('loreCanvas');
@@ -41,10 +45,10 @@
           pointHelper.setPositionsXYZColor(e[0], e[1], e[2], new Lore.Color(0.1, 0.2, 0.8));
           // pointHelper.setPositionsXYZRGB(e[0], e[1], e[2], e[3], e[4], e[5], true);
           var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
-          octreeHelper.addEventListener('singleselectedchanged', function(e) {
+          octreeHelper.addEventListener('selectedchanged', function(e) {
             console.log(e);
           });
-          octreeHelper.addEventListener('singlehoveredchanged', function(e) {
+          octreeHelper.addEventListener('hoveredchanged', function(e) {
             console.log(e);
           });
 
@@ -55,12 +59,16 @@
     });
 
     document.getElementById('radius-button').addEventListener('click', function() {
-      var val = document.getElementById('radius').value
+      var val = document.getElementById('radius').value;
       lore.controls.setRadius(val);
     });
     document.getElementById('fog-button').addEventListener('click', function() {
-      var val = document.getElementById('fog').value
+      var val = document.getElementById('fog').value;
       pointHelper.setFogDistance(val);
+    });
+    document.getElementById('cutoff-button').addEventListener('click', function() {
+      var val = document.getElementById('cutoff').value;
+      pointHelper.setCutoff(val);
     });
   </script>
 </body>

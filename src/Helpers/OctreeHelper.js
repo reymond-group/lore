@@ -65,10 +65,32 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     constructor: Lore.OctreeHelper,
 
     init: function() {
-        if(this.opts.visualize === 'center')
+        if(this.opts.visualize === 'centers')
             this.drawCenters();
         else if(this.opts.visualize === 'cubes')
             this.drawBoxes();
+        else
+            this.geometry.isVisible = false;
+    },
+
+    showCenters: function() {
+        this.opts.visualize = 'centers';
+        this.drawCenters();
+        this.geometry.isVisible = true;
+    },
+
+    showCubes: function() {
+        this.opts.visualize = 'cubes';
+        this.drawBoxes();
+        this.geometry.isVisible = true;
+    },
+
+    hide: function() {
+        this.opts.visualize = false;
+        this.geometry.isVisible = false;
+
+        this.setAttribute('position', new Float32Array([]));
+        this.setAttribute('color', new Float32Array([]));
     },
 
     getIntersections: function(mouse) {
@@ -177,6 +199,9 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         var ray = new Lore.Ray();
         var threshold = this.raycaster.threshold;
         var positions = this.target.geometry.attributes['position'].data;
+        
+        // Only get points further away than the cutoff set in the point HelperBase
+        var cutoff = this.target.getCutoff();
 
         ray.copyFrom(this.raycaster.ray).applyProjection(inverseMatrix);
 
@@ -194,7 +219,7 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                 var intersectedPoint = ray.closestPointToPoint(v);
                 intersectedPoint.applyProjection(this.target.modelMatrix);
                 var dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
-                if(dist < this.raycaster.near || dist > this.raycaster.far) continue;
+                if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff) continue;
 
                 result.push({
                     distance: dist,

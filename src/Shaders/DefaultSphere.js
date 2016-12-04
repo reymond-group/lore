@@ -1,4 +1,4 @@
-Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
+Lore.Shaders['defaultSphere'] = new Lore.Shader('DefaultSphere', { size: new Lore.Uniform('size', 5.0, 'float'),
                                                        fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
                                                        cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',
@@ -48,6 +48,12 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
     'varying float vDiscard;',
     'void main() {',
         'if(vDiscard == 1.0) discard;',
-        'gl_FragColor = vec4(vColor, 1.0);',
+        'vec3 N;',
+        'N.xy = gl_PointCoord * 2.0 - vec2(1.0);',
+        'float mag = dot(N.xy, N.xy);',
+        'if (mag > 1.0) discard;   // kill pixels outside circle',
+        'N.z = sqrt(1.0 - mag);',
+        'float diffuse = max(0.5, dot(vec3(0.25, -0.25, 1.0), N));',
+        'gl_FragColor = vec4(vColor * diffuse, 1.0);',
     '}'
 ]);

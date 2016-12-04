@@ -7,6 +7,7 @@ Lore.Geometry = function(name, gl, shader) {
     this.shader = shader;
     this.attributes = {};
     this.drawMode = this.gl.POINTS;
+    this.isVisible = true;
 }
 
 Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {

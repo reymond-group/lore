@@ -49,6 +49,7 @@ Lore.Renderer.prototype = {
         }
 
         var g = this.gl;
+        console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
 
         if(this.verbose) {
             var hasAA = g.getContextAttributes().antialias;
@@ -100,7 +101,9 @@ Lore.Renderer.prototype = {
         }, 200);
 
         window.addEventListener('resize', function(event) {
-            _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+            var width = _this.getWidth();
+            var height = _this.getHeight();
+            _this.updateViewport(0, 0, width, height);
         });
 
         // Init effect(s)
@@ -117,11 +120,11 @@ Lore.Renderer.prototype = {
     },
 
     getWidth: function() {
-        return this.parent.offsetWidth;
+        return this.canvas.offsetWidth;
     },
 
     getHeight: function() {
-        return this.parent.offsetHeight;
+        return this.canvas.offsetHeight;
     },
 
     updateViewport: function(x, y, width, height) {
@@ -135,6 +138,10 @@ Lore.Renderer.prototype = {
         this.camera.bottom = -height / 2;
 
         this.camera.updateProjectionMatrix();
+
+        // Also reinit the buffers and textures for the effect(s)
+        this.effect = new Lore.Effect(this, 'fxaaEffect');
+        this.effect.shader.uniforms.resolution.setValue([ width, height ]);
     },
 
     animate: function() {

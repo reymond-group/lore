@@ -43,7 +43,7 @@ Lore.init = function(canvas, options) {
         antialiasing: false,
         center: new Lore.Vector3f(125, 125, 125)
     });
-
+    
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
@@ -63,6 +63,7 @@ Lore.init = function(canvas, options) {
           z: { color: Lore.Color.fromHex('#004F6E') }
         }
     });
+    
 /*
     var size = 1000;
     var positions = new Float32Array(size * 3);
@@ -213,6 +214,7 @@ Lore.Renderer.prototype = {
         }
 
         var g = this.gl;
+        console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
 
         if(this.verbose) {
             var hasAA = g.getContextAttributes().antialias;
@@ -264,7 +266,9 @@ Lore.Renderer.prototype = {
         }, 200);
 
         window.addEventListener('resize', function(event) {
-            _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+            var width = _this.getWidth();
+            var height = _this.getHeight();
+            _this.updateViewport(0, 0, width, height);
         });
 
         // Init effect(s)
@@ -281,11 +285,11 @@ Lore.Renderer.prototype = {
     },
 
     getWidth: function() {
-        return this.parent.offsetWidth;
+        return this.canvas.offsetWidth;
     },
 
     getHeight: function() {
-        return this.parent.offsetHeight;
+        return this.canvas.offsetHeight;
     },
 
     updateViewport: function(x, y, width, height) {
@@ -299,6 +303,10 @@ Lore.Renderer.prototype = {
         this.camera.bottom = -height / 2;
 
         this.camera.updateProjectionMatrix();
+
+        // Also reinit the buffers and textures for the effect(s)
+        this.effect = new Lore.Effect(this, 'fxaaEffect');
+        this.effect.shader.uniforms.resolution.setValue([ width, height ]);
     },
 
     animate: function() {
@@ -433,6 +441,7 @@ Lore.Shader.prototype = {
 
     use: function() {
       this.gl.useProgram(this.program);
+      this.updateUniforms();
     }
 }
 
@@ -632,6 +641,7 @@ Lore.Geometry = function(name, gl, shader) {
     this.shader = shader;
     this.attributes = {};
     this.drawMode = this.gl.POINTS;
+    this.isVisible = true;
 }
 
 Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
@@ -1135,7 +1145,7 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
     this.scale = 0.95;
     this.zoomed = false;
 
-    this.camera.position = new Lore.Vector3f(0, 0, radius);
+    this.camera.position = new Lore.Vector3f(radius, radius, radius);
     this.camera.updateProjectionMatrix();
     this.camera.updateViewMatrix();
 
@@ -1164,7 +1174,8 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         this.update();
     },
     setLookAt: function(lookAt) {
-        this.lookAt = lookAt;
+        this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
+        this.lookAt = lookAt.clone();
         this.update();
     },
     update: function(e, source) {
@@ -3277,7 +3288,7 @@ Lore.HelperBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         this.geometry.draw(this.renderer);
     }
 });
-Lore.PointHelper = function(renderer, geometryName, shaderName, options) {
+Lore.PointHelper = function (renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
     this.opts = Lore.Utils.extend(true, Lore.PointHelper.defaults, options);
     this.indices = null;
@@ -3289,27 +3300,27 @@ Lore.PointHelper = function(renderer, geometryName, shaderName, options) {
 Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
     constructor: Lore.PointHelper,
 
-    getMaxLength: function(x, y, z) {
+    getMaxLength: function (x, y, z) {
         return Math.max(x.length, Math.max(y.length, z.length));
     },
 
-    setPositions: function(positions) {
+    setPositions: function (positions) {
         this.setAttribute('position', positions);
     },
 
-    setPositionsXYZ: function(x, y, z, length) {
+    setPositionsXYZ: function (x, y, z, length) {
         var positions = new Float32Array(length * 3);
-        for(var i = 0; i < length; i++) {
+        for (var i = 0; i < length; i++) {
             var j = 3 * i;
             positions[j] = x[i] || 0;
             positions[j + 1] = y[i] || 0;
             positions[j + 2] = z[i] || 0;
         }
 
-        if(this.opts.octree) {
+        if (this.opts.octree) {
             var initialBounds = Lore.AABB.fromPoints(positions);
             var indices = new Uint32Array(length);
-            for(var i = 0; i < length; i++) indices[i] = i;
+            for (var i = 0; i < length; i++) indices[i] = i;
 
             this.octree = new Lore.Octree();
             this.octree.build(indices, positions, initialBounds);
@@ -3320,13 +3331,13 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setAttribute('position', positions);
     },
 
-    setPositionsXYZColor: function(x, y, z, color) {
+    setPositionsXYZColor: function (x, y, z, color) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setColor(color, length);
     },
 
-    setPositionsXYZRGB: function(x, y, z, r, g, b, normalize) {
+    setPositionsXYZRGB: function (x, y, z, r, g, b, normalize) {
         normalize = normalize ? true : false;
 
         var length = this.getMaxLength(x, y, z);
@@ -3334,22 +3345,22 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setRGB(r, g, b, length, normalize);
     },
 
-    setPositionsXYZHues: function(x, y, z, hues) {
+    setPositionsXYZHues: function (x, y, z, hues) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setHues(hues, length);
     },
 
-    setPositionsXYZHSL: function(x, y, z, h, s, l) {
-      var length = this.getMaxLength(x, y, z);
-      this.setPositionsXYZ(x, y, z, length);
-      this.setHSL(h, s, l, length);
+    setPositionsXYZHSL: function (x, y, z, h, s, l) {
+        var length = this.getMaxLength(x, y, z);
+        this.setPositionsXYZ(x, y, z, length);
+        this.setHSL(h, s, l, length);
     },
 
-    setHues: function(hues, length) {
+    setHues: function (hues, length) {
         var colors = new Float32Array(length * 3);
 
-        for(var i = 0; i < length; i++) {
+        for (var i = 0; i < length; i++) {
             var hue = hues[i] || 0;
             // Rescale
             hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
@@ -3365,10 +3376,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(colors);
     },
 
-    setHSL: function(h, s, l, length) {
+    setHSL: function (h, s, l, length) {
         var colors = new Float32Array(length * 3);
 
-        for(var i = 0; i < length; i++) {
+        for (var i = 0; i < length; i++) {
             var hue = h[i] || 0;
             // Rescale
             hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
@@ -3384,83 +3395,90 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(colors);
     },
 
-    shiftHue: function(hue, value) {
+    shiftHue: function (hue, value) {
         hue += value;
-        if(hue > 1) hue = hue - 1;
-        if(hue < 0) hue = 1 + hue;
+        if (hue > 1) hue = hue - 1;
+        if (hue < 0) hue = 1 + hue;
 
         return hue;
     },
 
-    setColors: function(colors) {
+    setColors: function (colors) {
         this.setAttribute('color', colors);
     },
 
-    updateColors: function(colors) {
+    updateColors: function (colors) {
         this.updateAttributeAll('color', colors);
     },
 
-    updateColor: function(index, color) {
+    updateColor: function (index, color) {
         this.updateAttribute('color', index, color.components);
     },
 
-    setPointSize: function(size) {
+    setPointSize: function (size) {
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
     },
 
-    setFogDistance: function(fogDistance) {
+    setFogDistance: function (fogDistance) {
         this.geometry.shader.uniforms.fogDistance.value = fogDistance;
     },
 
-    initPointSize: function() {
+    initPointSize: function () {
         this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
     },
+    
+    getCutoff: function() {
+        return this.geometry.shader.uniforms.cutoff.value;
+    },
 
-    setRGB: function(r, g, b, length, normalize) {
+    setCutoff: function (cutoff) {
+        this.geometry.shader.uniforms.cutoff.value = cutoff;
+    },
+
+    setRGB: function (r, g, b, length, normalize) {
         var c = new Float32Array(length * 3);
 
-        if(normalize) {
-            for(var i = 0; i < length; i++) {
+        if (normalize) {
+            for (var i = 0; i < length; i++) {
                 var j = 3 * i;
                 c[j] = r[i] / 255.0;
                 c[j + 1] = g[i] / 255.0;
                 c[j + 2] = b[i] / 255.0;
             }
-        }
-        else {
-            for(var i = 0; i < length; i++) {
+        } else {
+            for (var i = 0; i < length; i++) {
                 var j = 3 * i;
                 c[j] = r[i];
                 c[j + 1] = g[i];
                 c[j + 2] = b[i];
             }
         }
-        
+
         this.setColors(c);
     },
 
-    updateRGB: function(r, g, b) {
+    updateRGB: function (r, g, b) {
         var c = new Float32Array(r.length * 3);
 
-        for(var i = 0; i < r.length; i++) {
+        for (var i = 0; i < r.length; i++) {
             var j = 3 * i;
             c[j] = r[i];
             c[j + 1] = g[i];
             c[j + 2] = b[i];
         }
-        
+
         this.updateColors(c);
     },
 
-    setColor: function(color, length) {
+    setColor: function (color, length) {
         var c = new Float32Array(length * 3);
 
-        for(var i = 0; i < length * 3; i += 3) {
+        for (var i = 0; i < length * 3; i += 3) {
             c[i] = color.components[0];
             c[i + 1] = color.components[1];
             c[i + 2] = color.components[2];
         }
-        
+
         this.setColors(c);
     }
 });
@@ -3720,10 +3738,32 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     constructor: Lore.OctreeHelper,
 
     init: function() {
-        if(this.opts.visualize === 'center')
+        if(this.opts.visualize === 'centers')
             this.drawCenters();
         else if(this.opts.visualize === 'cubes')
             this.drawBoxes();
+        else
+            this.geometry.isVisible = false;
+    },
+
+    showCenters: function() {
+        this.opts.visualize = 'centers';
+        this.drawCenters();
+        this.geometry.isVisible = true;
+    },
+
+    showCubes: function() {
+        this.opts.visualize = 'cubes';
+        this.drawBoxes();
+        this.geometry.isVisible = true;
+    },
+
+    hide: function() {
+        this.opts.visualize = false;
+        this.geometry.isVisible = false;
+
+        this.setAttribute('position', new Float32Array([]));
+        this.setAttribute('color', new Float32Array([]));
     },
 
     getIntersections: function(mouse) {
@@ -3832,6 +3872,9 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         var ray = new Lore.Ray();
         var threshold = this.raycaster.threshold;
         var positions = this.target.geometry.attributes['position'].data;
+        
+        // Only get points further away than the cutoff set in the point HelperBase
+        var cutoff = this.target.getCutoff();
 
         ray.copyFrom(this.raycaster.ray).applyProjection(inverseMatrix);
 
@@ -3849,7 +3892,7 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                 var intersectedPoint = ray.closestPointToPoint(v);
                 intersectedPoint.applyProjection(this.target.modelMatrix);
                 var dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
-                if(dist < this.raycaster.near || dist > this.raycaster.far) continue;
+                if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff) continue;
 
                 result.push({
                     distance: dist,
@@ -4032,12 +4075,15 @@ Lore.Utils.mergePointDistances = function(a, b) {
     return newObj;
 };
 Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
-                                                       fogDistance: new Lore.Uniform('fogDistance', 0, 'float') }, [
+                                                       fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
+                                                       cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',
     'uniform float fogDistance;',
+    'uniform float cutoff;',
     'attribute vec3 position;',
     'attribute vec3 color;',
     'varying vec3 vColor;',
+    'varying float vDiscard;',
     'vec3 rgb2hsv(vec3 c) {',
         'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);',
         'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));',
@@ -4055,8 +4101,13 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
     'void main() {',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
         'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);',
-        'float fog_start = 0.0;',
-        'float fog_end = fogDistance;',
+        'vDiscard = 0.0;',
+        'if(-mv_pos.z < cutoff) {',
+            'vDiscard = 1.0;',
+            'return;',
+        '}',
+        'float fog_start = cutoff;',
+        'float fog_end = fogDistance + cutoff;',
         'float dist = abs(mv_pos.z - fog_start);',
         'gl_PointSize = size;',
         'if(fogDistance > 0.0) {',
@@ -4070,7 +4121,9 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
     '}'
 ], [
     'varying vec3 vColor;',
+    'varying float vDiscard;',
     'void main() {',
+        'if(vDiscard == 1.0) discard;',
         'gl_FragColor = vec4(vColor, 1.0);',
     '}'
 ]);
@@ -4129,9 +4182,10 @@ Lore.Shaders['defaultEffect'] = new Lore.Shader('DefaultEffect', {}, [
         'gl_FragColor = color;',
     '}'
 ]);
-Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
+Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lore.Uniform('resolution', [ 500.0, 500.0 ], 'float_vec2') }, [
     'attribute vec2 v_coord;',
     'uniform sampler2D fbo_texture;',
+    'uniform vec2 resolution;',
     'varying vec2 f_texcoord;',
     'void main() {',
         'gl_Position = vec4(v_coord, 0.0, 1.0);',
@@ -4520,9 +4574,10 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', {}, [
     '}',
 
     'uniform sampler2D fbo_texture;',
+    'uniform vec2 resolution;',
     'varying vec2 f_texcoord;',
     'void main(void) {',
-        'gl_FragColor = fxaa(f_texcoord, fbo_texture, vec2(1.0 / 500.0, 1.0 / 500.0), 0.75, 0.166, 0.0833);',
+        'gl_FragColor = fxaa(f_texcoord, fbo_texture, vec2(1.0 / resolution.x, 1.0 / resolution.y), 0.75, 0.166, 0.0833);',
     '}'
 ]);/**
  * @class
