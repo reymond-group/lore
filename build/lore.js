@@ -1090,6 +1090,13 @@ Lore.ControlsBase = function(renderer) {
         that.raiseEvent('click', { e: that, source: source });
     });
 
+    this.canvas.addEventListener('dblclick', function(e) {
+        var btn = e.button;
+        var source = 'left';
+
+        that.raiseEvent('dblclick', { e: that, source: source });
+    });
+
     this.canvas.addEventListener('mouseup', function(e) {
         var btn = e.button;
         var source = 'left';
@@ -1305,7 +1312,7 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         // Correct for high dpi display by dividing by device pixel ratio
         var x = Math.round((vector.components[0] + 1) * canvas.width  / 2);// / window.devicePixelRatio;
         var y = Math.round((-vector.components[1] + 1) * canvas.height / 2);// / window.devicePixelRatio;
-
+        
         return [ x, y ];
     },
 });
@@ -3419,6 +3426,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
     },
 
+    getPointSize: function () {
+        return this.geometry.shader.uniforms.size.value;
+    },
+
     setFogDistance: function (fogDistance) {
         this.geometry.shader.uniforms.fogDistance.value = fogDistance;
     },
@@ -3684,8 +3695,8 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
 
     var that = this;
 
-    renderer.controls.addEventListener('mousedown', function(e) {
-        if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
+    renderer.controls.addEventListener('dblclick', function(e) {
+        if(e.e.mouse.state.middle || e.e.mouse.state.right) return;
         var mouse = e.e.mouse.normalizedPosition;
 
         var result = that.getIntersections(mouse);
@@ -3872,6 +3883,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         var ray = new Lore.Ray();
         var threshold = this.raycaster.threshold;
         var positions = this.target.geometry.attributes['position'].data;
+        var colors = null;
+        if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
         
         // Only get points further away than the cutoff set in the point HelperBase
         var cutoff = this.target.getCutoff();
@@ -3898,7 +3911,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                     distance: dist,
                     index: index,
                     locCode: locCode,
-                    position: v
+                    position: v,
+                    color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
                 });
             }
         }

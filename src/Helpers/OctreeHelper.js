@@ -11,8 +11,8 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
 
     var that = this;
 
-    renderer.controls.addEventListener('mousedown', function(e) {
-        if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
+    renderer.controls.addEventListener('dblclick', function(e) {
+        if(e.e.mouse.state.middle || e.e.mouse.state.right) return;
         var mouse = e.e.mouse.normalizedPosition;
 
         var result = that.getIntersections(mouse);
@@ -199,6 +199,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         var ray = new Lore.Ray();
         var threshold = this.raycaster.threshold;
         var positions = this.target.geometry.attributes['position'].data;
+        var colors = null;
+        if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
         
         // Only get points further away than the cutoff set in the point HelperBase
         var cutoff = this.target.getCutoff();
@@ -225,7 +227,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                     distance: dist,
                     index: index,
                     locCode: locCode,
-                    position: v
+                    position: v,
+                    color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
                 });
             }
         }

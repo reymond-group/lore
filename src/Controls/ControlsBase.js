@@ -167,6 +167,13 @@ Lore.ControlsBase = function(renderer) {
         that.raiseEvent('click', { e: that, source: source });
     });
 
+    this.canvas.addEventListener('dblclick', function(e) {
+        var btn = e.button;
+        var source = 'left';
+
+        that.raiseEvent('dblclick', { e: that, source: source });
+    });
+
     this.canvas.addEventListener('mouseup', function(e) {
         var btn = e.button;
         var source = 'left';

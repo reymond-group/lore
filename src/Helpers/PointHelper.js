@@ -129,6 +129,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
     },
 
+    getPointSize: function () {
+        return this.geometry.shader.uniforms.size.value;
+    },
+
     setFogDistance: function (fogDistance) {
         this.geometry.shader.uniforms.fogDistance.value = fogDistance;
     },
