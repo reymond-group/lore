@@ -1,4 +1,4 @@
-Lore.Shaders['defaultSphere'] = new Lore.Shader('DefaultSphere', { size: new Lore.Uniform('size', 5.0, 'float'),
+Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('size', 5.0, 'float'),
                                                        fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
                                                        cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',

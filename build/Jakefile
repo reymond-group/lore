@@ -39,6 +39,7 @@ var files = [
   '../src/Shaders/Default.js',
   '../src/Shaders/Coordinates.js',
   '../src/Shaders/Circle.js',
+  '../src/Shaders/Sphere.js',
   '../src/Shaders/DefaultEffect.js',
   '../src/Shaders/FXAAEffect.js',
   '../src/Spice/Octree.js',
