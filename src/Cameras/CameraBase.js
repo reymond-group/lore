@@ -48,8 +48,8 @@ Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         
         // Map to 2D screen space
         // Correct for high dpi display by dividing by device pixel ratio
-        var x = Math.round((vector.components[0] + 1) * canvas.width  / 2) / window.devicePixelRatio;
-        var y = Math.round((-vector.components[1] + 1) * canvas.height / 2) / window.devicePixelRatio;
+        var x = Math.round((vector.components[0] + 1) * canvas.width  / 2);// / window.devicePixelRatio;
+        var y = Math.round((-vector.components[1] + 1) * canvas.height / 2);// / window.devicePixelRatio;
 
         return [ x, y ];
     },
