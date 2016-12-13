@@ -22,6 +22,9 @@
   <br />
   <input id="cutoff" type="text"></input>
   <input id="cutoff-button" type="button" value="Set Cutoff"></input>
+  <br />
+  <input id="filter" type="range" min="0.02" max="0.98" step="0.01"></input>
+  <!--<input id="filter-button" type="button" value="Set Filter"></input>-->
   
   <script src="../build/lore.js"></script>
   <script>
@@ -52,9 +55,12 @@
             console.log(e);
           });
 
+          pointHelper.addFilter('hueRange', new Lore.InRangeFilter('color', 0, 0.22, 0.25));
+
           first = false;
         } else {
           pointHelper.updateRGB(e[0], e[1], e[2]);
+          pointHelper.getFilter('hueRange').filter();
         }
     });
 
@@ -69,6 +75,15 @@
     document.getElementById('cutoff-button').addEventListener('click', function() {
       var val = document.getElementById('cutoff').value;
       pointHelper.setCutoff(val);
+    });
+    document.getElementById('filter').addEventListener('input', function() {
+      var val = parseFloat(document.getElementById('filter').value);
+      var filter = pointHelper.getFilter('hueRange');
+
+      val = Lore.Color.gdbHueShift(val);
+      filter.setMin(val - 0.002);
+      filter.setMax(val + 0.002);
+      filter.filter();
     });
   </script>
 </body>

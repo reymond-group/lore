@@ -33,6 +33,8 @@ var files = [
   '../src/Helpers/PointHelper.js',
   '../src/Helpers/CoordinatesHelper.js',
   '../src/Helpers/OctreeHelper.js',
+  '../src/Filters/FilterBase.js',
+  '../src/Filters/InRangeFilter.js',
   '../src/IO/FileReaderBase.js',
   '../src/IO/CsvFileReader.js',
   '../src/Utils/Utils.js',

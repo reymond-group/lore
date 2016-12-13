@@ -5,6 +5,7 @@ Lore.PointHelper = function (renderer, geometryName, shaderName, options) {
     this.octree = null;
     this.geometry.setMode(Lore.DrawModes.points);
     this.initPointSize();
+    this.filters = {};
 }
 
 Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
@@ -55,6 +56,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setRGB(r, g, b, length, normalize);
     },
 
+    /*
     setPositionsXYZHues: function (x, y, z, hues) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
@@ -66,6 +68,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setPositionsXYZ(x, y, z, length);
         this.setHSL(h, s, l, length);
     },
+   
 
     setHues: function (hues, length) {
         var colors = new Float32Array(length * 3);
@@ -112,6 +115,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
         return hue;
     },
+    */
 
     setColors: function (colors) {
         this.setAttribute('color', colors);
@@ -168,6 +172,17 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             }
         }
 
+        // Convert to HOS (Hue, Opacity, Size)
+        for(var i = 0; i < c.length; i += 3) {
+            var r = c[i];
+            var g = c[i + 1];
+            var b = c[i + 2];
+
+            c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
+            c[i + 1] = 1.0;
+            c[i + 2] = 1.0;
+        }
+
         this.setColors(c);
     },
 
@@ -179,6 +194,17 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             c[j] = r[i];
             c[j + 1] = g[i];
             c[j + 2] = b[i];
+        }
+
+        // Convert to HOS (Hue, Opacity, Size)
+        for(var i = 0; i < c.length; i += 3) {
+            var r = c[i];
+            var g = c[i + 1];
+            var b = c[i + 2];
+
+            c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
+            c[i + 1] = 1.0;
+            c[i + 2] = 1.0;
         }
 
         this.updateColors(c);
@@ -194,6 +220,19 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         }
 
         this.setColors(c);
+    },
+
+    addFilter: function (name, filter) {
+        filter.setGeometry(this.geometry);
+        this.filters[name] = filter;
+    },
+
+    removeFilter: function (name) {
+        delete this.filters[name];
+    },
+
+    getFilter: function (name) {
+        return this.filters[name];
     }
 });
 

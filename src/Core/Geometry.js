@@ -20,7 +20,9 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
     },
 
     updateAttribute: function(name, data) {
-        this.attributes[name].update(this.gl, data);
+        if(data) this.attributes[name].data = data;
+        this.attributes[name].update(this.gl);
+        return this;
     },
 
     getAttribute: function(name) {
@@ -56,6 +58,8 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
                 this.drawMode = this.gl.TRIANGLE_FAN;
                 break;
         }
+
+        return this;
     },
 
     size: function() {
