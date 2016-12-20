@@ -1184,11 +1184,12 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
     this.lookAt = lookAt || new Lore.Vector3f();
 
     this.scale = 0.95;
-    this.zoomed = false;
 
     this.camera.position = new Lore.Vector3f(radius, radius, radius);
     this.camera.updateProjectionMatrix();
     this.camera.updateViewMatrix();
+
+    this.rotationLocked = false;
 
     var that = this;
 
@@ -1220,12 +1221,12 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         this.update();
     },
     update: function(e, source) {
-        if(source == 'left') {
+        if(source == 'left' && !this.rotationLocked) {
 	        // Rotate
             this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
             this.dPhi   = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
         }
-        else if(source == 'right') {
+        else if(source == 'right' || source == 'left' && this.rotationLocked) {
             // Translate
             var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
             var y = e.y * (this.camera.top - this.camera.bottom) / this.camera.zoom / this.canvas.clientHeight;
@@ -1242,14 +1243,12 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
                 // Zoom Out
                 this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
                 this.camera.updateProjectionMatrix();
-                this.zoomed = true;
                 this.raiseEvent('zoomchanged', this.camera.zoom);
             }
             else if(e.y < 0) {
                 // Zoom In
                 this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
                 this.camera.updateProjectionMatrix();
-                this.zoomed = true;
                 this.raiseEvent('zoomchanged', this.camera.zoom);
             }
         }
@@ -1257,24 +1256,16 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         // Update the camera
         var offset = this.camera.position.clone().subtract(this.lookAt);
 
-        //var q = new Lore.Quaternion();
-        //q.setFromUnitVectors(this.up, this.up);
-        //var qInverse = q.clone().inverse();
-        //offset.applyQuaternion(q);
-
         this.spherical.setFromVector(offset);
         this.spherical.components[1] += this.dPhi;
         this.spherical.components[2] += this.dTheta;
         this.spherical.limit(0.0, 0.5 * Math.PI, -Infinity, Infinity);
         this.spherical.secure();
 
-
         // Limit radius here
 
         this.lookAt.add(this.dPan);
         offset.setFromSphericalCoords(this.spherical);
-
-        //offset.applyQuaternion(qInverse);
 
         this.camera.position.copyFrom(this.lookAt).add(offset);
 
@@ -1286,12 +1277,59 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         this.dTheta = 0.0;
         this.dPan.set(0, 0, 0);
 
-        // Handle zoom, this is copied from THREE.js OrbitCamera
-        if(this.zoomed) {
-            this.zoomed = false;
-        }
+        this.raiseEvent('updated');
+    },
+
+    setView: function(phi, theta) {
+        var offset = this.camera.position.clone().subtract(this.lookAt);
+
+        this.spherical.setFromVector(offset);
+        this.spherical.components[1] = phi;
+        this.spherical.components[2] = theta;
+        this.spherical.secure();
+
+        offset.setFromSphericalCoords(this.spherical);
+
+        this.camera.position.copyFrom(this.lookAt).add(offset);
+
+        this.camera.setLookAt(this.lookAt);
+
+        this.camera.updateViewMatrix();
 
         this.raiseEvent('updated');
+    },
+
+    setTopView: function() {
+        this.setView(0.0, 2.0 * Math.PI);
+        this.rotationLocked = true;
+    },
+
+    setBottomView: function() {
+        this.rotationLocked = true;
+    },
+
+    setRightView: function() {
+        this.setView(0.5 * Math.PI, 0.5 * Math.PI);
+        this.rotationLocked = true;
+    },
+
+    setLeftView: function() {
+        this.setView(0.5 * Math.PI, -0.5 * Math.PI);
+        this.rotationLocked = true;
+    },
+
+    setFrontView: function() {
+        this.setView(0.5 * Math.PI, 2.0 * Math.PI);
+        this.rotationLocked = true;
+    },
+
+    setBackView: function() {
+        this.setView(0.5 * Math.PI, Math.PI);
+        this.rotationLocked = true;
+    },
+
+    setFreeView: function() {
+        this.rotationLocked = false
     }
 });
 Lore.CameraBase = function() {

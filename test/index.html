@@ -24,7 +24,18 @@
   <input id="cutoff-button" type="button" value="Set Cutoff"></input>
   <br />
   <input id="filter" type="range" min="0.02" max="0.98" step="0.01"></input>
-  <!--<input id="filter-button" type="button" value="Set Filter"></input>-->
+  <br />
+  <input id="topview-button" type="button" value="Top View"></input>
+  <br />
+  <input id="frontview-button" type="button" value="Front View"></input>
+  <br />
+  <input id="backview-button" type="button" value="Back View"></input>
+  <br />
+  <input id="leftview-button" type="button" value="Left View"></input>
+  <br />
+  <input id="rightview-button" type="button" value="Right View"></input>
+  <br />
+  <input id="freeview-button" type="button" value="Free View"></input>
   
   <script src="../build/lore.js"></script>
   <script>
@@ -84,6 +95,24 @@
       filter.setMin(val - 0.002);
       filter.setMax(val + 0.002);
       filter.filter();
+    });
+    document.getElementById('topview-button').addEventListener('click', function() {
+      lore.controls.setTopView();
+    });
+    document.getElementById('frontview-button').addEventListener('click', function() {
+      lore.controls.setFrontView();
+    });
+    document.getElementById('backview-button').addEventListener('click', function() {
+      lore.controls.setBackView();
+    });
+    document.getElementById('leftview-button').addEventListener('click', function() {
+      lore.controls.setLeftView();
+    });
+    document.getElementById('rightview-button').addEventListener('click', function() {
+      lore.controls.setRightView();
+    });
+    document.getElementById('freeview-button').addEventListener('click', function() {
+      lore.controls.setFreeView();
     });
   </script>
 </body>
