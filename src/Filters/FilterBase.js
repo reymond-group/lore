@@ -14,3 +14,8 @@ Lore.FilterBase.prototype = {
     }
 }
 
+
+Lore.FilterBase.isVisible = function(geometry, index) {
+    return geometry.attributes['color'].data[index * 3 + 2] > 0.0;
+}
+

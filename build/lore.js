@@ -3978,7 +3978,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                 var intersectedPoint = ray.closestPointToPoint(v);
                 intersectedPoint.applyProjection(this.target.modelMatrix);
                 var dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
-                if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff) continue;
+                var isVisible = Lore.FilterBase.isVisible(this.target.geometry, index);
+                if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
 
                 result.push({
                     distance: dist,
@@ -4012,6 +4013,11 @@ Lore.FilterBase.prototype = {
     filter: function() {
 
     }
+}
+
+
+Lore.FilterBase.isVisible = function(geometry, index) {
+    return geometry.attributes['color'].data[index * 3 + 2] > 0.0;
 }
 
 Lore.InRangeFilter = function(attribute, attributeIndex, min, max) {

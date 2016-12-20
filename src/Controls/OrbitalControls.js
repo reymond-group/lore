@@ -19,6 +19,8 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
     this.camera.updateProjectionMatrix();
     this.camera.updateViewMatrix();
 
+    this.rotationLocked = false;
+
     var that = this;
 
     this.addEventListener('mousedrag', function(e) {
@@ -49,12 +51,12 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         this.update();
     },
     update: function(e, source) {
-        if(source == 'left') {
+        if(source == 'left' && !this.rotationLocked) {
 	        // Rotate
             this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
             this.dPhi   = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
         }
-        else if(source == 'right') {
+        else if(source == 'right' || source == 'left' && this.rotationLocked) {
             // Translate
             var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
             var y = e.y * (this.camera.top - this.camera.bottom) / this.camera.zoom / this.canvas.clientHeight;
@@ -121,5 +123,33 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
         }
 
         this.raiseEvent('updated');
+    },
+
+    setTopView: function() {
+        this.rotationLocked = true;
+    },
+
+    setBottomView: function() {
+        this.rotationLocked = true;
+    },
+
+    setRightView: function() {
+        this.rotationLocked = true;
+    },
+
+    setLeftView: function() {
+        this.rotationLocked = true;
+    },
+
+    setFrontView: function() {
+        this.rotationLocked = true;
+    },
+
+    setBackView: function() {
+        this.rotationLocked = true;
+    },
+
+    setFreeView: function() {
+        this.rotationLocked = false
     }
 });

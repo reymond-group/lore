@@ -221,7 +221,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                 var intersectedPoint = ray.closestPointToPoint(v);
                 intersectedPoint.applyProjection(this.target.modelMatrix);
                 var dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
-                if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff) continue;
+                var isVisible = Lore.FilterBase.isVisible(this.target.geometry, index);
+                if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
 
                 result.push({
                     distance: dist,
