@@ -158,6 +158,7 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
     },
 
     setFreeView: function() {
+        this.setView(0.25 * Math.PI, 0.25 * Math.PI);
         this.rotationLocked = false
     }
 });
