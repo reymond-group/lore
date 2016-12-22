@@ -18,6 +18,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var result = that.getIntersections(mouse);
         
         if(result.length > 0) {
+            if(that.selected && that.selected.index === result[0].index) return;
             that.selected = result[0];
             that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
             that.raiseEvent('selectedchanged', { e: that.selected });
@@ -34,6 +35,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         
         var result = that.getIntersections(mouse);
         if(result.length > 0) {
+            if(that.hovered && that.hovered.index === result[0].index) return;
             that.hovered = result[0];
             that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
             that.raiseEvent('hoveredchanged', { e: that.hovered });
@@ -45,7 +47,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     });
 
     renderer.controls.addEventListener('zoomchanged', function(zoom) {
-        that.target.setPointSize(zoom * window.devicePixelRatio + 0.05);
+        that.target.setPointSize(zoom * window.devicePixelRatio + 0.1);
     });
 
     renderer.controls.addEventListener('updated', function() {

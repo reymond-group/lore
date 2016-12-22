@@ -2,6 +2,7 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
     Lore.ControlsBase.call(this, renderer);
     this.up = Lore.Vector3f.up();
     this.radius = radius;
+    this.renderer = renderer;
     this.camera = renderer.camera;
     this.canvas = renderer.canvas;
 
@@ -125,6 +126,20 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
 
         this.camera.updateViewMatrix();
 
+        this.raiseEvent('updated');
+    },
+
+    zoomIn: function() {
+        this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
+        this.camera.updateProjectionMatrix();
+        this.raiseEvent('zoomchanged', this.camera.zoom);
+        this.raiseEvent('updated');
+    },
+
+    zoomOut: function() {
+        this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
+        this.camera.updateProjectionMatrix();
+        this.raiseEvent('zoomchanged', this.camera.zoom);
         this.raiseEvent('updated');
     },
 

@@ -1,6 +1,11 @@
 Lore.ControlsBase = function(renderer) {
+    this.renderer = renderer;
     this.canvas = renderer.canvas;
+    this.lowFps = 15;
+    this.highFps = 30;
     this.eventListeners = {};
+    this.renderer.setMaxFps(this.lowFps);
+
     this.mouse = {
         previousPosition: {
             x: null,
@@ -71,6 +76,8 @@ Lore.ControlsBase = function(renderer) {
 
         that.mouse.touched = true;
 
+        that.renderer.setMaxFps(this.highFps);
+
         that.raiseEvent('mousedown', { e: that, source: 'touch' });
     });
 
@@ -83,6 +90,8 @@ Lore.ControlsBase = function(renderer) {
         // Reset the previous position and delta of the mouse
         that.mouse.previousPosition.x = null;
         that.mouse.previousPosition.y = null;
+
+        that.renderer.setMaxFps(this.lowFps);
 
         that.raiseEvent('mouseup', { e: that, source: 'touch' });
     });
@@ -157,6 +166,8 @@ Lore.ControlsBase = function(renderer) {
             source = 'right';
         }
 
+        that.renderer.setMaxFps(this.highFps);
+
         that.raiseEvent('mousedown', { e: that, source: source });
     });
 
@@ -192,6 +203,8 @@ Lore.ControlsBase = function(renderer) {
         // Reset the previous position and delta of the mouse
         that.mouse.previousPosition.x = null;
         that.mouse.previousPosition.y = null;
+
+        that.renderer.setMaxFps(this.lowFps);
 
         that.raiseEvent('mouseup', { e: that, source: source });
     });

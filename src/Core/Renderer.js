@@ -5,6 +5,8 @@ Lore.Renderer = function(targetId, options) {
     this.verbose = options.verbose === true ? true : false;
     this.fpsElement = options.fps;
     this.fps = 0;
+    this.fpsCount = 0;
+    this.maxFps = 1000 / 30;
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
@@ -88,13 +90,14 @@ Lore.Renderer.prototype = {
 
         if (this.enableDepthTest) {
             g.enable(g.DEPTH_TEST);
-            g.depthFunc(g.LESS);
+            g.depthFunc(g.LEQUAL);
             console.log('enable depth test');
-            //g.depthFunc(g.LEQUAL);
         }
 
+        /*
         g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
         g.enable(g.BLEND);
+        */
 
         setTimeout(function() {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
@@ -147,22 +150,32 @@ Lore.Renderer.prototype = {
     animate: function() {
         var that = this;
 
-        requestAnimationFrame(function() {
-            that.animate();
-        });
+        setTimeout( function() {
+            requestAnimationFrame(function() {
+                that.animate();
+            });
+        }, this.maxFps);
 
         if(this.fpsElement) {
             var now = performance.now();
             var delta = now - this.lastTiming;
+            
             this.lastTiming = now;
-            this.fps = Math.round(1000.0 / delta);
-            this.fpsElement.innerHTML = this.fps;
+            if(this.fpsCount < 10) {
+                this.fps += Math.round(1000.0 / delta);
+                this.fpsCount++;
+            }
+            else {
+                this.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
+                this.fpsCount = 0;
+                this.fps = 0;
+            }
         }
 
-        this.effect.bind();
-        // this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        // this.effect.bind();
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.render(this.camera, this.geometries);
-        this.effect.unbind();
+        // this.effect.unbind();
 
         this.camera.isProjectionMatrixStale = false;
         this.camera.isViewMatrixStale = false;
@@ -178,5 +191,9 @@ Lore.Renderer.prototype = {
         var geometry = new Lore.Geometry(name, this.gl, this.shaders[shader]);
         this.geometries[name] = geometry;
         return geometry;
+    },
+
+    setMaxFps: function(fps) {
+        this.maxFps = 1000 / fps;
     }
 }

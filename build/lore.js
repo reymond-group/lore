@@ -200,6 +200,8 @@ Lore.Renderer = function(targetId, options) {
     this.verbose = options.verbose === true ? true : false;
     this.fpsElement = options.fps;
     this.fps = 0;
+    this.fpsCount = 0;
+    this.maxFps = 1000 / 30;
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
@@ -283,13 +285,14 @@ Lore.Renderer.prototype = {
 
         if (this.enableDepthTest) {
             g.enable(g.DEPTH_TEST);
-            g.depthFunc(g.LESS);
+            g.depthFunc(g.LEQUAL);
             console.log('enable depth test');
-            //g.depthFunc(g.LEQUAL);
         }
 
+        /*
         g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
         g.enable(g.BLEND);
+        */
 
         setTimeout(function() {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
@@ -342,22 +345,32 @@ Lore.Renderer.prototype = {
     animate: function() {
         var that = this;
 
-        requestAnimationFrame(function() {
-            that.animate();
-        });
+        setTimeout( function() {
+            requestAnimationFrame(function() {
+                that.animate();
+            });
+        }, this.maxFps);
 
         if(this.fpsElement) {
             var now = performance.now();
             var delta = now - this.lastTiming;
+            
             this.lastTiming = now;
-            this.fps = Math.round(1000.0 / delta);
-            this.fpsElement.innerHTML = this.fps;
+            if(this.fpsCount < 10) {
+                this.fps += Math.round(1000.0 / delta);
+                this.fpsCount++;
+            }
+            else {
+                this.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
+                this.fpsCount = 0;
+                this.fps = 0;
+            }
         }
 
-        this.effect.bind();
-        // this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        // this.effect.bind();
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.render(this.camera, this.geometries);
-        this.effect.unbind();
+        // this.effect.unbind();
 
         this.camera.isProjectionMatrixStale = false;
         this.camera.isViewMatrixStale = false;
@@ -373,6 +386,10 @@ Lore.Renderer.prototype = {
         var geometry = new Lore.Geometry(name, this.gl, this.shaders[shader]);
         this.geometries[name] = geometry;
         return geometry;
+    },
+
+    setMaxFps: function(fps) {
+        this.maxFps = 1000 / fps;
     }
 }
 Lore.Shader = function(name, uniforms, vertexShader, fragmentShader) {
@@ -956,8 +973,13 @@ Lore.Effect.prototype = {
     }
 }
 Lore.ControlsBase = function(renderer) {
+    this.renderer = renderer;
     this.canvas = renderer.canvas;
+    this.lowFps = 15;
+    this.highFps = 30;
     this.eventListeners = {};
+    this.renderer.setMaxFps(this.lowFps);
+
     this.mouse = {
         previousPosition: {
             x: null,
@@ -1028,6 +1050,8 @@ Lore.ControlsBase = function(renderer) {
 
         that.mouse.touched = true;
 
+        that.renderer.setMaxFps(this.highFps);
+
         that.raiseEvent('mousedown', { e: that, source: 'touch' });
     });
 
@@ -1040,6 +1064,8 @@ Lore.ControlsBase = function(renderer) {
         // Reset the previous position and delta of the mouse
         that.mouse.previousPosition.x = null;
         that.mouse.previousPosition.y = null;
+
+        that.renderer.setMaxFps(this.lowFps);
 
         that.raiseEvent('mouseup', { e: that, source: 'touch' });
     });
@@ -1114,6 +1140,8 @@ Lore.ControlsBase = function(renderer) {
             source = 'right';
         }
 
+        that.renderer.setMaxFps(this.highFps);
+
         that.raiseEvent('mousedown', { e: that, source: source });
     });
 
@@ -1150,6 +1178,8 @@ Lore.ControlsBase = function(renderer) {
         that.mouse.previousPosition.x = null;
         that.mouse.previousPosition.y = null;
 
+        that.renderer.setMaxFps(this.lowFps);
+
         that.raiseEvent('mouseup', { e: that, source: source });
     });
 }
@@ -1173,6 +1203,7 @@ Lore.OrbitalControls = function(renderer, radius, lookAt) {
     Lore.ControlsBase.call(this, renderer);
     this.up = Lore.Vector3f.up();
     this.radius = radius;
+    this.renderer = renderer;
     this.camera = renderer.camera;
     this.canvas = renderer.canvas;
 
@@ -1296,6 +1327,20 @@ Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.p
 
         this.camera.updateViewMatrix();
 
+        this.raiseEvent('updated');
+    },
+
+    zoomIn: function() {
+        this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
+        this.camera.updateProjectionMatrix();
+        this.raiseEvent('zoomchanged', this.camera.zoom);
+        this.raiseEvent('updated');
+    },
+
+    zoomOut: function() {
+        this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
+        this.camera.updateProjectionMatrix();
+        this.raiseEvent('zoomchanged', this.camera.zoom);
         this.raiseEvent('updated');
     },
 
@@ -3500,6 +3545,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     },
 
     setPointSize: function (size) {
+        if(size * this.opts.pointScale > this.opts.maxPointSize) return;
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
     },
 
@@ -3608,7 +3654,8 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
 Lore.PointHelper.defaults = {
     octree: true,
-    pointScale: 1.0
+    pointScale: 1.0,
+    maxPointSize: 100.0
 }
 Lore.CoordinatesHelper = function(renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
@@ -3814,6 +3861,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var result = that.getIntersections(mouse);
         
         if(result.length > 0) {
+            if(that.selected && that.selected.index === result[0].index) return;
             that.selected = result[0];
             that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
             that.raiseEvent('selectedchanged', { e: that.selected });
@@ -3830,6 +3878,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         
         var result = that.getIntersections(mouse);
         if(result.length > 0) {
+            if(that.hovered && that.hovered.index === result[0].index) return;
             that.hovered = result[0];
             that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
             that.raiseEvent('hoveredchanged', { e: that.hovered });
@@ -3841,7 +3890,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     });
 
     renderer.controls.addEventListener('zoomchanged', function(zoom) {
-        that.target.setPointSize(zoom * window.devicePixelRatio + 0.05);
+        that.target.setPointSize(zoom * window.devicePixelRatio + 0.1);
     });
 
     renderer.controls.addEventListener('updated', function() {

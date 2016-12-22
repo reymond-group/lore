@@ -130,6 +130,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     },
 
     setPointSize: function (size) {
+        if(size * this.opts.pointScale > this.opts.maxPointSize) return;
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
     },
 
@@ -238,5 +239,6 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
 Lore.PointHelper.defaults = {
     octree: true,
-    pointScale: 1.0
+    pointScale: 1.0,
+    maxPointSize: 100.0
 }

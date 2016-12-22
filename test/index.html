@@ -36,6 +36,10 @@
   <input id="rightview-button" type="button" value="Right View"></input>
   <br />
   <input id="freeview-button" type="button" value="Free View"></input>
+  <br />
+  <input id="zoomin-button" type="button" value="Zoom In"></input>
+  <br />
+  <input id="zoomout-button" type="button" value="Zoom Out"></input>
   
   <script src="../build/lore.js"></script>
   <script>
@@ -113,6 +117,12 @@
     });
     document.getElementById('freeview-button').addEventListener('click', function() {
       lore.controls.setFreeView();
+    });
+    document.getElementById('zoomin-button').addEventListener('click', function() {
+      lore.controls.zoomIn();
+    });
+    document.getElementById('zoomout-button').addEventListener('click', function() {
+      lore.controls.zoomOut();
     });
   </script>
 </body>
