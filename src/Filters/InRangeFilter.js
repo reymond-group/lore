@@ -46,9 +46,12 @@ Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.proto
         this.geometry.updateAttribute('color');
     },
 
-    reset: function(geometry) {
+    reset: function() {
+        var attribute = this.geometry.attributes[this.attribute];
+
         for(var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            this.geometry.attributes['color'][i + 2] = -this.geometry.attributes['color'][i + 2];
+            var size = this.geometry.attributes['color'].data[i + 2];
+            this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
         }
 
         this.geometry.updateAttribute('color');

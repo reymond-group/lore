@@ -979,6 +979,7 @@ Lore.ControlsBase = function(renderer) {
     this.highFps = 30;
     this.eventListeners = {};
     this.renderer.setMaxFps(this.lowFps);
+    this.touchMode = 'drag';
 
     this.mouse = {
         previousPosition: {
@@ -1052,6 +1053,15 @@ Lore.ControlsBase = function(renderer) {
 
         that.renderer.setMaxFps(this.highFps);
 
+        // This is for selecting stuff when touching but not moving
+        
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousemove', { e: that });
+
         that.raiseEvent('mousedown', { e: that, source: 'touch' });
     });
 
@@ -1085,9 +1095,16 @@ Lore.ControlsBase = function(renderer) {
             that.mouse.position.x += 0.01 * that.mouse.delta.x;
             that.mouse.position.y += 0.01 * that.mouse.delta.y;
 
-            // Touch move is the same as left button drag
-            that.raiseEvent('mousedrag', { e: that.mouse.delta, source: source});
+            if(that.touchMode === 'drag') 
+                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: source });
         }
+
+        // Set normalized mouse position
+        var rect = that.canvas.getBoundingClientRect();
+        that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
+        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+        that.raiseEvent('mousemove', { e: that });
 
         that.mouse.previousPosition.x = touch.pageX;
         that.mouse.previousPosition.y = touch.pageY;
@@ -4156,9 +4173,12 @@ Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.proto
         this.geometry.updateAttribute('color');
     },
 
-    reset: function(geometry) {
+    reset: function() {
+        var attribute = this.geometry.attributes[this.attribute];
+
         for(var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            this.geometry.attributes['color'][i + 2] = -this.geometry.attributes['color'][i + 2];
+            var size = this.geometry.attributes['color'].data[i + 2];
+            this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
         }
 
         this.geometry.updateAttribute('color');
