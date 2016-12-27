@@ -86,7 +86,8 @@ Lore.ControlsBase = function(renderer) {
         that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
         that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
 
-        that.raiseEvent('mousemove', { e: that });
+        if(that.touchMode !== 'drag')
+            that.raiseEvent('mousemove', { e: that });
 
         that.raiseEvent('mousedown', { e: that, source: 'touch' });
     });
@@ -130,7 +131,8 @@ Lore.ControlsBase = function(renderer) {
         that.mouse.normalizedPosition.x =  ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
         that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
 
-        that.raiseEvent('mousemove', { e: that });
+        if(that.touchMode !== 'drag')
+            that.raiseEvent('mousemove', { e: that });
 
         that.mouse.previousPosition.x = touch.pageX;
         that.mouse.previousPosition.y = touch.pageY;

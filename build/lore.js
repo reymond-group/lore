@@ -3869,7 +3869,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     this.octree = this.target.octree;
     this.raycaster = new Lore.Raycaster();
     this.hovered = null;
-    this.selected = null;
+    this.selected = [];
 
     var that = this;
 
@@ -3880,14 +3880,9 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var result = that.getIntersections(mouse);
         
         if(result.length > 0) {
-            if(that.selected && that.selected.index === result[0].index) return;
-            that.selected = result[0];
-            that.selected.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+            if(that.selectedContains(result[0].index)) return;
+            that.addSelected(result[0]);
             that.raiseEvent('selectedchanged', { e: that.selected });
-        }
-        else {
-            that.selected = null;
-            that.raiseEvent('selectedchanged', { e: null });
         }
     });
 
@@ -3913,8 +3908,8 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     });
 
     renderer.controls.addEventListener('updated', function() {
-        if(that.selected)
-            that.selected.screenPosition = that.renderer.camera.sceneToScreen(that.selected.position, renderer);
+        for(var i = 0; i < that.selected.length; i++) 
+            that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
         
         if(that.hovered)
             that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
@@ -3935,6 +3930,31 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
             this.drawBoxes();
         else
             this.geometry.isVisible = false;
+    },
+
+    addSelected: function(item) {
+        var index = this.selected.length;
+        this.selected.push(item);
+        this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
+        this.raiseEvent('selectedchanged', { e: this.selected });
+    },
+
+    removeSelected: function(index) {
+        this.selected.splice(index, 1);
+        this.raiseEvent('selectedchanged', { e: this.selected });
+    },
+
+    clearSelected: function() {
+        this.selected = [];
+        this.raiseEvent('selectedchanged', { e: this.selected });
+    },
+
+    selectedContains: function(index) {
+        for(var i = 0; i < this.selected.length; i++) {
+            if(this.selected[i].index === index) return true;
+        }
+
+        return false;
     },
 
     showCenters: function() {
