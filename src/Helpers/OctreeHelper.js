@@ -94,6 +94,18 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         return false;
     },
 
+    selectHovered: function() {
+        if(!this.hovered || this.selectedContains(this.hovered.index)) return;
+
+        this.addSelected({
+            distance: this.hovered.distance,
+            index: this.hovered.index,
+            locCode: this.hovered.locCode,
+            position: this.hovered.position,
+            color: this.hovered.color
+        });
+    },
+
     showCenters: function() {
         this.opts.visualize = 'centers';
         this.drawCenters();
