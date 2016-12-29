@@ -20,7 +20,6 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         if(result.length > 0) {
             if(that.selectedContains(result[0].index)) return;
             that.addSelected(result[0]);
-            that.raiseEvent('selectedchanged', { e: that.selected });
         }
     });
 
