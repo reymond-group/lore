@@ -187,6 +187,11 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(c);
     },
 
+    getHue: function (index) {
+        var colors = this.getAttribute('color');
+        return colors[index * 3];
+    },
+
     updateRGB: function (r, g, b) {
         var c = new Float32Array(r.length * 3);
 

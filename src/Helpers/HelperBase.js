@@ -14,6 +14,10 @@ Lore.HelperBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         this.geometry.addAttribute(name, data);
     },
 
+    getAttribute: function(name) {
+        return this.geometry.attributes[name].data;
+    },
+
     updateAttribute: function(name, index, value) {
         var attr = this.geometry.attributes[name];
         
@@ -24,6 +28,7 @@ Lore.HelperBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         
         attr.stale = true;
     },
+    
 
     updateAttributeAll: function(name, values) {
         var attr = this.geometry.attributes[name];
