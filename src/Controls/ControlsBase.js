@@ -143,7 +143,9 @@ Lore.ControlsBase = function(renderer) {
 
     this.canvas.addEventListener(wheelevent, function(e) {
         e.preventDefault();
-        that.raiseEvent('mousewheel', { e: e.wheelDelta });
+        
+        var delta = 'wheelDelta' in e ? e.wheelDelta : -40 * e.detail; 
+        that.raiseEvent('mousewheel', { e: delta });
     });
 
     this.canvas.addEventListener('keydown', function(e) {
