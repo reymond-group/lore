@@ -23,7 +23,7 @@ Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('siz
         'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
     '}',
     'void main() {',
-        'vec3 hsv = vec3(color.r, color.g, 0.75);',
+        'vec3 hsv = vec3(color.r, color.g, 1.0);',
         'float saturation = color.g;',
         'float point_size = color.b;',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',

@@ -202,6 +202,7 @@ Lore.Renderer = function(targetId, options) {
     this.fps = 0;
     this.fpsCount = 0;
     this.maxFps = 1000 / 30;
+    this.devicePixelRatio = this.getDevicePixelRatio();
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
@@ -390,6 +391,10 @@ Lore.Renderer.prototype = {
 
     setMaxFps: function(fps) {
         this.maxFps = 1000 / fps;
+    },
+
+    getDevicePixelRatio: function() {
+        return window.devicePixelRatio || 1;
     }
 }
 Lore.Shader = function(name, uniforms, vertexShader, fragmentShader) {
@@ -3483,80 +3488,122 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setAttribute('position', positions);
     },
 
-    setPositionsXYZColor: function (x, y, z, color) {
+    setPositionsXYZHSS: function (x, y, z, hue, saturation, size) {
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
-        this.setColor(color, length);
+        this.setHSS(hue, saturation, size, length);
+    },
+    
+    setColors: function (colors) {
+        this.setAttribute('color', colors);
     },
 
-    setPositionsXYZRGB: function (x, y, z, r, g, b, normalize) {
-        normalize = normalize ? true : false;
-
-        var length = this.getMaxLength(x, y, z);
-        this.setPositionsXYZ(x, y, z, length);
-        this.setRGB(r, g, b, length, normalize);
+    updateColors: function (colors) {
+        this.updateAttributeAll('color', colors);
     },
 
-    /*
-    setPositionsXYZHues: function (x, y, z, hues) {
-        var length = this.getMaxLength(x, y, z);
-        this.setPositionsXYZ(x, y, z, length);
-        this.setHues(hues, length);
+    updateColor: function (index, color) {
+        this.updateAttribute('color', index, color.components);
     },
 
-    setPositionsXYZHSL: function (x, y, z, h, s, l) {
-        var length = this.getMaxLength(x, y, z);
-        this.setPositionsXYZ(x, y, z, length);
-        this.setHSL(h, s, l, length);
+    setPointSize: function (size) {
+        if(size * this.opts.pointScale > this.opts.maxPointSize) return;
+        this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
     },
-   
 
-    setHues: function (hues, length) {
-        var colors = new Float32Array(length * 3);
+    getPointSize: function () {
+        return this.geometry.shader.uniforms.size.value;
+    },
 
-        for (var i = 0; i < length; i++) {
-            var hue = hues[i] || 0;
-            // Rescale
-            hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
-            // Invert hue
-            hue = 1 - hue;
-            hue = this.shiftHue(hue, -0.2);
-            var rgb = Lore.Color.hslToRgb(hue, 0.5, 0.5);
-            colors[i * 3] = rgb[0];
-            colors[i * 3 + 1] = rgb[1];
-            colors[i * 3 + 2] = rgb[2];
+    setFogDistance: function (fogDistance) {
+        this.geometry.shader.uniforms.fogDistance.value = fogDistance;
+    },
+
+    initPointSize: function () {
+        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
+    },
+    
+    getCutoff: function() {
+        return this.geometry.shader.uniforms.cutoff.value;
+    },
+
+    setCutoff: function (cutoff) {
+        this.geometry.shader.uniforms.cutoff.value = cutoff;
+    },
+
+    getHue: function (index) {
+        var colors = this.getAttribute('color');
+        return colors[index * 3];
+    },
+
+    setHSS: function (hue, saturation, size, length) {
+        var c = new Float32Array(length * 3);
+
+        for (var i = 0; i < length * 3; i += 3) {
+            c[i] = hue;
+            c[i + 1] = saturation;
+            c[i + 2] = size;
         }
 
-        this.setColors(colors);
+        this.setColors(c);
     },
 
-    setHSL: function (h, s, l, length) {
-        var colors = new Float32Array(length * 3);
+    addFilter: function (name, filter) {
+        filter.setGeometry(this.geometry);
+        this.filters[name] = filter;
+    },
 
+    removeFilter: function (name) {
+        delete this.filters[name];
+    },
+
+    getFilter: function (name) {
+        return this.filters[name];
+    }
+});
+
+Lore.PointHelper.defaults = {
+    octree: true,
+    pointScale: 1.0,
+    maxPointSize: 100.0
+}
+Lore.TreeHelper = function (renderer, geometryName, shaderName, options) {
+    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
+    this.opts = Lore.Utils.extend(true, Lore.TreeHelper.defaults, options);
+    this.indices = null;
+    this.geometry.setMode(Lore.DrawModes.lines);
+    this.initPointSize();
+    this.filters = {};
+}
+
+Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
+    constructor: Lore.TreeHelper,
+
+    getMaxLength: function (x, y, z) {
+        return Math.max(x.length, Math.max(y.length, z.length));
+    },
+
+    setPositions: function (positions) {
+        this.setAttribute('position', positions);
+    },
+
+    setPositionsXYZ: function (x, y, z, length) {
+        var positions = new Float32Array(length * 3);
         for (var i = 0; i < length; i++) {
-            var hue = h[i] || 0;
-            // Rescale
-            hue = Lore.Statistics.scale(hue, 0, 1, 0.2, 1);
-            // Invert hue
-            hue = 1 - hue;
-            hue = this.shiftHue(hue, -0.2);
-            var rgb = Lore.Color.hslToRgb(hue, s[i], l[i]);
-            colors[i * 3] = rgb[0];
-            colors[i * 3 + 1] = rgb[1];
-            colors[i * 3 + 2] = rgb[2];
+            var j = 3 * i;
+            positions[j] = x[i] || 0;
+            positions[j + 1] = y[i] || 0;
+            positions[j + 2] = z[i] || 0;
         }
 
-        this.setColors(colors);
+        this.setAttribute('position', positions);
     },
 
-    shiftHue: function (hue, value) {
-        hue += value;
-        if (hue > 1) hue = hue - 1;
-        if (hue < 0) hue = 1 + hue;
-
-        return hue;
+    setPositionsXYZHSS: function (x, y, z, hue, saturation, size) {
+        var length = this.getMaxLength(x, y, z);
+        this.setPositionsXYZ(x, y, z, length);
+        this.setHSS(hue, saturation, size, length);
     },
-    */
 
     setColors: function (colors) {
         this.setAttribute('color', colors);
@@ -3595,79 +3642,23 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.geometry.shader.uniforms.cutoff.value = cutoff;
     },
 
-    setRGB: function (r, g, b, length, normalize) {
-        var c = new Float32Array(length * 3);
-
-        if (normalize) {
-            for (var i = 0; i < length; i++) {
-                var j = 3 * i;
-                c[j] = r[i] / 255.0;
-                c[j + 1] = g[i] / 255.0;
-                c[j + 2] = b[i] / 255.0;
-            }
-        } else {
-            for (var i = 0; i < length; i++) {
-                var j = 3 * i;
-                c[j] = r[i];
-                c[j + 1] = g[i];
-                c[j + 2] = b[i];
-            }
-        }
-
-        // Convert to HOS (Hue, Opacity, Size)
-        for(var i = 0; i < c.length; i += 3) {
-            var r = c[i];
-            var g = c[i + 1];
-            var b = c[i + 2];
-
-            c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
-            c[i + 1] = 1.0;
-            c[i + 2] = 1.0;
-        }
-
-        this.setColors(c);
-    },
-
     getHue: function (index) {
         var colors = this.getAttribute('color');
         return colors[index * 3];
     },
 
-    updateRGB: function (r, g, b) {
-        var c = new Float32Array(r.length * 3);
-
-        for (var i = 0; i < r.length; i++) {
-            var j = 3 * i;
-            c[j] = r[i];
-            c[j + 1] = g[i];
-            c[j + 2] = b[i];
-        }
-
-        // Convert to HOS (Hue, Opacity, Size)
-        for(var i = 0; i < c.length; i += 3) {
-            var r = c[i];
-            var g = c[i + 1];
-            var b = c[i + 2];
-
-            c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
-            c[i + 1] = 1.0;
-            c[i + 2] = 1.0;
-        }
-
-        this.updateColors(c);
-    },
-
-    setColor: function (color, length) {
+    setHSS: function (hue, saturation, size, length) {
         var c = new Float32Array(length * 3);
 
         for (var i = 0; i < length * 3; i += 3) {
-            c[i] = color.components[0];
-            c[i + 1] = color.components[1];
-            c[i + 2] = color.components[2];
+            c[i] = hue;
+            c[i + 1] = saturation;
+            c[i + 2] = size;
         }
 
         this.setColors(c);
     },
+
 
     addFilter: function (name, filter) {
         filter.setGeometry(this.geometry);
@@ -3683,8 +3674,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     }
 });
 
-Lore.PointHelper.defaults = {
-    octree: true,
+Lore.TreeHelper.defaults = {
     pointScale: 1.0,
     maxPointSize: 100.0
 }
@@ -4417,7 +4407,7 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
         'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
     '}',
     'void main() {',
-        'vec3 hsv = vec3(color.r, color.g, 0.75);',
+        'vec3 hsv = vec3(color.r, color.g, 1.0);',
         'float saturation = color.g;',
         'float point_size = color.b;',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
@@ -4457,30 +4447,59 @@ Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', { }, [
 ], [
     'varying vec3 vColor;',
     'void main() {',
-        'gl_FragColor = vec4(vColor, 1.0);',
+        'gl_FragColor = vec4(vColor, 0.5);',
     '}'
 ]);
-Lore.Shaders['circle'] = new Lore.Shader('Circle', { size: new Lore.Uniform('size', 5.0, 'float') }, [
+Lore.Shaders['tree'] = new Lore.Shader('Tree', { size: new Lore.Uniform('size', 5.0, 'float'),
+                                                 fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
+                                                 cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',
+    'uniform float fogDistance;',
+    'uniform float cutoff;',
     'attribute vec3 position;',
     'attribute vec3 color;',
     'varying vec3 vColor;',
+    'varying float vDiscard;',
+    'vec3 rgb2hsv(vec3 c) {',
+        'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);',
+        'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));',
+        'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));',
+
+        'float d = q.x - min(q.w, q.y);',
+        'float e = 1.0e-10;',
+        'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);',
+    '}',
+    'vec3 hsv2rgb(vec3 c) {',
+        'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);',
+        'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);',
+        'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
+    '}',
     'void main() {',
+        'vec3 hsv = vec3(color.r, color.g, 0.75);',
+        'float saturation = color.g;',
+        'float point_size = color.b;',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+        'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);',
+        'vDiscard = 0.0;',
+        'if(-mv_pos.z < cutoff || point_size <= 0.0) {',
+            'vDiscard = 1.0;',
+            'return;',
+        '}',
+        'float fog_start = cutoff;',
+        'float fog_end = fogDistance + cutoff;',
+        'float dist = abs(mv_pos.z - fog_start);',
         'gl_PointSize = size;',
-        'vColor = color;',
+        'if(fogDistance > 0.0) {',
+            'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);',
+        '}',
+        'vColor = hsv2rgb(hsv);',
     '}'
 ], [
     'varying vec3 vColor;',
+    'varying float vDiscard;',
     'void main() {',
-        'float r = 1.0, delta = 0.0, alpha = 1.0;',
-        'vec2 cxy = 2.0 * gl_PointCoord - 1.0;',
-        'r = dot(cxy, cxy);',
-        '#ifdef GL_OES_standard_derivatives',
-            'delta = fwidth(r);',
-            'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);',
-        '#endif',
-        'gl_FragColor = vec4(vColor, alpha);',
+        'if(vDiscard > 0.5) discard;',
+        'gl_FragColor = vec4(vColor, 0.5);',
     '}'
 ]);
 Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('size', 5.0, 'float'),
@@ -4508,7 +4527,7 @@ Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('siz
         'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
     '}',
     'void main() {',
-        'vec3 hsv = vec3(color.r, color.g, 0.75);',
+        'vec3 hsv = vec3(color.r, color.g, 1.0);',
         'float saturation = color.g;',
         'float point_size = color.b;',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',

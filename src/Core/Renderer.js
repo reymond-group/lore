@@ -7,6 +7,7 @@ Lore.Renderer = function(targetId, options) {
     this.fps = 0;
     this.fpsCount = 0;
     this.maxFps = 1000 / 30;
+    this.devicePixelRatio = this.getDevicePixelRatio();
     this.clearColor = options.clearColor || new Lore.Color();
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
@@ -195,5 +196,9 @@ Lore.Renderer.prototype = {
 
     setMaxFps: function(fps) {
         this.maxFps = 1000 / fps;
+    },
+
+    getDevicePixelRatio: function() {
+        return window.devicePixelRatio || 1;
     }
 }

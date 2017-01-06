@@ -1,15 +1,14 @@
-Lore.PointHelper = function (renderer, geometryName, shaderName, options) {
+Lore.TreeHelper = function (renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.PointHelper.defaults, options);
+    this.opts = Lore.Utils.extend(true, Lore.TreeHelper.defaults, options);
     this.indices = null;
-    this.octree = null;
-    this.geometry.setMode(Lore.DrawModes.points);
+    this.geometry.setMode(Lore.DrawModes.lines);
     this.initPointSize();
     this.filters = {};
 }
 
-Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.PointHelper,
+Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
+    constructor: Lore.TreeHelper,
 
     getMaxLength: function (x, y, z) {
         return Math.max(x.length, Math.max(y.length, z.length));
@@ -28,17 +27,6 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             positions[j + 2] = z[i] || 0;
         }
 
-        if (this.opts.octree) {
-            var initialBounds = Lore.AABB.fromPoints(positions);
-            var indices = new Uint32Array(length);
-            for (var i = 0; i < length; i++) indices[i] = i;
-
-            this.octree = new Lore.Octree();
-            this.octree.build(indices, positions, initialBounds);
-        }
-
-
-
         this.setAttribute('position', positions);
     },
 
@@ -47,7 +35,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
     },
-    
+
     setColors: function (colors) {
         this.setAttribute('color', colors);
     },
@@ -102,6 +90,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         this.setColors(c);
     },
 
+
     addFilter: function (name, filter) {
         filter.setGeometry(this.geometry);
         this.filters[name] = filter;
@@ -116,8 +105,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     }
 });
 
-Lore.PointHelper.defaults = {
-    octree: true,
+Lore.TreeHelper.defaults = {
     pointScale: 1.0,
     maxPointSize: 100.0
 }

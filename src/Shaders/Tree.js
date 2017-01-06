@@ -1,6 +1,6 @@
-Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
-                                                       fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
-                                                       cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
+Lore.Shaders['tree'] = new Lore.Shader('Tree', { size: new Lore.Uniform('size', 5.0, 'float'),
+                                                 fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
+                                                 cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',
     'uniform float fogDistance;',
     'uniform float cutoff;',
@@ -23,7 +23,7 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
         'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
     '}',
     'void main() {',
-        'vec3 hsv = vec3(color.r, color.g, 1.0);',
+        'vec3 hsv = vec3(color.r, color.g, 0.75);',
         'float saturation = color.g;',
         'float point_size = color.b;',
         'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
@@ -47,6 +47,6 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
     'varying float vDiscard;',
     'void main() {',
         'if(vDiscard > 0.5) discard;',
-        'gl_FragColor = vec4(vColor, 1.0);',
+        'gl_FragColor = vec4(vColor, 0.5);',
     '}'
 ]);
