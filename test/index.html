@@ -60,7 +60,7 @@
         if(first) {
           pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'default');
           pointHelper.geometry.isVisible = true;
-          pointHelper.setPositionsXYZColor(e[0], e[1], e[2], new Lore.Color(0.1, 0.2, 0.8));
+          pointHelper.setPositionsXYZHSS(e[0], e[1], e[2], 0.25, 1, 1);
           // pointHelper.setPositionsXYZRGB(e[0], e[1], e[2], e[3], e[4], e[5], true);
           var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
           octreeHelper.addEventListener('selectedchanged', function(e) {

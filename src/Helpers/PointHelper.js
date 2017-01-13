@@ -33,7 +33,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             var indices = new Uint32Array(length);
             for (var i = 0; i < length; i++) indices[i] = i;
 
-            this.octree = new Lore.Octree();
+            this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
             this.octree.build(indices, positions, initialBounds);
         }
 
@@ -46,6 +46,31 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
+    },
+
+    setRGB: function (r, g, b) {
+        var c = new Float32Array(r.length * 3);
+        var colors = this.getAttribute('color');
+
+        for (var i = 0; i < r.length; i++) {
+            var j = 3 * i;
+            c[j] = r[i];
+            c[j + 1] = g[i];
+            c[j + 2] = b[i];
+        }
+
+        // Convert to HOS (Hue, Opacity, Size)
+        for(var i = 0; i < c.length; i += 3) {
+            var r = c[i];
+            var g = c[i + 1];
+            var b = c[i + 2];
+
+            c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
+            c[i + 1] = colors[1];
+            c[i + 2] = colors[2];
+        }
+
+        this.updateColors(c);
     },
     
     setColors: function (colors) {
@@ -67,6 +92,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
     getPointSize: function () {
         return this.geometry.shader.uniforms.size.value;
+    },
+
+    getPointScale: function() {
+        return this.opts.pointScale;
     },
 
     setFogDistance: function (fogDistance) {
@@ -118,6 +147,8 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
 Lore.PointHelper.defaults = {
     octree: true,
+    octreeThreshold: 500.0,
+    octreeMaxDepth: 8,
     pointScale: 1.0,
     maxPointSize: 100.0
 }

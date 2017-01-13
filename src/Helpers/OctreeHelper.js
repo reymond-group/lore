@@ -28,6 +28,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var mouse = e.e.mouse.normalizedPosition;
         
         var result = that.getIntersections(mouse);
+        
         if(result.length > 0) {
             if(that.hovered && that.hovered.index === result[0].index) return;
             that.hovered = result[0];
@@ -131,9 +132,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
 
         var tmp = this.octree.raySearch(this.raycaster);
         var result = this.rayIntersections(tmp);
-    
         result.sort(function(a, b) { return a.distance - b.distance });
-        
+
         return result;
     },
 
@@ -226,11 +226,15 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         this.setAttribute('color', c);
     },
 
+    setThreshold: function(threshold) {
+        this.raycaster.threshold = threshold;
+    },
+
     rayIntersections: function(indices) {
         var result = [];
         var inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
         var ray = new Lore.Ray();
-        var threshold = this.raycaster.threshold;
+        var threshold = this.raycaster.threshold * this.target.getPointScale();
         var positions = this.target.geometry.attributes['position'].data;
         var colors = null;
         if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;

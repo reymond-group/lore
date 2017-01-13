@@ -223,11 +223,12 @@ Lore.Renderer = function(targetId, options) {
         }
     });
 
-    this.init();
+    var that = this;
+    that.init();
 
     // Attach the controls last
     var center = options.center ? options.center : new Lore.Vector3f();
-    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, center);
+    that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
 }
 
 Lore.Renderer.prototype = {
@@ -327,6 +328,8 @@ Lore.Renderer.prototype = {
     },
 
     updateViewport: function(x, y, width, height) {
+        width *= this.devicePixelRatio;
+        height *= this.devicePixelRatio;
         this.canvas.width = width;
         this.canvas.height = height;
         this.gl.viewport(x, y, width, height);
@@ -3479,7 +3482,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             var indices = new Uint32Array(length);
             for (var i = 0; i < length; i++) indices[i] = i;
 
-            this.octree = new Lore.Octree();
+            this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
             this.octree.build(indices, positions, initialBounds);
         }
 
@@ -3492,6 +3495,31 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         var length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
+    },
+
+    setRGB: function (r, g, b) {
+        var c = new Float32Array(r.length * 3);
+        var colors = this.getAttribute('color');
+
+        for (var i = 0; i < r.length; i++) {
+            var j = 3 * i;
+            c[j] = r[i];
+            c[j + 1] = g[i];
+            c[j + 2] = b[i];
+        }
+
+        // Convert to HOS (Hue, Opacity, Size)
+        for(var i = 0; i < c.length; i += 3) {
+            var r = c[i];
+            var g = c[i + 1];
+            var b = c[i + 2];
+
+            c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
+            c[i + 1] = colors[1];
+            c[i + 2] = colors[2];
+        }
+
+        this.updateColors(c);
     },
     
     setColors: function (colors) {
@@ -3513,6 +3541,10 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
     getPointSize: function () {
         return this.geometry.shader.uniforms.size.value;
+    },
+
+    getPointScale: function() {
+        return this.opts.pointScale;
     },
 
     setFogDistance: function (fogDistance) {
@@ -3564,6 +3596,8 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
 
 Lore.PointHelper.defaults = {
     octree: true,
+    octreeThreshold: 500.0,
+    octreeMaxDepth: 8,
     pointScale: 1.0,
     maxPointSize: 100.0
 }
@@ -3892,6 +3926,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
         var mouse = e.e.mouse.normalizedPosition;
         
         var result = that.getIntersections(mouse);
+        
         if(result.length > 0) {
             if(that.hovered && that.hovered.index === result[0].index) return;
             that.hovered = result[0];
@@ -3995,9 +4030,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
 
         var tmp = this.octree.raySearch(this.raycaster);
         var result = this.rayIntersections(tmp);
-    
         result.sort(function(a, b) { return a.distance - b.distance });
-        
+
         return result;
     },
 
@@ -4090,11 +4124,15 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         this.setAttribute('color', c);
     },
 
+    setThreshold: function(threshold) {
+        this.raycaster.threshold = threshold;
+    },
+
     rayIntersections: function(indices) {
         var result = [];
         var inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
         var ray = new Lore.Ray();
-        var threshold = this.raycaster.threshold;
+        var threshold = this.raycaster.threshold * this.target.getPointScale();
         var positions = this.target.geometry.attributes['position'].data;
         var colors = null;
         if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;

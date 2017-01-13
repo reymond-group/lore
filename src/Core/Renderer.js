@@ -28,11 +28,12 @@ Lore.Renderer = function(targetId, options) {
         }
     });
 
-    this.init();
+    var that = this;
+    that.init();
 
     // Attach the controls last
     var center = options.center ? options.center : new Lore.Vector3f();
-    this.controls = options.controls || new Lore.OrbitalControls(this, 1200, center);
+    that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
 }
 
 Lore.Renderer.prototype = {
@@ -132,6 +133,8 @@ Lore.Renderer.prototype = {
     },
 
     updateViewport: function(x, y, width, height) {
+        width *= this.devicePixelRatio;
+        height *= this.devicePixelRatio;
         this.canvas.width = width;
         this.canvas.height = height;
         this.gl.viewport(x, y, width, height);
