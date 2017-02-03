@@ -40,6 +40,7 @@ var files = [
   '../src/IO/CsvFileReader.js',
   '../src/Utils/Utils.js',
   '../src/Shaders/Default.js',
+  '../src/Shaders/DefaultAnimated.js',
   '../src/Shaders/Coordinates.js',
   '../src/Shaders/Tree.js',
   '../src/Shaders/Sphere.js',

@@ -298,7 +298,11 @@ Lore.Renderer.prototype = {
 
         setTimeout(function() {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-        }, 200);
+        }, 1000);
+        
+        // Also do it immediately, in case the timeout is not needed
+        this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+
 
         window.addEventListener('resize', function(event) {
             var width = _this.getWidth();
@@ -328,8 +332,8 @@ Lore.Renderer.prototype = {
     },
 
     updateViewport: function(x, y, width, height) {
-        width *= this.devicePixelRatio;
-        height *= this.devicePixelRatio;
+        // width *= this.devicePixelRatio;
+        // height *= this.devicePixelRatio;
         this.canvas.width = width;
         this.canvas.height = height;
         this.gl.viewport(x, y, width, height);
@@ -408,6 +412,7 @@ Lore.Shader = function(name, uniforms, vertexShader, fragmentShader) {
     this.gl = null;
     this.program = null;
     this.initialized = false;
+    this.lastTime = new Date().getTime();
 
     // Add the two default shaders (the same shaders as in getVertexShader)
     this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix',
@@ -485,7 +490,19 @@ Lore.Shader.prototype = {
         this.initialized = true;
     },
 
-    updateUniforms: function() {
+    updateUniforms: function(renderer) {
+        // Always update time uniform if it exists
+        if (this.uniforms['time']) {
+            var unif = this.uniforms['time'];
+            
+            var currentTime = new Date().getTime();
+            unif.value += currentTime - this.lastTime;
+            this.lastTime = currentTime;
+
+            Lore.Uniform.Set(this.gl, this.program, unif);
+            
+            unif.stale = false;
+        }
         for (var uniform in this.uniforms) {
             var unif = this.uniforms[uniform];
             if (unif.stale) {
@@ -1096,7 +1113,7 @@ Lore.ControlsBase = function(renderer) {
         if(that.mouse.touches == 2) source = 'right';
 
         e.preventDefault();
-        
+        console.log(touch.pageX, touch.pageY); 
         if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
             that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
             that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
@@ -3969,6 +3986,20 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     },
 
     addSelected: function(item) {
+        // If item is only the index, create a dummy item
+        if (!isNaN(parseFloat(item))) {
+            var positions = this.target.geometry.attributes['position'].data;
+            var colors = this.target.geometry.attributes['color'].data;
+            var k = item * 3;
+            item = {
+                distance: -1,
+                index: item,
+                locCode: -1,
+                position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
+                color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
+            };
+        }
+
         var index = this.selected.length;
         this.selected.push(item);
         this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
@@ -4462,6 +4493,61 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
         'if(fogDistance > 0.0) {',
             'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);',
         '}',
+        'vColor = hsv2rgb(hsv);',
+    '}'
+], [
+    'varying vec3 vColor;',
+    'varying float vDiscard;',
+    'void main() {',
+        'if(vDiscard > 0.5) discard;',
+        'gl_FragColor = vec4(vColor, 1.0);',
+    '}'
+]);
+Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', { size: new Lore.Uniform('size', 5.0, 'float'),
+                                                                       fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
+                                                                       cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+                                                                       time: new Lore.Uniform('time', 0.0, 'float') }, [
+    'uniform float size;',
+    'uniform float fogDistance;',
+    'uniform float cutoff;',
+    'uniform float time;',
+    'attribute vec3 position;',
+    'attribute vec3 color;',
+    'varying vec3 vColor;',
+    'varying float vDiscard;',
+    'vec3 rgb2hsv(vec3 c) {',
+        'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);',
+        'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));',
+        'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));',
+
+        'float d = q.x - min(q.w, q.y);',
+        'float e = 1.0e-10;',
+        'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);',
+    '}',
+    'vec3 hsv2rgb(vec3 c) {',
+        'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);',
+        'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);',
+        'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
+    '}',
+    'void main() {',
+        'vec3 hsv = vec3(color.r, color.g, 1.0);',
+        'float saturation = color.g;',
+        'float point_size = color.b;',
+        'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+        'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);',
+        'vDiscard = 0.0;',
+        'if(-mv_pos.z < cutoff || point_size <= 0.0) {',
+            'vDiscard = 1.0;',
+            'return;',
+        '}',
+        'float fog_start = cutoff;',
+        'float fog_end = fogDistance + cutoff;',
+        'float dist = abs(mv_pos.z - fog_start);',
+        'gl_PointSize = size;',
+        'if(fogDistance > 0.0) {',
+            'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);',
+        '}',
+        'hsv.g *= max(0.15, abs(sin(time * 0.002)));',
         'vColor = hsv2rgb(hsv);',
     '}'
 ], [
@@ -5214,9 +5300,12 @@ Lore.Octree.prototype = {
         // Info: shouldn't be necessary any more
         // Always add the points from the root
         // The root has the location code 1
-        // for(var i = 0; i < this.points[1].length; i++) {
-        //     result.push(this.points[1][i]);
-        //}
+        // ... looks like it's still necessary
+        if (this.points[1]) {
+            for(var i = 0; i < this.points[1].length; i++) {
+                result.push({ index: this.points[1][i], locCode: 1 });
+            }
+        }
 
         // Calculate the direction, and the percentage
         // of the direction, of the ray
