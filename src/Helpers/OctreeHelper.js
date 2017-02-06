@@ -95,6 +95,25 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         return false;
     },
 
+    setHovered: function(index) {
+        if(that.hovered && that.hovered.index === result[0].index) return;
+    
+        var k = index * 3;        
+        var positions = this.target.geometry.attributes['position'].data;
+        var colors = null;
+        
+        if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
+        
+        that.hovered = {
+            index: index,
+            position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
+            color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
+        };
+
+        that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+        that.raiseEvent('hoveredchanged', { e: that.hovered });
+    },
+
     selectHovered: function() {
         if(!this.hovered || this.selectedContains(this.hovered.index)) return;
 
