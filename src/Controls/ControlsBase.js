@@ -114,7 +114,7 @@ Lore.ControlsBase = function(renderer) {
         if(that.mouse.touches == 2) source = 'right';
 
         e.preventDefault();
-        
+        console.log(touch.pageX, touch.pageY); 
         if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
             that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
             that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;

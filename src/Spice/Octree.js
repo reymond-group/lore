@@ -201,9 +201,12 @@ Lore.Octree.prototype = {
         // Info: shouldn't be necessary any more
         // Always add the points from the root
         // The root has the location code 1
-        // for(var i = 0; i < this.points[1].length; i++) {
-        //     result.push(this.points[1][i]);
-        //}
+        // ... looks like it's still necessary
+        if (this.points[1]) {
+            for(var i = 0; i < this.points[1].length; i++) {
+                result.push({ index: this.points[1][i], locCode: 1 });
+            }
+        }
 
         // Calculate the direction, and the percentage
         // of the direction, of the ray
@@ -445,16 +448,28 @@ Lore.Octree.prototype = {
     /**
      * Returns the k-nearest neighbours of a vertex.
      * @param {number} k - The number of nearest neighbours to return.
-     * @param {number} point - The index of a vertex.
-     * @param {number} locCode - The location code of the axis-aligned bounding box containing the vertex.
+     * @param {number} point - The index of a vertex or a vertex.
+     * @param {number} locCode - The location code of the axis-aligned bounding box containing the vertex. If not set, the box is searched for.
      * @param {Float32Array} positions - The position information for the points indexed in this octree.
      * @param {PLOTTER.Plot~kNNCallback} kNNCallback - The callback that is called after the k-nearest neighbour search has finished.
      */
     kNearestNeighbours: function(k, point, locCode, positions, kNNCallback) {
         k += 1; // Account for the fact, that the point itself should be returned as well.
         var length = this.positions / 3;
-        var index = point * 3;
-        var p = { x: positions[index], y: positions[index + 1], z: positions[index + 2] };
+        
+        var p = null;
+        
+        if (!isNaN(parseFloat(point))) {
+            var index = point * 3;
+            p = { x: positions[index], y: positions[index + 1], z: positions[index + 2] };
+        }
+        else {
+            p = point;
+        }
+
+        if (locCode === null) {
+            locCode = this.getClosestBox(p, 0).locCode;
+        }
 
         // Calculte the distances to the other cells
         var px = p.components[0];
@@ -466,7 +481,7 @@ Lore.Octree.prototype = {
         var pointDistances = this.pointDistancesSq(px, py, pz, locCode, positions)
 
         // Sort the indices according to distance
-        var radixSort = new RadixSort();
+        var radixSort = new Lore.RadixSort();
 	    var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
         // Sort the neighbours according to distance

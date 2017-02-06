@@ -71,6 +71,20 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     },
 
     addSelected: function(item) {
+        // If item is only the index, create a dummy item
+        if (!isNaN(parseFloat(item))) {
+            var positions = this.target.geometry.attributes['position'].data;
+            var colors = this.target.geometry.attributes['color'].data;
+            var k = item * 3;
+            item = {
+                distance: -1,
+                index: item,
+                locCode: -1,
+                position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
+                color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
+            };
+        }
+
         var index = this.selected.length;
         this.selected.push(item);
         this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);

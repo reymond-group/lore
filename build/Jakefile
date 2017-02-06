@@ -29,6 +29,7 @@ var files = [
   '../src/Math/ProjectionMatrix.js',
   '../src/Math/Statistics.js',
   '../src/Math/Ray.js',
+  '../src/Math/RadixSort.js',
   '../src/Helpers/HelperBase.js',
   '../src/Helpers/PointHelper.js',
   '../src/Helpers/TreeHelper.js',

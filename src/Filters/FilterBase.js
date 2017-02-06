@@ -9,6 +9,14 @@ Lore.FilterBase = function(attribute, attributeIndex) {
 Lore.FilterBase.prototype = {
     constructor: Lore.FilterBase,
 
+    getGeometry: function() {
+        return this.geometry;
+    },
+
+    setGeometry: function(value) {
+        this.geometry = value;
+    },
+
     filter: function() {
 
     }

@@ -23,14 +23,6 @@ Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.proto
         this.max = value;
     },
 
-    getGeometry: function() {
-        return this.geometry;
-    },
-
-    setGeometry: function(value) {
-        this.geometry = value;
-    },
-
     filter: function() {
         var attribute = this.geometry.attributes[this.attribute];
 

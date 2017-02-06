@@ -6,6 +6,7 @@ Lore.Shader = function(name, uniforms, vertexShader, fragmentShader) {
     this.gl = null;
     this.program = null;
     this.initialized = false;
+    this.lastTime = new Date().getTime();
 
     // Add the two default shaders (the same shaders as in getVertexShader)
     this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix',
@@ -83,7 +84,19 @@ Lore.Shader.prototype = {
         this.initialized = true;
     },
 
-    updateUniforms: function() {
+    updateUniforms: function(renderer) {
+        // Always update time uniform if it exists
+        if (this.uniforms['time']) {
+            var unif = this.uniforms['time'];
+            
+            var currentTime = new Date().getTime();
+            unif.value += currentTime - this.lastTime;
+            this.lastTime = currentTime;
+
+            Lore.Uniform.Set(this.gl, this.program, unif);
+            
+            unif.stale = false;
+        }
         for (var uniform in this.uniforms) {
             var unif = this.uniforms[uniform];
             if (unif.stale) {
