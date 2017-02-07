@@ -462,7 +462,7 @@ Lore.Octree.prototype = {
             var p = { x: positions[p * 3], y: positions[p * 3 + 1], z: positions[p * 3 + 2] };
         
         if(locCode === null)
-            locCode = this.getClosestBox(p, 0).locCode;
+            locCode = this.getClosestBox(new Lore.Vector3f(p.x, p.y, p.z), 0).locCode;
 
         // Calculte the distances to the other cells
         var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
