@@ -5716,7 +5716,7 @@ Lore.Octree.prototype = {
         var p = point;
 
         if(!isNaN(parseFloat(point)))
-            var p = { x: positions[index * 3], y: positions[index * 3 + 1], z: positions[index * 3 + 2] };
+            var p = { x: positions[p * 3], y: positions[p * 3 + 1], z: positions[p * 3 + 2] };
         
         if(locCode === null)
             locCode = this.getClosestBox(p, 0).locCode;
@@ -5764,7 +5764,7 @@ Lore.Octree.prototype = {
             var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
             var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
 
-            pointDistances = PLOTTER.Helpers.mergePointDistances(pointDistances, newPointDistances);
+            pointDistances = Lore.Octree.mergePointDistances(pointDistances, newPointDistances);
 
             // Sort the merged points
             var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
@@ -5928,6 +5928,50 @@ Lore.Octree.prototype = {
         }
         return { indices: indices, distancesSq: dists };
     }
+}
+
+/**
+ * Concatenates the two typed arrays a and b and returns a new array. The two arrays have to be of the same type.
+ * Due to performance reasons, there is no check whether the types match.
+ * @param {Array} a - The first array.
+ * @param {Array} b - The second array.
+ * @returns {Array} The concatenated array.
+ */
+Lore.Octree.concatTypedArrays = function(a, b) {
+    var c = new a.constructor(a.length + b.length);
+    c.set(a);
+    c.set(b, a.length);
+
+    return c;
+}
+
+/**
+ * Merges the two arrays (indices and distancesSq) in the point distances object.
+ * @param {Object} a - The first point distances object.
+ * @param {Object} b - The second point distances object.
+ * @returns {Object} The concatenated point distances object.
+ */
+Lore.Octree.mergePointDistances = function(a, b) {
+    var newObj = {};
+
+    newObj.indices = Lore.Octree.concatTypedArrays(a.indices, b.indices);
+    newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
+    return newObj;
+}
+
+/**
+ * Merges the two arrays (locCodes and distancesSq) in the cell distances object.
+ * @param {Object} a - The first cell distances object.
+ * @param {Object} b - The second cell distances object.
+ * @returns {Object} The concatenated cell distances object.
+ */
+Lore.Octree.mergeCellDistances = function(a, b) {
+    var newObj = {};
+
+    newObj.locCodes = Lore.Octree.concatTypedArrays(a.locCodes, b.locCodes);
+    newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
+
+    return newObj;
 }
 
 /**
