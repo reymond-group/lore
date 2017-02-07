@@ -456,15 +456,20 @@ Lore.Octree.prototype = {
     kNearestNeighbours: function(k, point, locCode, positions, kNNCallback) {
         k += 1; // Account for the fact, that the point itself should be returned as well.
         var length = this.positions / 3;
-        var index = point * 3;
-        var p = { x: positions[index], y: positions[index + 1], z: positions[index + 2] };
-        console.log(this.points);
+        var p = point;
+
+        if(!isNaN(parseFloat(point)))
+            var p = { x: positions[index * 3], y: positions[index * 3 + 1], z: positions[index * 3 + 2] };
+        
+        if(locCode === null)
+            locCode = this.getClosestBox(p, 0).locCode;
+
         // Calculte the distances to the other cells
         var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
 
         // Calculte the distances to the other points in the same cell
         var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions)
-        return pointDistances.indices;
+        
         // Sort the indices according to distance
         var radixSort = new RadixSort();
         var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
@@ -494,10 +499,9 @@ Lore.Octree.prototype = {
 
         // If enough neighbours have been found in the same cell, no need to continue
         if(indexCount == k) {
-            // kNNCallback(indices);
             return indices;
         }
-        /*
+
         for(var i = 0; i < sortedCellDistances.array.length; i++) {
             // Get the points from the cell and merge them with the already found ones
             var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
@@ -522,10 +526,12 @@ Lore.Octree.prototype = {
                 // kNNCallback(indices);
                 return indices;
             }
-        }*/
+        }
 
         //kNNCallback(indices);
         return indices;
+        
+        
         /*
         // Check the points contained in the
         for(var i = cellOffset; i < sortedCellDistances.array.length; i++) {
