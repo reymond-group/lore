@@ -3420,15 +3420,15 @@ Lore.Ray.prototype = {
 		return result.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
     }
 }
-Lore.RadixSort = function() {
-	this.max = undefined;
-	this.mask = undefined;
-	this.histograms = undefined;
-	this.indices = undefined;
-	this.tmpIndices = undefined;
+function RadixSort() {
+    this.max = undefined;
+    this.mask = undefined;
+    this.histograms = undefined;
+    this.indices = undefined;
+    this.tmpIndices = undefined;
 }
 
-Lore.RadixSort.prototype.sort = function(arr, copyArray) {
+RadixSort.prototype.sort = function(arr, copyArray) {
     var array = null;
     if(copyArray) {
         array = new arr.constructor(arr.length);
@@ -3437,127 +3437,127 @@ Lore.RadixSort.prototype.sort = function(arr, copyArray) {
     else {
         array = arr;
     }
-    
-	this.max = 1 << 11; // = 2^11 = 2048 = 0x00000800
-	this.mask = this.max - 1; // = 2047 = 0x000007FF
-	this.histograms = new Int32Array(this.max * Math.ceil(64 / 11));
-	
-	var input = new Int32Array(array.buffer, array.byteOffset, array.byteLength >> 2);
-	
-	var nPasses = Math.ceil(array.BYTES_PER_ELEMENT * 8 / 11);
-	var maxOffset = this.max * (nPasses - 1);
-	var msbMask = 1 << ((array.BYTES_PER_ELEMENT * 8 - 1) % 11);
-	var lastMask = (msbMask << 1) - 1;
-	var tmp = null;
-	
-	var aux = new input.constructor(input.length);
 
-	// In order to keep track of the indices
-	this.indices = new Uint32Array(input.length);
-	this.tmpIndices = new Uint32Array(input.length);
-	var normIndices = new Uint32Array(input.length);
-	
-	
-	var n = this.max * nPasses;
-	for (var i = 0; i < n; i++) this.histograms[i] = 0;
-	
-	// Create the histogram
-	this.initHistograms(input, maxOffset, lastMask);
-	
-	// Create the offset table
-	for (var i = 0; i <= maxOffset; i += this.max) {
-		var sum = 0;
-		for (var j = i; j < i + this.max; j++) {
-			var tmpSum = this.histograms[j] + sum;
-			this.histograms[j] = sum - 1;
-			sum = tmpSum;
-		}
-	}
+    this.max = 1 << 11; // = 2^11 = 2048 = 0x00000800
+    this.mask = this.max - 1; // = 2047 = 0x000007FF
+    this.histograms = new Int32Array(this.max * Math.ceil(64 / 11));
 
-	// Sort by least significant byte
-	this.lsbPass(input, aux);
-	tmp = aux;
-	aux = input;
-	input = tmp;
-	
-	this.pass(input, aux);
-	tmp = aux;
-	aux = input;
-	input = tmp;
-	
-	// Sort by most significant byte
-	this.msbPass(input, aux, msbMask);
-	
+    var input = new Int32Array(array.buffer, array.byteOffset, array.byteLength >> 2);
+
+    var nPasses = Math.ceil(array.BYTES_PER_ELEMENT * 8 / 11);
+    var maxOffset = this.max * (nPasses - 1);
+    var msbMask = 1 << ((array.BYTES_PER_ELEMENT * 8 - 1) % 11);
+    var lastMask = (msbMask << 1) - 1;
+    var tmp = null;
+
+    var aux = new input.constructor(input.length);
+
+    // In order to keep track of the indices
+    this.indices = new Uint32Array(input.length);
+    this.tmpIndices = new Uint32Array(input.length);
+    var normIndices = new Uint32Array(input.length);
+
+
+    var n = this.max * nPasses;
+    for (var i = 0; i < n; i++) this.histograms[i] = 0;
+
+    // Create the histogram
+    this.initHistograms(input, maxOffset, lastMask);
+
+    // Create the offset table
+    for (var i = 0; i <= maxOffset; i += this.max) {
+        var sum = 0;
+        for (var j = i; j < i + this.max; j++) {
+            var tmpSum = this.histograms[j] + sum;
+            this.histograms[j] = sum - 1;
+            sum = tmpSum;
+        }
+    }
+
+    // Sort by least significant byte
+    this.lsbPass(input, aux);
+    tmp = aux;
+    aux = input;
+    input = tmp;
+
+    this.pass(input, aux);
+    tmp = aux;
+    aux = input;
+    input = tmp;
+
+    // Sort by most significant byte
+    this.msbPass(input, aux, msbMask);
+
     // This part is not needed, why was it still in???
-    
-	// "Normalize" the indices, since they are split up just like the floats
-	// so 0, 1 -> 0, 2, 3 -> 2, etc.
-	// use multiplications not divisions for the second index -> speeeeed
-	// Also, invert it
-	// for(var i = 0; i < normIndices.length; i++) {
-	// 	normIndices[normIndices.length - i] = this.indices[i];
-	// }
-	
-	return {
-		array: new Float32Array(aux.buffer, aux.byteOffset, array.length),
-		indices: this.indices // instead of normIndices
-	};
+
+    // "Normalize" the indices, since they are split up just like the floats
+    // so 0, 1 -> 0, 2, 3 -> 2, etc.
+    // use multiplications not divisions for the second index -> speeeeed
+    // Also, invert it
+    // for(var i = 0; i < normIndices.length; i++) {
+    // 	normIndices[normIndices.length - i] = this.indices[i];
+    // }
+
+    return {
+        array: new Float32Array(aux.buffer, aux.byteOffset, array.length),
+        indices: this.indices // instead of normIndices
+    };
 }
 
-Lore.RadixSort.prototype.lsbPass = function(arr, aux) {
-	for (var i = 0, n = arr.length; i < n; i++) {
-		var val = arr[i];
-		var sign = val >> 31;
-		val ^= sign | 0x80000000;
-		var x = ++this.histograms[val & this.mask];
-		this.indices[x] = i;
-		aux[x] = val;
+RadixSort.prototype.lsbPass = function(arr, aux) {
+    for (var i = 0, n = arr.length; i < n; i++) {
+        var val = arr[i];
+        var sign = val >> 31;
+        val ^= sign | 0x80000000;
+        var x = ++this.histograms[val & this.mask];
+        this.indices[x] = i;
+        aux[x] = val;
     }
 }
 
-Lore.RadixSort.prototype.pass = function(arr, aux) {
-	var n = arr.length;
-	
-	for (var i = 0; i < n; i++) {
-		var val = arr[i];
-		var x = ++this.histograms[this.max + (val >>> 11 & this.mask)];
-		this.tmpIndices[x] = this.indices[i];
-		aux[x] = val;
-    }
-	
-	this.indices.set(this.tmpIndices);
-}
+RadixSort.prototype.pass = function(arr, aux) {
+    var n = arr.length;
 
-Lore.RadixSort.prototype.msbPass = function(arr, aux, msbMask) {
-	var lastMask = (msbMask << 1) - 1;
-	var n = arr.length;
-	var offset = 2 * this.max;
-	
     for (var i = 0; i < n; i++) {
-		var val = arr[i];
-		var sign = val >> 31;
-		var x = ++this.histograms[offset + (val >>> 22 & lastMask)];
-		this.tmpIndices[x] = this.indices[i];
-		aux[x] = val ^ (~sign | 0x80000000);
+        var val = arr[i];
+        var x = ++this.histograms[this.max + (val >>> 11 & this.mask)];
+        this.tmpIndices[x] = this.indices[i];
+        aux[x] = val;
     }
-	
-	this.indices.set(this.tmpIndices);
+
+    this.indices.set(this.tmpIndices);
 }
 
-Lore.RadixSort.prototype.initHistograms = function(arr, maxOffset, lastMask) {
-	var n = arr.length;
-	
-	for (var i = 0; i < n; i++) {
-		var val = arr[i];
-		var sign = val >> 31;
-		val ^= sign | 0x80000000;
-		
-		for (var j = 0, k = 0; j < maxOffset; j += this.max, k += 11) {
-			this.histograms[j + (val >>> k & this.mask)]++;
-		}
-		
-		this.histograms[j + (val >>> k & lastMask)]++;
-	}
+RadixSort.prototype.msbPass = function(arr, aux, msbMask) {
+    var lastMask = (msbMask << 1) - 1;
+    var n = arr.length;
+    var offset = 2 * this.max;
+
+    for (var i = 0; i < n; i++) {
+        var val = arr[i];
+        var sign = val >> 31;
+        var x = ++this.histograms[offset + (val >>> 22 & lastMask)];
+        this.tmpIndices[x] = this.indices[i];
+        aux[x] = val ^ (~sign | 0x80000000);
+    }
+
+    this.indices.set(this.tmpIndices);
+}
+
+RadixSort.prototype.initHistograms = function(arr, maxOffset, lastMask) {
+    var n = arr.length;
+
+    for (var i = 0; i < n; i++) {
+        var val = arr[i];
+        var sign = val >> 31;
+        val ^= sign | 0x80000000;
+
+        for (var j = 0, k = 0; j < maxOffset; j += this.max, k += 11) {
+            this.histograms[j + (val >>> k & this.mask)]++;
+        }
+
+        this.histograms[j + (val >>> k & lastMask)]++;
+    }
 }
 Lore.HelperBase = function(renderer, geometryName, shaderName) {
     Lore.Node.call(this);
@@ -4163,6 +4163,25 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         return false;
     },
 
+    setHovered: function(index) {
+        if(that.hovered && that.hovered.index === result[0].index) return;
+    
+        var k = index * 3;        
+        var positions = this.target.geometry.attributes['position'].data;
+        var colors = null;
+        
+        if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
+        
+        that.hovered = {
+            index: index,
+            position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
+            color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
+        };
+
+        that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+        that.raiseEvent('hoveredchanged', { e: that.hovered });
+    },
+
     selectHovered: function() {
         if(!this.hovered || this.selectedContains(this.hovered.index)) return;
 
@@ -4358,6 +4377,14 @@ Lore.FilterBase = function(attribute, attributeIndex) {
 Lore.FilterBase.prototype = {
     constructor: Lore.FilterBase,
 
+    getGeometry: function() {
+        return this.geometry;
+    },
+
+    setGeometry: function(value) {
+        this.geometry = value;
+    },
+
     filter: function() {
 
     }
@@ -4391,14 +4418,6 @@ Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.proto
 
     setMax: function(value) {
         this.max = value;
-    },
-
-    getGeometry: function() {
-        return this.geometry;
-    },
-
-    setGeometry: function(value) {
-        this.geometry = value;
     },
 
     filter: function() {
@@ -5694,36 +5713,21 @@ Lore.Octree.prototype = {
     kNearestNeighbours: function(k, point, locCode, positions, kNNCallback) {
         k += 1; // Account for the fact, that the point itself should be returned as well.
         var length = this.positions / 3;
-        
-        var p = null;
-        
-        if (!isNaN(parseFloat(point))) {
-            var index = point * 3;
-            p = { x: positions[index], y: positions[index + 1], z: positions[index + 2] };
-        }
-        else {
-            p = point;
-        }
-
-        if (locCode === null) {
-            locCode = this.getClosestBox(p, 0).locCode;
-        }
-
+        var index = point * 3;
+        var p = { x: positions[index], y: positions[index + 1], z: positions[index + 2] };
+        console.log(this.points);
         // Calculte the distances to the other cells
-        var px = p.components[0];
-        var py = p.components[1];
-        var pz = p.components[2];
-        var cellDistances = this.getCellDistancesToPoint(px, py, pz, locCode);
+        var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
 
         // Calculte the distances to the other points in the same cell
-        var pointDistances = this.pointDistancesSq(px, py, pz, locCode, positions)
-
+        var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions)
+        return pointDistances.indices;
         // Sort the indices according to distance
-        var radixSort = new Lore.RadixSort();
-	    var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+        var radixSort = new RadixSort();
+        var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
         // Sort the neighbours according to distance
-	    var sortedCellDistances = radixSort.sort(cellDistances.distancesSq, true);
+        var sortedCellDistances = radixSort.sort(cellDistances.distancesSq, true);
 
         // Since the closest points always stay the closest points event when adding
         // the points of another cell, instead of resizing the array, just define
@@ -5750,13 +5754,13 @@ Lore.Octree.prototype = {
             // kNNCallback(indices);
             return indices;
         }
-
+        /*
         for(var i = 0; i < sortedCellDistances.array.length; i++) {
             // Get the points from the cell and merge them with the already found ones
             var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
-            var newPointDistances = this.pointDistancesSq(px, py, pz, locCode, positions);
+            var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
 
-            pointDistances = Lore.Utils.mergePointDistances(pointDistances, newPointDistances);
+            pointDistances = PLOTTER.Helpers.mergePointDistances(pointDistances, newPointDistances);
 
             // Sort the merged points
             var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
@@ -5775,20 +5779,20 @@ Lore.Octree.prototype = {
                 // kNNCallback(indices);
                 return indices;
             }
-        }
+        }*/
 
         //kNNCallback(indices);
         return indices;
         /*
         // Check the points contained in the
         for(var i = cellOffset; i < sortedCellDistances.array.length; i++) {
-            // Get the points from the cell and merge them with the already found ones
+        // Get the points from the cell and merge them with the already found ones
             var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
             var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
 
             pointDistances = PLOTTER.Helpers.mergePointDistances(pointDistances, newPointDistances);
 
-            // Sort the merged points
+        // Sort the merged points
             var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
             for(var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
                 if(sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
@@ -5805,34 +5809,32 @@ Lore.Octree.prototype = {
                 return;
             }
         }
-        */
+        */    },
 
-    },
+        /**
+         * Calculates the distances from a given point to all of the cells containing points
+         * @param {number} x - The x-value of the coordinate.
+         * @param {number} y - The y-value of the coordinate.
+         * @param {number} z - The z-value of the coordinate.
+         * @param {number} locCode - The location code of the cell containing the point.
+         * @returns {Object} An object containing arrays for the locCodes and the squred distances.
+         */
+        getCellDistancesToPoint: function(x, y, z, locCode) {
+            var locCodes = new Array();
 
-    /**
-     * Calculates the distances from a given point to all of the cells containing points
-     * @param {number} x - The x-value of the coordinate.
-     * @param {number} y - The y-value of the coordinate.
-     * @param {number} z - The z-value of the coordinate.
-     * @param {number} locCode - The location code of the cell containing the point.
-     * @returns {Object} An object containing arrays for the locCodes and the squred distances.
-     */
-    getCellDistancesToPoint: function(x, y, z, locCode) {
-        var locCodes = new Array();
+            this.traverse(function(points, aabb, code) {
+                if(points && points.length > 0 && code != locCode) {
+                    locCodes.push(code);
+                }
+            });
 
-        this.traverse(function(points, aabb, code) {
-            if(points && points.length > 0 && code != locCode) {
-                locCodes.push(code);
+            var dists = new Float32Array(locCodes.length);
+            for(var i = 0; i < locCodes.length; i++) {
+                dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
             }
-        });
 
-        var dists = new Float32Array(locCodes.length);
-        for(var i = 0; i < locCodes.length; i++) {
-            dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
-        }
-
-        return { locCodes: locCodes, distancesSq: dists };
-    },
+            return { locCodes: locCodes, distancesSq: dists };
+        },
 
     /**
      * Expands the current neighbourhood around the cell where the point specified by x, y, z is in.
@@ -5948,13 +5950,13 @@ Lore.Octree.clone = function(original) {
  */
 Lore.Octree.OctreeOffsets = [
     [-0.5, -0.5, -0.5],
-	[-0.5, -0.5, +0.5],
-	[-0.5, +0.5, -0.5],
-	[-0.5, +0.5, +0.5],
-	[+0.5, -0.5, -0.5],
-	[+0.5, -0.5, +0.5],
-	[+0.5, +0.5, -0.5],
-	[+0.5, +0.5, +0.5]
+    [-0.5, -0.5, +0.5],
+    [-0.5, +0.5, -0.5],
+    [-0.5, +0.5, +0.5],
+    [+0.5, -0.5, -0.5],
+    [+0.5, -0.5, +0.5],
+    [+0.5, +0.5, -0.5],
+    [+0.5, +0.5, +0.5]
 ];
 /**
  * @class
