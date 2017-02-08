@@ -1,0 +1,24 @@
+{
+  "name": "lore",
+  "homepage": "https://github.com/daenuprobst/lore",
+  "authors": [
+    "Daniel Probst <daniel.probst@dcb.unibe.ch>"
+  ],
+  "description": "A WebGL based data visualization engine.",
+  "main": "build/lore.js",
+  "keywords": [
+    "WebGL",
+    "visualization",
+    "data",
+    "data-visualization"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
