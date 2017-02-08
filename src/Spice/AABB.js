@@ -158,6 +158,18 @@ Lore.AABB.prototype = {
     },
 
     /**
+     * Returns the box that is closest to the point (measured from center).
+     * @param {number} x - The x component of the point coordinate.
+     * @param {number} y - The y component of the point coordinate.
+     * @param {number} z - The z component of the point coordinate.
+     * @returns {number} The square distance of this axis-aligned bounding box to the input point.
+     */
+    distanceFromCenterToPointSq: function(x, y, z) {
+        var center = this.center.components;
+        return Math.pow(center[0] - x, 2) + Math.pow(center[1] - y, 2) + Math.pow(center[2] - z, 2);
+    },
+
+    /**
      * Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
      * This method can also be used to assert whether or not two boxes are neighbours.
      * @param {Lore.AABB} aabb - The axis-aligned bounding box to test against.
