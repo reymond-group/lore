@@ -3,8 +3,7 @@ Lore.HelperBase = function(renderer, geometryName, shaderName) {
 
     this.renderer = renderer;
     this.shader = Lore.Shaders[shaderName];
-    this.program = this.renderer.createProgram(this.shader);
-    this.geometry = this.renderer.createGeometry(geometryName, this.program);
+    this.geometry = this.renderer.createGeometry(geometryName, shaderName);
 }
 
 Lore.HelperBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {

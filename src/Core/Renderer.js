@@ -12,7 +12,6 @@ Lore.Renderer = function(targetId, options) {
     this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
     this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
     this.camera = options.camera || new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
-    this.shaders = []
     this.geometries = {};
     this.render = function(camera, geometries) {};
 
@@ -189,15 +188,13 @@ Lore.Renderer.prototype = {
         this.camera.isViewMatrixStale = false;
     },
 
-    createProgram: function(shader) {
-        var program = shader.init(this.gl);
-        this.shaders.push(shader);
-        return this.shaders.length - 1;
-    },
-
-    createGeometry: function(name, shader) {
-        var geometry = new Lore.Geometry(name, this.gl, this.shaders[shader]);
+    createGeometry: function(name, shaderName) {
+        var shader = Lore.getShader(shaderName);
+        shader.init(this.gl);
+        var geometry = new Lore.Geometry(name, this.gl, shader);
+        
         this.geometries[name] = geometry;
+        
         return geometry;
     },
 

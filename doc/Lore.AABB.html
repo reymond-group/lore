@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>AABB - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Lore.AABB.html">AABB</a><ul class='methods'><li data-type='method'><a href="Lore.AABB.html#.clone">clone</a></li><li data-type='method'><a href="Lore.AABB.html#.fromPoints">fromPoints</a></li><li data-type='method'><a href="Lore.AABB.html#cylinderTest">cylinderTest</a></li><li data-type='method'><a href="Lore.AABB.html#distanceFromCenterToPointSq">distanceFromCenterToPointSq</a></li><li data-type='method'><a href="Lore.AABB.html#distanceToPointSq">distanceToPointSq</a></li><li data-type='method'><a href="Lore.AABB.html#getLocCode">getLocCode</a></li><li data-type='method'><a href="Lore.AABB.html#rayTest">rayTest</a></li><li data-type='method'><a href="Lore.AABB.html#setLocCode">setLocCode</a></li><li data-type='method'><a href="Lore.AABB.html#testAABB">testAABB</a></li><li data-type='method'><a href="Lore.AABB.html#updateDimensions">updateDimensions</a></li></ul></li><li><a href="Lore.Octree.html">Octree</a><ul class='methods'><li data-type='method'><a href="Lore.Octree.html#.clone">clone</a></li><li data-type='method'><a href="Lore.Octree.html#.concatTypedArrays">concatTypedArrays</a></li><li data-type='method'><a href="Lore.Octree.html#.mergeCellDistances">mergeCellDistances</a></li><li data-type='method'><a href="Lore.Octree.html#.mergePointDistances">mergePointDistances</a></li><li data-type='method'><a href="Lore.Octree.html#build">build</a></li><li data-type='method'><a href="Lore.Octree.html#cellDistancesSq">cellDistancesSq</a></li><li data-type='method'><a href="Lore.Octree.html#expandNeighbourhood">expandNeighbourhood</a></li><li data-type='method'><a href="Lore.Octree.html#generateLocCode">generateLocCode</a></li><li data-type='method'><a href="Lore.Octree.html#getCellDistancesToPoint">getCellDistancesToPoint</a></li><li data-type='method'><a href="Lore.Octree.html#getCenters">getCenters</a></li><li data-type='method'><a href="Lore.Octree.html#getClosestBox">getClosestBox</a></li><li data-type='method'><a href="Lore.Octree.html#getClosestBoxFromCenter">getClosestBoxFromCenter</a></li><li data-type='method'><a href="Lore.Octree.html#getClosestPoint">getClosestPoint</a></li><li data-type='method'><a href="Lore.Octree.html#getDepth">getDepth</a></li><li data-type='method'><a href="Lore.Octree.html#getFarthestBox">getFarthestBox</a></li><li data-type='method'><a href="Lore.Octree.html#getFarthestPoint">getFarthestPoint</a></li><li data-type='method'><a href="Lore.Octree.html#getLocCodes">getLocCodes</a></li><li data-type='method'><a href="Lore.Octree.html#getNeighbours">getNeighbours</a></li><li data-type='method'><a href="Lore.Octree.html#getParent">getParent</a></li><li data-type='method'><a href="Lore.Octree.html#kNearestNeighbours">kNearestNeighbours</a></li><li data-type='method'><a href="Lore.Octree.html#pointDistancesSq">pointDistancesSq</a></li><li data-type='method'><a href="Lore.Octree.html#raySearch">raySearch</a></li><li data-type='method'><a href="Lore.Octree.html#traverse">traverse</a></li><li data-type='method'><a href="Lore.Octree.html#traverseIf">traverseIf</a></li></ul></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">AABB</h1>
+    
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        AABB
+        </h2>
+        
+            <div class="class-description"><p>Axis-aligned bounding boxes with the constraint that they are cubes with equal sides.</p></div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="AABB"><span class="type-signature"></span>new AABB<span class="signature">(center, radius)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>center</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.Vector3f</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The center of this axis-aligned bounding box.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>radius</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The radius of this axis-aligned bounding box.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>locCode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The location code of this axis-aligned bounding box in the octree.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>left</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The distance of the left plane to the world ZY plane.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>right</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The distance of the right plane to the world ZY plane.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>back</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The distance of the back plane to the world XY plane.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>front</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The distance of the front plane to the world XY plane.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bottom</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The distance of the bottom plane to the world XZ plane.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>top</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The distance of the top plane to the world XZ plane.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>neighbours</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The neighbours of this axis-aligned bounding box in an an octree.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>min</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Float32Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array specifying the minimum corner point (x, y, z) of the axis-aligned bounding box.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>max</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Float32Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array specifying the maximum corner point (x, y, z) of the axis-aligned bounding box.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>center</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.Vector3f</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A radius for this axis-aligned bounding box.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>radius</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A radius for this axis-aligned bounding box.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id=".clone"><span class="type-signature">(static) </span>clone<span class="signature">(original)</span><span class="type-signature"> &rarr; {<a href="Lore.AABB.html">Lore.AABB</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line251">line 251</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Clones an axis-aligned bounding box.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>original</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Lore.AABB.html">Lore.AABB</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The axis-aligned bounding box to be cloned.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The cloned axis-aligned bounding box.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Lore.AABB.html">Lore.AABB</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".fromPoints"><span class="type-signature">(static) </span>fromPoints<span class="signature">(vertices)</span><span class="type-signature"> &rarr; {<a href="Lore.AABB.html">Lore.AABB</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line191">line 191</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Creates a axis-aligned bounding box surrounding a set of vertices.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>vertices</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Uint32Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The vertices which will all be inside the axis-aligned bounding box.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An axis-aligned bounding box surrounding the vertices.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Lore.AABB.html">Lore.AABB</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="cylinderTest"><span class="type-signature"></span>cylinderTest<span class="signature">(source, dir, dist, radius)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line123">line 123</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>source</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.Vector3f</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The source of the ray.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dir</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.Vector3f</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A normalized vector of the direction of the ray.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dist</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>radius</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The radius of the cylinder</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <ul>
+<li>Whether or not there is an intersect.</li>
+</ul>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="distanceFromCenterToPointSq"><span class="type-signature"></span>distanceFromCenterToPointSq<span class="signature">(x, y, z)</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line167">line 167</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Returns the box that is closest to the point (measured from center).</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The x component of the point coordinate.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The y component of the point coordinate.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>z</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The z component of the point coordinate.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The square distance of this axis-aligned bounding box to the input point.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="distanceToPointSq"><span class="type-signature"></span>distanceToPointSq<span class="signature">(x, y, z)</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line145">line 145</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Returns the square distance of this axis-aligned bounding box to the point supplied as an argument.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The x component of the point coordinate.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The y component of the point coordinate.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>z</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The z component of the point coordinate.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The square distance of this axis-aligned bounding box to the input point.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getLocCode"><span class="type-signature"></span>getLocCode<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line76">line 76</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Gets the location code of this axis-aligned bounding box.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The location code.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rayTest"><span class="type-signature"></span>rayTest<span class="signature">(source, dir, dist)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line87">line 87</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Tests whether or not this axis-aligned bounding box is intersected by a ray.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>source</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.Vector3f</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The source of the ray.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dir</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.Vector3f</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A normalized vector of the direction of the ray.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dist</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <ul>
+<li>Whether or not there is an intersect.</li>
+</ul>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setLocCode"><span class="type-signature"></span>setLocCode<span class="signature">(locCode)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line68">line 68</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Sets the location code of this axis-aligned bounding box.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>locCode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The location code.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="testAABB"><span class="type-signature"></span>testAABB<span class="signature">(aabb)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line178">line 178</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
+This method can also be used to assert whether or not two boxes are neighbours.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aabb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Lore.AABB.html">Lore.AABB</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The axis-aligned bounding box to test against.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <ul>
+<li>Whether or not there is an overlap.</li>
+</ul>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="updateDimensions"><span class="type-signature"></span>updateDimensions<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AABB.js.html">AABB.js</a>, <a href="AABB.js.html#line43">line 43</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Calculates the distance of the axis-aligned bounding box's planes to the world planes.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Mon Feb 20 2017 14:52:55 GMT+0100 (CET) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

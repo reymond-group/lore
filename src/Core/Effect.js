@@ -5,8 +5,9 @@ Lore.Effect = function(renderer, shaderName) {
     this.framebuffer = this.initFramebuffer();
     this.texture = this.initTexture();
     this.renderbuffer = this.initRenderbuffer();
-
-    this.shader = this.renderer.shaders[this.renderer.createProgram(Lore.Shaders[shaderName])];
+    
+    this.shader = Lore.getShader(shaderName);
+    this.shader.init(this.renderer.gl);
 
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 }

@@ -18,6 +18,10 @@ Lore.Shader = function(name, uniforms, vertexShader, fragmentShader) {
 
 Lore.Shader.prototype = {
     constructor: Lore.Shader,
+    
+    clone: function() {
+        return new Lore.Shader(this.name, this.uniforms, this.vertexShader, this.fragmentShader);
+    },
 
     getVertexShaderCode: function() {
         return this.vertexShader.join('\n');

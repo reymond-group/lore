@@ -1,0 +1,16 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "opts": {
+        "template": "node_modules/docdash",
+        "destination": "./doc"
+    },
+    "plugins": [
+        "plugins/markdown"
+    ],
+    "templates": {
+        "cleverLinks": false,
+        "monospaceLinks": false
+    }
+}

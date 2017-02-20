@@ -1,5 +1,5 @@
 var Lore = {
-    Version: '0.0.1'
+    Version: '1.0.0'
 };
 
 if (typeof define === 'function' && define.amd) {
@@ -25,6 +25,10 @@ Lore.Keyboard = {
 }
 
 Lore.Shaders = {};
+
+Lore.getShader = function (shaderName) {
+    return Lore.Shaders[shaderName].clone();
+}
 
 Lore.init = function(canvas, options) {
     this.opts = Lore.Utils.extend(true, Lore.defaults, options);
@@ -78,7 +82,7 @@ Lore.init = function(canvas, options) {
     pointHelper.setColors(colors);
 */
     renderer.render = function(camera, geometries) {
-        for(key in geometries) {
+        for(var key in geometries) {
             geometries[key].draw(renderer);
         }
     }
