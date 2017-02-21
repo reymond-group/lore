@@ -36,7 +36,7 @@ Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('siz
         'float fog_start = cutoff;',
         'float fog_end = fogDistance + cutoff;',
         'float dist = abs(mv_pos.z - fog_start);',
-        'gl_PointSize = size;',
+        'gl_PointSize = size + clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);',
         'if(fogDistance > 0.0) {',
             'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);',
         '}',
