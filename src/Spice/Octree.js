@@ -49,24 +49,24 @@ Lore.Octree = class Octree {
         this.aabbs[locCode] = aabb;
 
         // Check if this node reaches the maximum depth or the threshold
-        var depth = this.getDepth(locCode);
+        let depth = this.getDepth(locCode);
 
         if (pointIndices.length <= this.threshold || depth >= this.maxDepth) {
             this.points[locCode] = new Uint32Array(pointIndices.length);
-            for (var i = 0; i < pointIndices.length; i++) {
+            for (let i = 0; i < pointIndices.length; i++) {
                 this.points[locCode][i] = pointIndices[i];
             }
 
             return true;
         }
 
-        var childPointCounts = new Uint32Array(8);
-        var codes = new Float32Array(pointIndices.length);
+        let childPointCounts = new Uint32Array(8);
+        let codes = new Float32Array(pointIndices.length);
 
-        for (var i = 0; i < pointIndices.length; i++) {
+        for (let i = 0; i < pointIndices.length; i++) {
             // Points are indices to the vertices array
             // which stores x,y,z coordinates linear
-            var k = pointIndices[i] * 3;
+            let k = pointIndices[i] * 3;
 
             // Assign point to subtree, this gives a code
             // 000, 001, 010, 011, 100, 101, 110, 111
@@ -78,31 +78,31 @@ Lore.Octree = class Octree {
             childPointCounts[codes[i]]++;
         }
 
-        var nextPoints = new Array(8);
-        var nextAabb = new Array(8);
+        let nextPoints = new Array(8);
+        let nextAabb = new Array(8);
 
-        for (var i = 0; i < 8; i++) {
+        for (let i = 0; i < 8; i++) {
             if (childPointCounts[i] == 0) continue;
             nextPoints[i] = new Uint32Array(childPointCounts[i]);
 
-            for (var j = 0, k = 0; j < pointIndices.length; j++) {
+            for (let j = 0, k = 0; j < pointIndices.length; j++) {
                 if (codes[j] == i) {
                     nextPoints[i][k++] = pointIndices[j];
                 }
             }
 
-            var o = this.offsets[i];
-            var offset = new Lore.Vector3f(o[0], o[1], o[2]);
+            let o = this.offsets[i];
+            let offset = new Lore.Vector3f(o[0], o[1], o[2]);
             offset.multiplyScalar(aabb.radius);
             nextAabb[i] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
         }
 
-        for (var i = 0; i < 8; i++) {
+        for (let i = 0; i < 8; i++) {
             if (childPointCounts[i] == 0) {
                 continue;
             }
 
-            var nextLocCode = this.generateLocCode(locCode, i);
+            let nextLocCode = this.generateLocCode(locCode, i);
             this.build(nextPoints[i], vertices, nextAabb[i], nextLocCode);
         }
 
@@ -137,7 +137,7 @@ Lore.Octree = class Octree {
     generateLocCode(parentCode, nodeCode) {
         // Insert the code of this new node, just before the msb (that is set to 1)
         // of the parents code
-        var msb = Lore.Utils.msb(parentCode);
+        let msb = Lore.Utils.msb(parentCode);
 
         if (msb == -1) {
             return nodeCode | 8;
@@ -164,8 +164,8 @@ Lore.Octree = class Octree {
     traverse(traverseCallback, locCode) {
         locCode = locCode || 1;
 
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
+        for (let i = 0; i < 8; i++) {
+            let next = locCode << 3 | i;
 
             // If it has an aabb, it exists
             if (this.aabbs[next]) {
@@ -197,8 +197,8 @@ Lore.Octree = class Octree {
     traverseIf(traverseIfCallback, conditionCallback, locCode) {
         locCode = locCode || 1;
 
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
+        for (let i = 0; i < 8; i++) {
+            let next = locCode << 3 | i;
 
             // If it has an aabb, it exists
             if (this.aabbs[next]) {
@@ -218,14 +218,14 @@ Lore.Octree = class Octree {
      * @returns {Array} A set of points which are associated with octree nodes intersected by the ray.
      */
     raySearch(raycaster) {
-        var result = [];
+        let result = [];
 
         // Info: shouldn't be necessary any more
         // Always add the points from the root
         // The root has the location code 1
         // ... looks like it's still necessary
         if (this.points[1]) {
-            for (var i = 0; i < this.points[1].length; i++) {
+            for (let i = 0; i < this.points[1].length; i++) {
                 result.push({
                     index: this.points[1][i],
                     locCode: 1
@@ -235,10 +235,10 @@ Lore.Octree = class Octree {
 
         // Calculate the direction, and the percentage
         // of the direction, of the ray
-        var dir = raycaster.ray.direction.clone();
+        let dir = raycaster.ray.direction.clone();
         dir.normalize();
 
-        var inverseDir = new Lore.Vector3f(1, 1, 1);
+        let inverseDir = new Lore.Vector3f(1, 1, 1);
         inverseDir.divide(dir);
 
         this.traverseIf(function (points, aabb, locCode) {
@@ -248,7 +248,7 @@ Lore.Octree = class Octree {
                 return;
             }
 
-            for (var i = 0; i < points.length; i++) {
+            for (let i = 0; i < points.length; i++) {
                 result.push({
                     index: points[i],
                     locCode: locCode
@@ -269,7 +269,7 @@ Lore.Octree = class Octree {
      */
     getCenters(threshold) {
         threshold = threshold || 0;
-        var centers = new Array();
+        let centers = new Array();
 
         this.traverse(function (points, aabb, next) {
             if (points && points.length > threshold) {
@@ -290,11 +290,11 @@ Lore.Octree = class Octree {
     getClosestBox(point, threshold, locCode) {
         locCode = locCode || 1;
 
-        var closest = -1;
-        var minDist = Number.MAX_VALUE;
+        let closest = -1;
+        let minDist = Number.MAX_VALUE;
 
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
+        for (let i = 0; i < 8; i++) {
+            let next = locCode << 3 | i;
 
             // If it has an aabb, it exists
             if (this.aabbs[next]) {
@@ -303,7 +303,7 @@ Lore.Octree = class Octree {
                     continue;
                 }
 
-                var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
+                let dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
                 if (dist < minDist) {
                     minDist = dist;
                     closest = next;
@@ -329,11 +329,11 @@ Lore.Octree = class Octree {
     getClosestBoxFromCenter(point, threshold, locCode) {
         locCode = locCode || 1;
 
-        var closest = -1;
-        var minDist = Number.MAX_VALUE;
+        let closest = -1;
+        let minDist = Number.MAX_VALUE;
 
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
+        for (let i = 0; i < 8; i++) {
+            let next = locCode << 3 | i;
 
             // If it has an aabb, it exists
             if (this.aabbs[next]) {
@@ -342,7 +342,7 @@ Lore.Octree = class Octree {
                     continue;
                 }
 
-                var dist = this.aabbs[next].distanceFromCenterToPointSq(point.components[0], point.components[1], point.components[2]);
+                let dist = this.aabbs[next].distanceFromCenterToPointSq(point.components[0], point.components[1], point.components[2]);
                 if (dist < minDist) {
                     minDist = dist;
                     closest = next;
@@ -367,11 +367,11 @@ Lore.Octree = class Octree {
     getFarthestBox(point, threshold, locCode) {
         locCode = locCode || 1;
 
-        var farthest = -1;
-        var maxDist = Number.MIN_VALUE;
+        let farthest = -1;
+        let maxDist = Number.MIN_VALUE;
 
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
+        for (let i = 0; i < 8; i++) {
+            let next = locCode << 3 | i;
 
             // If it has an aabb, it exists
             if (this.aabbs[next]) {
@@ -380,7 +380,7 @@ Lore.Octree = class Octree {
                     continue;
                 }
 
-                var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
+                let dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
                 if (dist > maxDist) {
                     maxDist = dist;
                     farthest = next;
@@ -405,10 +405,10 @@ Lore.Octree = class Octree {
      */
     getClosestPoint(point, positions, threshold, locCode) {
         threshold = threshold || 0;
-        var minDist = Number.MAX_VALUE;
-        var result = null;
+        let minDist = Number.MAX_VALUE;
+        let result = null;
 
-        var box = null;
+        let box = null;
 
         if (locCode) {
             box = this.aabbs[locCode];
@@ -416,23 +416,23 @@ Lore.Octree = class Octree {
             box = this.getClosestBox(point, threshold);
         }
 
-        var boxPoints = this.points[box.getLocCode()];
+        let boxPoints = this.points[box.getLocCode()];
 
         // If the box does not contain any points
         if (!boxPoints) {
             return null;
         }
 
-        for (var i = 0; i < boxPoints.length; i++) {
-            var index = boxPoints[i];
+        for (let i = 0; i < boxPoints.length; i++) {
+            let index = boxPoints[i];
             index *= 3;
-            var x = positions[index];
-            var y = positions[index + 1];
-            var z = positions[index + 2];
+            let x = positions[index];
+            let y = positions[index + 1];
+            let z = positions[index + 2];
 
-            var pc = point.components;
+            let pc = point.components;
 
-            var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
+            let distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
             if (distSq < minDist) {
                 minDist = distSq;
                 result = {
@@ -460,11 +460,11 @@ Lore.Octree = class Octree {
      */
     getFarthestPoint(point, positions, threshold, locCode) {
         threshold = threshold || 0;
-        var maxDist = Number.MIN_VALUE;
-        var result = null;
+        let maxDist = Number.MIN_VALUE;
+        let result = null;
 
         // Get farthest box
-        var box = null;
+        let box = null;
 
         if (locCode) {
             box = this.aabbs[locCode];
@@ -472,23 +472,23 @@ Lore.Octree = class Octree {
             box = this.getFArthestBox(point, threshold);
         }
 
-        var boxPoints = this.points[box.getLocCode()];
+        let boxPoints = this.points[box.getLocCode()];
 
         // If the box does not contain any points
         if (!boxPoints) {
             return null;
         }
 
-        for (var i = 0; i < boxPoints.length; i++) {
-            var index = boxPoints[i];
+        for (let i = 0; i < boxPoints.length; i++) {
+            let index = boxPoints[i];
             index *= 3;
-            var x = positions[index];
-            var y = positions[index + 1];
-            var z = positions[index + 2];
+            let x = positions[index];
+            let y = positions[index + 1];
+            let z = positions[index + 2];
 
-            var pc = point.components;
+            let pc = point.components;
 
-            var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
+            let distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
             if (distSq > maxDist) {
                 maxDist = distSq;
                 result = {
@@ -520,8 +520,8 @@ Lore.Octree = class Octree {
      * @returns {Array} An array of location codes of the neighbouring axis-aligned bounding boxes.
      */
     getNeighbours(locCode) {
-        var self = this;
-        var locCodes = new Array();
+        let self = this;
+        let locCodes = new Array();
 
         this.traverseIf(function (points, aabbs, code) {
             if (points && points.length > 0 && code != locCode) {
@@ -550,11 +550,11 @@ Lore.Octree = class Octree {
      */
     kNearestNeighbours(k, point, locCode, positions, kNNCallback) {
         k += 1; // Account for the fact, that the point itself should be returned as well.
-        var length = positions / 3;
-        var p = point;
+        let length = positions / 3;
+        let p = point;
 
         if (!isNaN(parseFloat(point))) {
-            var p = {
+            let p = {
                 x: positions[p * 3],
                 y: positions[p * 3 + 1],
                 z: positions[p * 3 + 2]
@@ -566,28 +566,28 @@ Lore.Octree = class Octree {
         }
 
         // Calculte the distances to the other cells
-        var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
+        let cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
 
         // Calculte the distances to the other points in the same cell
-        var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions)
+        let pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions)
 
         // Sort the indices according to distance
-        var radixSort = new RadixSort();
-        var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+        let radixSort = new RadixSort();
+        let sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
         // Sort the neighbours according to distance
-        var sortedCellDistances = radixSort.sort(cellDistances.distancesSq, true);
+        let sortedCellDistances = radixSort.sort(cellDistances.distancesSq, true);
 
         // Since the closest points always stay the closest points event when adding
         // the points of another cell, instead of resizing the array, just define
         // an offset
-        var pointOffset = 0;
+        let pointOffset = 0;
 
         // Get all the neighbours from this cell that are closer than the nereast box
-        var indexCount = 0;
-        var indices = new Uint32Array(k);
+        let indexCount = 0;
+        let indices = new Uint32Array(k);
         console.log(sortedPointDistances, sortedCellDistances);
-        for (var i = 0; indexCount < k && i < sortedPointDistances.array.length; i++) {
+        for (let i = 0; indexCount < k && i < sortedPointDistances.array.length; i++) {
             // Break if closest neighbouring cell is closer than the closest remaining point
             if (sortedPointDistances.array[i] > sortedCellDistances.array[0]) {
                 // Set the offset to the most distant closest member
@@ -604,17 +604,17 @@ Lore.Octree = class Octree {
             return indices;
         }
 
-        for (var i = 0; i < sortedCellDistances.array.length; i++) {
+        for (let i = 0; i < sortedCellDistances.array.length; i++) {
             // Get the points from the cell and merge them with the already found ones
-            var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
-            var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+            let locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
+            let newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
 
             pointDistances = Lore.Octree.mergePointDistances(pointDistances, newPointDistances);
 
             // Sort the merged points
-            var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+            let sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
-            for (var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
+            for (let j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
                 if (sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
                     pointOffset = j;
                     break;
@@ -643,7 +643,7 @@ Lore.Octree = class Octree {
      * @returns {Object} An object containing arrays for the locCodes and the squred distances.
      */
     getCellDistancesToPoint(x, y, z, locCode) {
-        var locCodes = new Array();
+        let locCodes = new Array();
 
         this.traverse(function (points, aabb, code) {
             if (points && points.length > 0 && code != locCode) {
@@ -651,8 +651,8 @@ Lore.Octree = class Octree {
             }
         });
 
-        var dists = new Float32Array(locCodes.length);
-        for (var i = 0; i < locCodes.length; i++) {
+        let dists = new Float32Array(locCodes.length);
+        for (let i = 0; i < locCodes.length; i++) {
             dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
         }
 
@@ -672,14 +672,14 @@ Lore.Octree = class Octree {
      * @returns {number} The number of added location codes.
      */
     expandNeighbourhood(x, y, z, locCode, cellDistances) {
-        var locCodes = cellDistances.locCodes;
-        var distancesSq = cellDistances.distancesSq;
-        var length = locCodes.length;
+        let locCodes = cellDistances.locCodes;
+        let distancesSq = cellDistances.distancesSq;
+        let length = locCodes.length;
 
-        for (var i = length - 1; i >= 0; i--) {
-            var neighbours = this.getNeighbours(locCodes[i]);
+        for (let i = length - 1; i >= 0; i--) {
+            let neighbours = this.getNeighbours(locCodes[i]);
 
-            for (var j = 0; j < neighbours.length; j++) {
+            for (let j = 0; j < neighbours.length; j++) {
                 if (neighbours[j] == locCode) {
                     // console.log(locCode);
                 }
@@ -691,16 +691,16 @@ Lore.Octree = class Octree {
         }
 
         // Update the distances
-        var l1 = locCodes.length;
-        var l2 = distancesSq.length;
+        let l1 = locCodes.length;
+        let l2 = distancesSq.length;
 
         if (l1 == l2) {
             return;
         }
 
-        var dists = new Float32Array(l1 - l2);
+        let dists = new Float32Array(l1 - l2);
 
-        for (var i = l2, c = 0; i < l1; i++, c++) {
+        for (let i = l2, c = 0; i < l1; i++, c++) {
             dists[c] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
         }
 
@@ -718,11 +718,11 @@ Lore.Octree = class Octree {
      * @returns {Object} An object containing arrays for the locCodes and the squred distances.
      */
     cellDistancesSq(x, y, z, locCode) {
-        var locCodes = this.getNeighbours(locCode);
+        let locCodes = this.getNeighbours(locCode);
 
-        var dists = new Float32Array(locCodes.length);
+        let dists = new Float32Array(locCodes.length);
 
-        for (var i = 0; i < locCodes.length; i++) {
+        for (let i = 0; i < locCodes.length; i++) {
             dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
         }
 
@@ -742,15 +742,15 @@ Lore.Octree = class Octree {
      * @returns {Object} An object containing arrays for the indices and distances.
      */
     pointDistancesSq(x, y, z, locCode, positions) {
-        var points = this.points[locCode];
-        var indices = new Uint32Array(points.length);
-        var dists = new Float32Array(points.length);
+        let points = this.points[locCode];
+        let indices = new Uint32Array(points.length);
+        let dists = new Float32Array(points.length);
 
-        for (var i = 0; i < points.length; i++) {
-            var index = points[i] * 3;
-            var x2 = positions[index];
-            var y2 = positions[index + 1];
-            var z2 = positions[index + 2];
+        for (let i = 0; i < points.length; i++) {
+            let index = points[i] * 3;
+            let x2 = positions[index];
+            let y2 = positions[index + 1];
+            let z2 = positions[index + 2];
 
             indices[i] = points[i];
             dists[i] = Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2) + Math.pow(z2 - z, 2);
@@ -769,7 +769,7 @@ Lore.Octree = class Octree {
      * @returns {Array} The concatenated array.
      */
     static concatTypedArrays(a, b) {
-        var c = new a.constructor(a.length + b.length);
+        let c = new a.constructor(a.length + b.length);
 
         c.set(a);
         c.set(b, a.length);
@@ -784,7 +784,7 @@ Lore.Octree = class Octree {
      * @returns {Object} The concatenated point distances object.
      */
     static mergePointDistances(a, b) {
-        var newObj = {};
+        let newObj = {};
 
         newObj.indices = Lore.Octree.concatTypedArrays(a.indices, b.indices);
         newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
@@ -799,7 +799,7 @@ Lore.Octree = class Octree {
      * @returns {Object} The concatenated cell distances object.
      */
     static mergeCellDistances(a, b) {
-        var newObj = {};
+        let newObj = {};
 
         newObj.locCodes = Lore.Octree.concatTypedArrays(a.locCodes, b.locCodes);
         newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
@@ -813,13 +813,13 @@ Lore.Octree = class Octree {
      * @returns {Lore.Octree} The cloned octree.
      */
     static clone(original) {
-        var clone = new Lore.Octree();
+        let clone = new Lore.Octree();
 
         clone.threshold = original.threshold;
         clone.maxDepth = original.maxDepth;
         clone.points = original.points;
 
-        for (var property in original.aabbs) {
+        for (let property in original.aabbs) {
             if (original.aabbs.hasOwnProperty(property)) {
                 clone.aabbs[property] = Lore.AABB.clone(original.aabbs[property]);
             }
