@@ -1,5 +1,13 @@
 'use strict';
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var Lore = {
     Version: '1.0.0'
 };
@@ -10,13 +18,26 @@ if (typeof define === 'function' && define.amd) {
     module.exports = Lore;
 }
 
-Lore.Mouse = {
+// By Shmiddty from stackoverflow
+function Enum(a) {
+    var i = Object.keys(a).reduce(function (o, k) {
+        return o[a[k]] = k, o;
+    }, {});
+
+    return Object.freeze(Object.keys(a).reduce(function (o, k) {
+        return o[k] = a[k], o;
+    }, function (v) {
+        return i[v];
+    }));
+}
+
+Lore.Mouse = Enum({
     Left: 0,
     Middle: 1,
     Right: 2
-};
+});
 
-Lore.Keyboard = {
+Lore.Keyboard = Enum({
     Backspace: 8,
     Tab: 9,
     Enter: 13,
@@ -24,7 +45,7 @@ Lore.Keyboard = {
     Ctrl: 17,
     Alt: 18,
     Esc: 27
-};
+});
 
 Lore.Shaders = {};
 
@@ -155,7 +176,9 @@ Lore.Color.hueToRgb = function (p, q, t) {
 };
 
 Lore.Color.hslToRgb = function (h, s, l) {
-    var r, g, b;
+    var r = void 0,
+        g = void 0,
+        b = void 0;
 
     if (s == 0) {
         r = g = b = l;
@@ -174,8 +197,8 @@ Lore.Color.rgbToHsl = function (r, g, b) {
     r /= 255, g /= 255, b /= 255;
     var max = Math.max(r, g, b),
         min = Math.min(r, g, b);
-    var h,
-        s,
+    var h = void 0,
+        s = void 0,
         l = (max + min) / 2;
 
     if (max == min) {
@@ -198,7 +221,7 @@ Lore.Color.rgbToHsl = function (r, g, b) {
 };
 
 Lore.Color.gdbHueShift = function (hue) {
-    var hue = 0.85 * hue + 0.66;
+    hue = 0.85 * hue + 0.66;
     if (hue > 1.0) hue = hue - 1.0;
     hue = 1 - hue + 0.33;
     if (hue > 1.0) hue = hue - 1.0;
@@ -229,7 +252,7 @@ Lore.Renderer = function (targetId, options) {
 
     // Disable context menu on right click
     this.canvas.addEventListener('contextmenu', function (e) {
-        if (e.button = 2) {
+        if (e.button === 2) {
             e.preventDefault();
             return false;
         }
@@ -508,9 +531,9 @@ Lore.Shader.prototype = {
             unif.stale = false;
         }
         for (var uniform in this.uniforms) {
-            var unif = this.uniforms[uniform];
-            if (unif.stale) {
-                Lore.Uniform.Set(this.gl, this.program, unif);
+            var _unif = this.uniforms[uniform];
+            if (_unif.stale) {
+                Lore.Uniform.Set(this.gl, this.program, _unif);
             }
         }
     },
@@ -592,123 +615,163 @@ Lore.Uniform.Set = function (gl, program, uniform) {
 // THREE.js uses
 
 Lore.Node = function () {
-    this.type = 'Lore.Node';
-    this.id = Lore.Node.createGUID();
-    this.isVisible = true;
-    this.position = new Lore.Vector3f();
-    this.rotation = new Lore.Quaternion();
-    this.scale = new Lore.Vector3f(1.0, 1.0, 1.0);
-    this.up = new Lore.Vector3f(0.0, 1.0, 0.0);
-    this.normalMatrix = new Lore.Matrix3f();
-    this.modelMatrix = new Lore.Matrix4f();
-    this.isStale = false;
+    function Node() {
+        _classCallCheck(this, Node);
 
-    this.children = new Array();
-    this.parent = null;
-};
+        this.type = 'Lore.Node';
+        this.id = Lore.Node.createGUID();
+        this.isVisible = true;
+        this.position = new Lore.Vector3f();
+        this.rotation = new Lore.Quaternion();
+        this.scale = new Lore.Vector3f(1.0, 1.0, 1.0);
+        this.up = new Lore.Vector3f(0.0, 1.0, 0.0);
+        this.normalMatrix = new Lore.Matrix3f();
+        this.modelMatrix = new Lore.Matrix4f();
+        this.isStale = false;
 
-Lore.Node.prototype = {
-    constructor: Lore.Node,
-
-    applyMatrix: function applyMatrix(matrix) {
-        this.modelMatrix.multiplyB(matrix);
-    },
-
-    getUpVector: function getUpVector() {
-        var v = new Lore.Vector3f(0, 1, 0);
-        return v.applyQuaternion(this.rotation);
-    },
-
-    getForwardVector: function getForwardVector() {
-        var v = new Lore.Vector3f(0, 0, 1);
-        return v.applyQuaternion(this.rotation);
-    },
-
-    getRightVector: function getRightVector() {
-        var v = new Lore.Vector3f(1, 0, 0);
-        return v.applyQuaternion(this.rotation);
-    },
-
-    translateOnAxis: function translateOnAxis(axis, distance) {
-        // Axis should be normalized, following THREE.js
-        var v = new Lore.Vector3f(axis.components[0], axis.components[1], axis.components[2]);
-        v.applyQuaternion(this.rotation);
-        v.multiplyScalar(distance);
-        this.position.add(v);
-        return this;
-    },
-
-    translateX: function translateX(distance) {
-        this.position.components[0] = this.position.components[0] + distance;
-        return this;
-    },
-
-    translateY: function translateY(distance) {
-        this.position.components[1] = this.position.components[1] + distance;
-        return this;
-    },
-
-    translateZ: function translateZ(distance) {
-        this.position.components[2] = this.position.components[2] + distance;
-        return this;
-    },
-
-    setTranslation: function setTranslation(v) {
-        this.position = v;
-        return this;
-    },
-
-    setRotation: function setRotation(axis, angle) {
-        this.rotation.setFromAxisAngle(axis, angle);
-        return this;
-    },
-
-    rotate: function rotate(axis, angle) {
-        var q = new Lore.Quaternion(axis, angle);
-        this.rotation.multiplyA(q);
-        return this;
-    },
-
-    rotateX: function rotateX(angle) {
-        this.rotation.rotateX(angle);
-        return this;
-    },
-
-    rotateY: function rotateY(angle) {
-        this.rotation.rotateY(angle);
-        return this;
-    },
-
-    rotateZ: function rotateZ(angle) {
-        this.rotation.rotateZ(angle);
-        return this;
-    },
-
-    getRotationMatrix: function getRotationMatrix() {
-        return this.rotation.toRotationMatrix();
-    },
-
-    update: function update() {
-        this.modelMatrix.compose(this.position, this.rotation, this.scale);
-        // if parent... this.modelMatrix = Lore.Matrix4f.multiply(this.parent.modelMatrix, this.modelMatrix);
-        this.isStale = true;
-    },
-
-    getModelMatrix: function getModelMatrix() {
-        return this.modelMatrix.entries;
+        this.children = new Array();
+        this.parent = null;
     }
-};
 
-Lore.Node.createGUID = function () {
-    // See:
-    // http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+    _createClass(Node, [{
+        key: 'applyMatrix',
+        value: function applyMatrix(matrix) {
+            this.modelMatrix.multiplyB(matrix);
 
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0,
-            v = c == 'x' ? r : r & 0x3 | 0x8;
-        return v.toString(16);
-    });
-};
+            return this;
+        }
+    }, {
+        key: 'getUpVector',
+        value: function getUpVector() {
+            var v = new Lore.Vector3f(0, 1, 0);
+
+            return v.applyQuaternion(this.rotation);
+        }
+    }, {
+        key: 'getForwardVector',
+        value: function getForwardVector() {
+            var v = new Lore.Vector3f(0, 0, 1);
+
+            return v.applyQuaternion(this.rotation);
+        }
+    }, {
+        key: 'getRightVector',
+        value: function getRightVector() {
+            var v = new Lore.Vector3f(1, 0, 0);
+
+            return v.applyQuaternion(this.rotation);
+        }
+    }, {
+        key: 'translateOnAxis',
+        value: function translateOnAxis(axis, distance) {
+            // Axis should be normalized, following THREE.js
+            var v = new Lore.Vector3f(axis.components[0], axis.components[1], axis.components[2]);
+            v.applyQuaternion(this.rotation);
+            v.multiplyScalar(distance);
+            this.position.add(v);
+
+            return this;
+        }
+    }, {
+        key: 'translateX',
+        value: function translateX(distance) {
+            this.position.components[0] = this.position.components[0] + distance;
+
+            return this;
+        }
+    }, {
+        key: 'translateY',
+        value: function translateY(distance) {
+            this.position.components[1] = this.position.components[1] + distance;
+
+            return this;
+        }
+    }, {
+        key: 'translateZ',
+        value: function translateZ(distance) {
+            this.position.components[2] = this.position.components[2] + distance;
+
+            return this;
+        }
+    }, {
+        key: 'setTranslation',
+        value: function setTranslation(v) {
+            this.position = v;
+
+            return this;
+        }
+    }, {
+        key: 'setRotation',
+        value: function setRotation(axis, angle) {
+            this.rotation.setFromAxisAngle(axis, angle);
+
+            return this;
+        }
+    }, {
+        key: 'rotate',
+        value: function rotate(axis, angle) {
+            var q = new Lore.Quaternion(axis, angle);
+
+            this.rotation.multiplyA(q);
+
+            return this;
+        }
+    }, {
+        key: 'rotateX',
+        value: function rotateX(angle) {
+            this.rotation.rotateX(angle);
+
+            return this;
+        }
+    }, {
+        key: 'rotateY',
+        value: function rotateY(angle) {
+            this.rotation.rotateY(angle);
+
+            return this;
+        }
+    }, {
+        key: 'rotateZ',
+        value: function rotateZ(angle) {
+            this.rotation.rotateZ(angle);
+
+            return this;
+        }
+    }, {
+        key: 'getRotationMatrix',
+        value: function getRotationMatrix() {
+            return this.rotation.toRotationMatrix();
+        }
+    }, {
+        key: 'update',
+        value: function update() {
+            this.modelMatrix.compose(this.position, this.rotation, this.scale);
+            // if parent... this.modelMatrix = Lore.Matrix4f.multiply(this.parent.modelMatrix, this.modelMatrix);
+            this.isStale = true;
+
+            return this;
+        }
+    }, {
+        key: 'getModelMatrix',
+        value: function getModelMatrix() {
+            return this.modelMatrix.entries;
+        }
+    }], [{
+        key: 'createGUID',
+        value: function createGUID() {
+            // See:
+            // http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0,
+                    v = c == 'x' ? r : r & 0x3 | 0x8;
+                return v.toString(16);
+            });
+        }
+    }]);
+
+    return Node;
+}();
 
 Lore.Geometry = function (name, gl, shader) {
     Lore.Node.call(this);
@@ -804,8 +867,8 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
 
         // How exactly does the binding work??
         // What will happen if I want to draw a second geometry?
-        for (prop in this.attributes) {
-            this.attributes[prop].bind(this.gl);
+        for (var _prop in this.attributes) {
+            this.attributes[_prop].bind(this.gl);
         }
 
         this.gl.drawArrays(this.drawMode, 0, this.size());
@@ -999,1497 +1062,1561 @@ Lore.Effect.prototype = {
     }
 };
 
-Lore.ControlsBase = function (renderer) {
-    this.renderer = renderer;
-    this.canvas = renderer.canvas;
-    this.lowFps = 15;
-    this.highFps = 30;
-    this.eventListeners = {};
-    this.renderer.setMaxFps(this.lowFps);
-    this.touchMode = 'drag';
+Lore.ControlsBase = function () {
+    function ControlsBase(renderer) {
+        _classCallCheck(this, ControlsBase);
 
-    this.mouse = {
-        previousPosition: {
-            x: null,
-            y: null
-        },
-        delta: {
-            x: 0.0,
-            y: 0.0
-        },
-        position: {
-            x: 0.0,
-            y: 0.0
-        },
-        state: {
-            left: false,
-            middle: false,
-            right: false
-        },
-        normalizedPosition: {
-            x: 0.0,
-            y: 0.0
-        },
-        touches: 0
-    };
+        this.renderer = renderer;
+        this.canvas = renderer.canvas;
+        this.lowFps = 15;
+        this.highFps = 30;
+        this.eventListeners = {};
+        this.renderer.setMaxFps(this.lowFps);
+        this.touchMode = 'drag';
 
-    this.keyboard = {
-        alt: false,
-        ctrl: false,
-        shift: false
-    };
+        this.mouse = {
+            previousPosition: {
+                x: null,
+                y: null
+            },
+            delta: {
+                x: 0.0,
+                y: 0.0
+            },
+            position: {
+                x: 0.0,
+                y: 0.0
+            },
+            state: {
+                left: false,
+                middle: false,
+                right: false
+            },
+            normalizedPosition: {
+                x: 0.0,
+                y: 0.0
+            },
+            touches: 0
+        };
 
-    var that = this;
-    this.canvas.addEventListener('mousemove', function (e) {
-        if (that.mouse.previousPosition.x !== null && that.mouse.state.left || that.mouse.state.middle || that.mouse.state.right) {
-            that.mouse.delta.x = e.pageX - that.mouse.previousPosition.x;
-            that.mouse.delta.y = e.pageY - that.mouse.previousPosition.y;
+        this.keyboard = {
+            alt: false,
+            ctrl: false,
+            shift: false
+        };
 
-            that.mouse.position.x += 0.01 * that.mouse.delta.x;
-            that.mouse.position.y += 0.01 * that.mouse.delta.y;
+        var that = this;
+        this.canvas.addEventListener('mousemove', function (e) {
+            if (that.mouse.previousPosition.x !== null && that.mouse.state.left || that.mouse.state.middle || that.mouse.state.right) {
+                that.mouse.delta.x = e.pageX - that.mouse.previousPosition.x;
+                that.mouse.delta.y = e.pageY - that.mouse.previousPosition.y;
 
-            // Give priority to left, then middle, then right
-            if (that.mouse.state.left) {
-                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'left' });
-            } else if (that.mouse.state.middle) {
-                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'middle' });
-            } else if (that.mouse.state.right) {
-                that.raiseEvent('mousedrag', { e: that.mouse.delta, source: 'right' });
+                that.mouse.position.x += 0.01 * that.mouse.delta.x;
+                that.mouse.position.y += 0.01 * that.mouse.delta.y;
+
+                // Give priority to left, then middle, then right
+                if (that.mouse.state.left) {
+                    that.raiseEvent('mousedrag', {
+                        e: that.mouse.delta,
+                        source: 'left'
+                    });
+                } else if (that.mouse.state.middle) {
+                    that.raiseEvent('mousedrag', {
+                        e: that.mouse.delta,
+                        source: 'middle'
+                    });
+                } else if (that.mouse.state.right) {
+                    that.raiseEvent('mousedrag', {
+                        e: that.mouse.delta,
+                        source: 'right'
+                    });
+                }
+            }
+
+            // Set normalized mouse position
+            var rect = that.canvas.getBoundingClientRect();
+            that.mouse.normalizedPosition.x = (e.clientX - rect.left) / that.canvas.width * 2 - 1;
+            that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+            that.raiseEvent('mousemove', {
+                e: that
+            });
+
+            that.mouse.previousPosition.x = e.pageX;
+            that.mouse.previousPosition.y = e.pageY;
+        });
+
+        this.canvas.addEventListener('touchstart', function (e) {
+            that.mouse.touches++;
+            var touch = e.touches[0];
+            e.preventDefault();
+
+            that.mouse.touched = true;
+
+            that.renderer.setMaxFps(that.highFps);
+
+            // This is for selecting stuff when touching but not moving
+
+            // Set normalized mouse position
+            var rect = that.canvas.getBoundingClientRect();
+            that.mouse.normalizedPosition.x = (touch.clientX - rect.left) / that.canvas.width * 2 - 1;
+            that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+            if (that.touchMode !== 'drag') that.raiseEvent('mousemove', {
+                e: that
+            });
+
+            that.raiseEvent('mousedown', {
+                e: that,
+                source: 'touch'
+            });
+        });
+
+        this.canvas.addEventListener('touchend', function (e) {
+            that.mouse.touches--;
+            e.preventDefault();
+
+            that.mouse.touched = false;
+
+            // Reset the previous position and delta of the mouse
+            that.mouse.previousPosition.x = null;
+            that.mouse.previousPosition.y = null;
+
+            that.renderer.setMaxFps(that.lowFps);
+
+            that.raiseEvent('mouseup', {
+                e: that,
+                source: 'touch'
+            });
+        });
+
+        this.canvas.addEventListener('touchmove', function (e) {
+            var touch = e.touches[0];
+            var source = 'left';
+
+            if (that.mouse.touches == 2) source = 'right';
+
+            e.preventDefault();
+            console.log(touch.pageX, touch.pageY);
+            if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
+                that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
+                that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
+
+                that.mouse.position.x += 0.01 * that.mouse.delta.x;
+                that.mouse.position.y += 0.01 * that.mouse.delta.y;
+
+                if (that.touchMode === 'drag') that.raiseEvent('mousedrag', {
+                    e: that.mouse.delta,
+                    source: source
+                });
+            }
+
+            // Set normalized mouse position
+            var rect = that.canvas.getBoundingClientRect();
+            that.mouse.normalizedPosition.x = (touch.clientX - rect.left) / that.canvas.width * 2 - 1;
+            that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
+
+            if (that.touchMode !== 'drag') that.raiseEvent('mousemove', {
+                e: that
+            });
+
+            that.mouse.previousPosition.x = touch.pageX;
+            that.mouse.previousPosition.y = touch.pageY;
+        });
+
+        var wheelevent = 'mousewheel';
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
+
+        this.canvas.addEventListener(wheelevent, function (e) {
+            e.preventDefault();
+
+            var delta = 'wheelDelta' in e ? e.wheelDelta : -40 * e.detail;
+            that.raiseEvent('mousewheel', {
+                e: delta
+            });
+        });
+
+        this.canvas.addEventListener('keydown', function (e) {
+            if (e.which == 16) {
+                that.keyboard.shift = true;
+            } else if (e.which == 17) {
+                that.keyboard.ctrl = true;
+            } else if (e.which == 18) {
+                that.keyboard.alt = true;
+            }
+
+            that.raiseEvent('keydown', {
+                e: e.which
+            });
+        });
+
+        this.canvas.addEventListener('keyup', function (e) {
+            if (e.which == 16) {
+                that.keyboard.shift = false;
+            } else if (e.which == 17) {
+                that.keyboard.ctrl = false;
+            } else if (e.which == 18) {
+                that.keyboard.alt = false;
+            }
+
+            that.raiseEvent('keyup', {
+                e: e.which
+            });
+        });
+
+        this.canvas.addEventListener('mousedown', function (e) {
+            var btn = e.button;
+            var source = 'left';
+
+            // Only handle single button events
+            if (btn == 0) {
+                that.mouse.state.left = true;
+            } else if (btn == 1) {
+                that.mouse.state.middle = true;
+                source = 'middle';
+            } else if (btn == 2) {
+                that.mouse.state.right = true;
+                source = 'right';
+            }
+
+            that.renderer.setMaxFps(that.highFps);
+
+            that.raiseEvent('mousedown', {
+                e: that,
+                source: source
+            });
+        });
+
+        this.canvas.addEventListener('click', function (e) {
+            var btn = e.button;
+            var source = 'left';
+
+            that.raiseEvent('click', {
+                e: that,
+                source: source
+            });
+        });
+
+        this.canvas.addEventListener('dblclick', function (e) {
+            var btn = e.button;
+            var source = 'left';
+
+            that.raiseEvent('dblclick', {
+                e: that,
+                source: source
+            });
+        });
+
+        this.canvas.addEventListener('mouseup', function (e) {
+            var btn = e.button;
+            var source = 'left';
+
+            // Only handle single button events
+            if (btn == 0) {
+                that.mouse.state.left = false;
+            } else if (btn == 1) {
+                that.mouse.state.middle = false;
+                source = 'middle';
+            } else if (btn == 2) {
+                that.mouse.state.right = false;
+                source = 'right';
+            }
+
+            // Reset the previous position and delta of the mouse
+            that.mouse.previousPosition.x = null;
+            that.mouse.previousPosition.y = null;
+
+            that.renderer.setMaxFps(that.lowFps);
+
+            that.raiseEvent('mouseup', {
+                e: that,
+                source: source
+            });
+        });
+    }
+
+    _createClass(ControlsBase, [{
+        key: 'addEventListener',
+        value: function addEventListener(eventName, callback) {
+            if (!this.eventListeners[eventName]) {
+                this.eventListeners[eventName] = [];
+            }
+
+            this.eventListeners[eventName].push(callback);
+        }
+    }, {
+        key: 'raiseEvent',
+        value: function raiseEvent(eventName, data) {
+            if (!this.eventListeners[eventName]) {
+                return;
+            }
+
+            for (var i = 0; i < this.eventListeners[eventName].length; i++) {
+                this.eventListeners[eventName][i](data);
             }
         }
+    }]);
 
-        // Set normalized mouse position
-        var rect = that.canvas.getBoundingClientRect();
-        that.mouse.normalizedPosition.x = (e.clientX - rect.left) / that.canvas.width * 2 - 1;
-        that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+    return ControlsBase;
+}();
 
-        that.raiseEvent('mousemove', { e: that });
+Lore.OrbitalControls = function (_Lore$ControlsBase) {
+    _inherits(OrbitalControls, _Lore$ControlsBase);
 
-        that.mouse.previousPosition.x = e.pageX;
-        that.mouse.previousPosition.y = e.pageY;
-    });
+    function OrbitalControls(renderer, radius, lookAt) {
+        _classCallCheck(this, OrbitalControls);
 
-    this.canvas.addEventListener('touchstart', function (e) {
-        that.mouse.touches++;
-        var touch = e.touches[0];
-        e.preventDefault();
+        var _this2 = _possibleConstructorReturn(this, (OrbitalControls.__proto__ || Object.getPrototypeOf(OrbitalControls)).call(this, renderer));
 
-        that.mouse.touched = true;
+        _this2.up = Lore.Vector3f.up();
+        _this2.radius = radius;
+        _this2.renderer = renderer;
+        _this2.camera = renderer.camera;
+        _this2.canvas = renderer.canvas;
 
-        that.renderer.setMaxFps(this.highFps);
+        _this2.dPhi = 0.0;
+        _this2.dTheta = 0.0;
+        _this2.dPan = new Lore.Vector3f();
 
-        // This is for selecting stuff when touching but not moving
+        _this2.spherical = new Lore.SphericalCoords();
+        _this2.lookAt = lookAt || new Lore.Vector3f();
 
-        // Set normalized mouse position
-        var rect = that.canvas.getBoundingClientRect();
-        that.mouse.normalizedPosition.x = (touch.clientX - rect.left) / that.canvas.width * 2 - 1;
-        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
+        _this2.scale = 0.95;
 
-        if (that.touchMode !== 'drag') that.raiseEvent('mousemove', { e: that });
+        _this2.camera.position = new Lore.Vector3f(radius, radius, radius);
+        _this2.camera.updateProjectionMatrix();
+        _this2.camera.updateViewMatrix();
 
-        that.raiseEvent('mousedown', { e: that, source: 'touch' });
-    });
+        _this2.rotationLocked = false;
 
-    this.canvas.addEventListener('touchend', function (e) {
-        that.mouse.touches--;
-        e.preventDefault();
+        var that = _this2;
 
-        that.mouse.touched = false;
+        _this2.addEventListener('mousedrag', function (e) {
+            that.update(e.e, e.source);
+        });
 
-        // Reset the previous position and delta of the mouse
-        that.mouse.previousPosition.x = null;
-        that.mouse.previousPosition.y = null;
+        _this2.addEventListener('mousewheel', function (e) {
+            that.update({
+                x: 0,
+                y: -e.e
+            }, 'wheel');
+        });
 
-        that.renderer.setMaxFps(this.lowFps);
-
-        that.raiseEvent('mouseup', { e: that, source: 'touch' });
-    });
-
-    this.canvas.addEventListener('touchmove', function (e) {
-        var touch = e.touches[0];
-        var source = 'left';
-
-        if (that.mouse.touches == 2) source = 'right';
-
-        e.preventDefault();
-        console.log(touch.pageX, touch.pageY);
-        if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
-            that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
-            that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
-
-            that.mouse.position.x += 0.01 * that.mouse.delta.x;
-            that.mouse.position.y += 0.01 * that.mouse.delta.y;
-
-            if (that.touchMode === 'drag') that.raiseEvent('mousedrag', { e: that.mouse.delta, source: source });
-        }
-
-        // Set normalized mouse position
-        var rect = that.canvas.getBoundingClientRect();
-        that.mouse.normalizedPosition.x = (touch.clientX - rect.left) / that.canvas.width * 2 - 1;
-        that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
-
-        if (that.touchMode !== 'drag') that.raiseEvent('mousemove', { e: that });
-
-        that.mouse.previousPosition.x = touch.pageX;
-        that.mouse.previousPosition.y = touch.pageY;
-    });
-
-    var wheelevent = 'mousewheel';
-    if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
-
-    this.canvas.addEventListener(wheelevent, function (e) {
-        e.preventDefault();
-
-        var delta = 'wheelDelta' in e ? e.wheelDelta : -40 * e.detail;
-        that.raiseEvent('mousewheel', { e: delta });
-    });
-
-    this.canvas.addEventListener('keydown', function (e) {
-        if (e.which == 16) {
-            that.keyboard.shift = true;
-        } else if (e.which == 17) {
-            that.keyboard.ctrl = true;
-        } else if (e.which == 18) {
-            that.keyboard.alt = true;
-        }
-
-        that.raiseEvent('keydown', { e: e.which });
-    });
-
-    this.canvas.addEventListener('keyup', function (e) {
-        if (e.which == 16) {
-            that.keyboard.shift = false;
-        } else if (e.which == 17) {
-            that.keyboard.ctrl = false;
-        } else if (e.which == 18) {
-            that.keyboard.alt = false;
-        }
-
-        that.raiseEvent('keyup', { e: e.which });
-    });
-
-    this.canvas.addEventListener('mousedown', function (e) {
-        var btn = e.button;
-        var source = 'left';
-
-        // Only handle single button events
-        if (btn == 0) {
-            that.mouse.state.left = true;
-        } else if (btn == 1) {
-            that.mouse.state.middle = true;
-            source = 'middle';
-        } else if (btn == 2) {
-            that.mouse.state.right = true;
-            source = 'right';
-        }
-
-        that.renderer.setMaxFps(this.highFps);
-
-        that.raiseEvent('mousedown', { e: that, source: source });
-    });
-
-    this.canvas.addEventListener('click', function (e) {
-        var btn = e.button;
-        var source = 'left';
-
-        that.raiseEvent('click', { e: that, source: source });
-    });
-
-    this.canvas.addEventListener('dblclick', function (e) {
-        var btn = e.button;
-        var source = 'left';
-
-        that.raiseEvent('dblclick', { e: that, source: source });
-    });
-
-    this.canvas.addEventListener('mouseup', function (e) {
-        var btn = e.button;
-        var source = 'left';
-
-        // Only handle single button events
-        if (btn == 0) {
-            that.mouse.state.left = false;
-        } else if (btn == 1) {
-            that.mouse.state.middle = false;
-            source = 'middle';
-        } else if (btn == 2) {
-            that.mouse.state.right = false;
-            source = 'right';
-        }
-
-        // Reset the previous position and delta of the mouse
-        that.mouse.previousPosition.x = null;
-        that.mouse.previousPosition.y = null;
-
-        that.renderer.setMaxFps(this.lowFps);
-
-        that.raiseEvent('mouseup', { e: that, source: source });
-    });
-};
-
-Lore.ControlsBase.prototype = {
-    constructor: Lore.ControlsBase,
-
-    addEventListener: function addEventListener(eventName, callback) {
-        if (!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
-        this.eventListeners[eventName].push(callback);
-    },
-
-    raiseEvent: function raiseEvent(eventName, data) {
-        if (!this.eventListeners[eventName]) return;
-
-        for (var i = 0; i < this.eventListeners[eventName].length; i++) {
-            this.eventListeners[eventName][i](data);
-        }
+        // Initial update
+        _this2.update({
+            x: 0,
+            y: 0
+        }, 'left');
+        return _this2;
     }
-};
 
-Lore.OrbitalControls = function (renderer, radius, lookAt) {
-    Lore.ControlsBase.call(this, renderer);
-    this.up = Lore.Vector3f.up();
-    this.radius = radius;
-    this.renderer = renderer;
-    this.camera = renderer.camera;
-    this.canvas = renderer.canvas;
+    _createClass(OrbitalControls, [{
+        key: 'setRadius',
+        value: function setRadius(radius) {
+            this.radius = radius;
+            this.camera.position = new Lore.Vector3f(0, 0, radius);
 
-    this.dPhi = 0.0;
-    this.dTheta = 0.0;
-    this.dPan = new Lore.Vector3f();
+            this.camera.updateProjectionMatrix();
+            this.camera.updateViewMatrix();
+            this.update();
 
-    this.spherical = new Lore.SphericalCoords();
-    this.lookAt = lookAt || new Lore.Vector3f();
+            return this;
+        }
+    }, {
+        key: 'setLookAt',
+        value: function setLookAt(lookAt) {
+            this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
+            this.lookAt = lookAt.clone();
+            this.update();
 
-    this.scale = 0.95;
+            return this;
+        }
+    }, {
+        key: 'update',
+        value: function update(e, source) {
+            if (source == 'left' && !this.rotationLocked) {
+                // Rotate
+                this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
+                this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
+            } else if (source == 'right' || source == 'left' && this.rotationLocked) {
+                // Translate
+                var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
+                var y = e.y * (this.camera.top - this.camera.bottom) / this.camera.zoom / this.canvas.clientHeight;
 
-    this.camera.position = new Lore.Vector3f(radius, radius, radius);
-    this.camera.updateProjectionMatrix();
-    this.camera.updateViewMatrix();
+                var u = this.camera.getUpVector().components;
+                var r = this.camera.getRightVector().components;
 
-    this.rotationLocked = false;
-
-    var that = this;
-
-    this.addEventListener('mousedrag', function (e) {
-        that.update(e.e, e.source);
-    });
-
-    this.addEventListener('mousewheel', function (e) {
-        that.update({ x: 0, y: -e.e }, 'wheel');
-    });
-
-    // Initial update
-    this.update({ x: 0, y: 0 }, 'left');
-};
-
-Lore.OrbitalControls.prototype = Object.assign(Object.create(Lore.ControlsBase.prototype), {
-    constructor: Lore.OrbitalControls,
-    setRadius: function setRadius(radius) {
-        this.radius = radius;
-        this.camera.position = new Lore.Vector3f(0, 0, radius);
-
-        this.camera.updateProjectionMatrix();
-        this.camera.updateViewMatrix();
-        this.update();
-    },
-    setLookAt: function setLookAt(lookAt) {
-        this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
-        this.lookAt = lookAt.clone();
-        this.update();
-    },
-    update: function update(e, source) {
-        if (source == 'left' && !this.rotationLocked) {
-            // Rotate
-            this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
-            this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
-        } else if (source == 'right' || source == 'left' && this.rotationLocked) {
-            // Translate
-            var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
-            var y = e.y * (this.camera.top - this.camera.bottom) / this.camera.zoom / this.canvas.clientHeight;
-
-            var u = this.camera.getUpVector().components;
-            var r = this.camera.getRightVector().components;
-
-            this.dPan.components[0] = r[0] * -x + u[0] * y;
-            this.dPan.components[1] = r[1] * -x + u[1] * y;
-            this.dPan.components[2] = r[2] * -x + u[2] * y;
-        } else if (source == 'middle' || source == 'wheel') {
-            if (e.y > 0) {
-                // Zoom Out
-                this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
-                this.camera.updateProjectionMatrix();
-                this.raiseEvent('zoomchanged', this.camera.zoom);
-            } else if (e.y < 0) {
-                // Zoom In
-                this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
-                this.camera.updateProjectionMatrix();
-                this.raiseEvent('zoomchanged', this.camera.zoom);
+                this.dPan.components[0] = r[0] * -x + u[0] * y;
+                this.dPan.components[1] = r[1] * -x + u[1] * y;
+                this.dPan.components[2] = r[2] * -x + u[2] * y;
+            } else if (source == 'middle' || source == 'wheel') {
+                if (e.y > 0) {
+                    // Zoom Out
+                    this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
+                    this.camera.updateProjectionMatrix();
+                    this.raiseEvent('zoomchanged', this.camera.zoom);
+                } else if (e.y < 0) {
+                    // Zoom In
+                    this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
+                    this.camera.updateProjectionMatrix();
+                    this.raiseEvent('zoomchanged', this.camera.zoom);
+                }
             }
+
+            // Update the camera
+            var offset = this.camera.position.clone().subtract(this.lookAt);
+
+            this.spherical.setFromVector(offset);
+            this.spherical.components[1] += this.dPhi;
+            this.spherical.components[2] += this.dTheta;
+            this.spherical.limit(0.0, 0.5 * Math.PI, -Infinity, Infinity);
+            this.spherical.secure();
+
+            // Limit radius here
+
+            this.lookAt.add(this.dPan);
+            offset.setFromSphericalCoords(this.spherical);
+
+            this.camera.position.copyFrom(this.lookAt).add(offset);
+
+            this.camera.setLookAt(this.lookAt);
+
+            this.camera.updateViewMatrix();
+
+            this.dPhi = 0.0;
+            this.dTheta = 0.0;
+            this.dPan.set(0, 0, 0);
+
+            this.raiseEvent('updated');
+
+            return this;
+        }
+    }, {
+        key: 'setView',
+        value: function setView(phi, theta) {
+            var offset = this.camera.position.clone().subtract(this.lookAt);
+
+            this.spherical.setFromVector(offset);
+            this.spherical.components[1] = phi;
+            this.spherical.components[2] = theta;
+            this.spherical.secure();
+
+            offset.setFromSphericalCoords(this.spherical);
+
+            this.camera.position.copyFrom(this.lookAt).add(offset);
+            this.camera.setLookAt(this.lookAt);
+            this.camera.updateViewMatrix();
+            this.raiseEvent('updated');
+
+            return this;
+        }
+    }, {
+        key: 'zoomIn',
+        value: function zoomIn() {
+            this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
+            this.camera.updateProjectionMatrix();
+            this.raiseEvent('zoomchanged', this.camera.zoom);
+            this.raiseEvent('updated');
+
+            return this;
+        }
+    }, {
+        key: 'zoomOut',
+        value: function zoomOut() {
+            this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
+            this.camera.updateProjectionMatrix();
+            this.raiseEvent('zoomchanged', this.camera.zoom);
+            this.raiseEvent('updated');
+
+            return this;
+        }
+    }, {
+        key: 'setTopView',
+        value: function setTopView() {
+            this.setView(0.0, 2.0 * Math.PI);
+            this.rotationLocked = true;
+
+            return this;
+        }
+    }, {
+        key: 'setBottomView',
+        value: function setBottomView() {
+            this.rotationLocked = true;
+
+            return this;
+        }
+    }, {
+        key: 'setRightView',
+        value: function setRightView() {
+            this.setView(0.5 * Math.PI, 0.5 * Math.PI);
+            this.rotationLocked = true;
+
+            return this;
+        }
+    }, {
+        key: 'setLeftView',
+        value: function setLeftView() {
+            this.setView(0.5 * Math.PI, -0.5 * Math.PI);
+            this.rotationLocked = true;
+
+            return this;
+        }
+    }, {
+        key: 'setFrontView',
+        value: function setFrontView() {
+            this.setView(0.5 * Math.PI, 2.0 * Math.PI);
+            this.rotationLocked = true;
+
+            return this;
+        }
+    }, {
+        key: 'setBackView',
+        value: function setBackView() {
+            this.setView(0.5 * Math.PI, Math.PI);
+            this.rotationLocked = true;
+
+            return this;
+        }
+    }, {
+        key: 'setFreeView',
+        value: function setFreeView() {
+            this.setView(0.25 * Math.PI, 0.25 * Math.PI);
+            this.rotationLocked = false;
+
+            return this;
+        }
+    }]);
+
+    return OrbitalControls;
+}(Lore.ControlsBase);
+
+Lore.CameraBase = function (_Lore$Node) {
+    _inherits(CameraBase, _Lore$Node);
+
+    function CameraBase() {
+        _classCallCheck(this, CameraBase);
+
+        var _this3 = _possibleConstructorReturn(this, (CameraBase.__proto__ || Object.getPrototypeOf(CameraBase)).call(this));
+
+        _this3.type = 'Lore.CameraBase';
+        _this3.renderer = null;
+        _this3.isProjectionMatrixStale = false;
+        _this3.isViewMatrixStale = false;
+        _this3.projectionMatrix = new Lore.ProjectionMatrix();
+        _this3.viewMatrix = new Lore.Matrix4f();
+        return _this3;
+    }
+
+    _createClass(CameraBase, [{
+        key: 'init',
+        value: function init(gl, program) {
+            this.gl = gl;
+            this.program = program;
+
+            return this;
+        }
+    }, {
+        key: 'setLookAt',
+        value: function setLookAt(v) {
+            this.rotation.lookAt(this.position, v, Lore.Vector3f.up());
+
+            return this;
+        }
+    }, {
+        key: 'updateProjectionMatrix',
+        value: function updateProjectionMatrix() {
+            return this;
+        }
+    }, {
+        key: 'updateViewMatrix',
+        value: function updateViewMatrix() {
+            this.update();
+
+            var viewMatrix = this.modelMatrix.clone();
+
+            viewMatrix.invert();
+            this.viewMatrix = viewMatrix;
+            this.isViewMatrixStale = true;
+
+            return this;
+        }
+    }, {
+        key: 'getProjectionMatrix',
+        value: function getProjectionMatrix() {
+            return this.projectionMatrix.entries;
+        }
+    }, {
+        key: 'getViewMatrix',
+        value: function getViewMatrix() {
+            return this.viewMatrix.entries;
+        }
+    }, {
+        key: 'sceneToScreen',
+        value: function sceneToScreen(v, renderer) {
+            var vector = v.clone();
+            var canvas = renderer.canvas;
+
+            vector.project(this);
+
+            // Map to 2D screen space
+            // Correct for high dpi display by dividing by device pixel ratio
+            var x = Math.round((vector.components[0] + 1) * canvas.width / 2); // / window.devicePixelRatio;
+            var y = Math.round((-vector.components[1] + 1) * canvas.height / 2); // / window.devicePixelRatio;
+
+            return [x, y];
+        }
+    }]);
+
+    return CameraBase;
+}(Lore.Node);
+
+Lore.OrthographicCamera = function (_Lore$CameraBase) {
+    _inherits(OrthographicCamera, _Lore$CameraBase);
+
+    function OrthographicCamera(left, right, top, bottom, near, far) {
+        _classCallCheck(this, OrthographicCamera);
+
+        var _this4 = _possibleConstructorReturn(this, (OrthographicCamera.__proto__ || Object.getPrototypeOf(OrthographicCamera)).call(this));
+
+        _this4.type = 'Lore.OrthographicCamera';
+        _this4.zoom = 1.0;
+        _this4.left = left;
+        _this4.right = right;
+        _this4.top = top;
+        _this4.bottom = bottom;
+        _this4.near = near || 0.1;
+        _this4.far = far || 2500;
+
+        _this4.updateProjectionMatrix();
+        return _this4;
+    }
+
+    _createClass(OrthographicCamera, [{
+        key: 'updateProjectionMatrix',
+        value: function updateProjectionMatrix() {
+            var width = (this.right - this.left) / (2.0 * this.zoom);
+            var height = (this.top - this.bottom) / (2.0 * this.zoom);
+            var x = (this.right + this.left) / 2.0;
+            var y = (this.top + this.bottom) / 2.0;
+
+            var left = x - width;
+            var right = x + width;
+            var top = y + height;
+            var bottom = y - height;
+
+            this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
+            this.isProjectionMatrixStale = true;
+        }
+    }]);
+
+    return OrthographicCamera;
+}(Lore.CameraBase);
+
+Lore.Vector3f = function () {
+    function Vector3f(x, y, z) {
+        _classCallCheck(this, Vector3f);
+
+        if (arguments.length === 1) {
+            this.components = new Float32Array(x);
+        } else {
+            this.components = new Float32Array(3);
+            this.components[0] = x || 0.0;
+            this.components[1] = y || 0.0;
+            this.components[2] = z || 0.0;
+        }
+    }
+
+    _createClass(Vector3f, [{
+        key: 'set',
+        value: function set(x, y, z) {
+            this.components[0] = x;
+            this.components[1] = y;
+            this.components[2] = z;
+            return this;
+        }
+    }, {
+        key: 'getX',
+        value: function getX() {
+            return this.components[0];
+        }
+    }, {
+        key: 'getY',
+        value: function getY() {
+            return this.components[1];
+        }
+    }, {
+        key: 'getZ',
+        value: function getZ() {
+            return this.components[2];
+        }
+    }, {
+        key: 'setX',
+        value: function setX(x) {
+            this.components[0] = x;
+
+            return this;
+        }
+    }, {
+        key: 'setY',
+        value: function setY(y) {
+            this.components[1] = y;
+
+            return this;
+        }
+    }, {
+        key: 'setZ',
+        value: function setZ(z) {
+            this.components[2] = z;
+
+            return this;
+        }
+    }, {
+        key: 'setFromSphericalCoords',
+        value: function setFromSphericalCoords(s) {
+            var radius = s.components[0];
+            var phi = s.components[1];
+            var theta = s.components[2];
+
+            var t = Math.sin(phi) * radius;
+
+            this.components[0] = Math.sin(theta) * t;
+            this.components[1] = Math.cos(phi) * radius;
+            this.components[2] = Math.cos(theta) * t;
+
+            return this;
+        }
+    }, {
+        key: 'copyFrom',
+        value: function copyFrom(v) {
+            this.components[0] = v.components[0];
+            this.components[1] = v.components[1];
+            this.components[2] = v.components[2];
+
+            return this;
+        }
+    }, {
+        key: 'setLength',
+        value: function setLength(length) {
+            return this.multiplyScalar(length / this.length());
+        }
+    }, {
+        key: 'lengthSq',
+        value: function lengthSq() {
+            return this.components[0] * this.components[0] + this.components[1] * this.components[1] + this.components[2] * this.components[2];
+        }
+    }, {
+        key: 'length',
+        value: function length() {
+            return Math.sqrt(this.lengthSq());
+        }
+    }, {
+        key: 'normalize',
+        value: function normalize() {
+            return this.divideScalar(this.length());
+        }
+    }, {
+        key: 'multiply',
+        value: function multiply(v) {
+            this.components[0] *= v.components[0];
+            this.components[1] *= v.components[1];
+            this.components[2] *= v.components[2];
+
+            return this;
+        }
+    }, {
+        key: 'multiplyScalar',
+        value: function multiplyScalar(s) {
+            this.components[0] *= s;
+            this.components[1] *= s;
+            this.components[2] *= s;
+
+            return this;
+        }
+    }, {
+        key: 'divide',
+        value: function divide(v) {
+            this.components[0] /= v.components[0];
+            this.components[1] /= v.components[1];
+            this.components[2] /= v.components[2];
+
+            return this;
+        }
+    }, {
+        key: 'divideScalar',
+        value: function divideScalar(s) {
+            this.components[0] /= s;
+            this.components[1] /= s;
+            this.components[2] /= s;
+
+            return this;
+        }
+    }, {
+        key: 'add',
+        value: function add(v) {
+            this.components[0] += v.components[0];
+            this.components[1] += v.components[1];
+            this.components[2] += v.components[2];
+
+            return this;
+        }
+    }, {
+        key: 'subtract',
+        value: function subtract(v) {
+            this.components[0] -= v.components[0];
+            this.components[1] -= v.components[1];
+            this.components[2] -= v.components[2];
+
+            return this;
+        }
+    }, {
+        key: 'dot',
+        value: function dot(v) {
+            return this.components[0] * v.components[0] + this.components[1] * v.components[1] + this.components[2] * v.components[2];
+        }
+    }, {
+        key: 'cross',
+        value: function cross(v) {
+            return new Lore.Vector3f(this.components[1] * v.components[2] - this.components[2] * v.components[1], this.components[2] * v.components[0] - this.components[0] * v.components[2], this.components[0] * v.components[1] - this.components[1] * v.components[0]);
+        }
+    }, {
+        key: 'project',
+        value: function project(camera) {
+            return this.applyProjection(Lore.Matrix4f.multiply(camera.projectionMatrix, Lore.Matrix4f.invert(camera.modelMatrix)));
+        }
+    }, {
+        key: 'unproject',
+        value: function unproject(camera) {
+            return this.applyProjection(Lore.Matrix4f.multiply(camera.modelMatrix, Lore.Matrix4f.invert(camera.projectionMatrix)));
+        }
+    }, {
+        key: 'applyProjection',
+        value: function applyProjection(m) {
+            var x = this.components[0];
+            var y = this.components[1];
+            var z = this.components[2];
+
+            var e = m.entries;
+            var p = 1.0 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+
+            this.components[0] = (e[0] * x + e[4] * y + e[8] * z + e[12]) * p;
+            this.components[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * p;
+            this.components[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * p;
+
+            return this;
+        }
+    }, {
+        key: 'toDirection',
+        value: function toDirection(m) {
+            var x = this.components[0];
+            var y = this.components[1];
+            var z = this.components[2];
+
+            var e = m.entries;
+
+            this.components[0] = e[0] * x + e[4] * y + e[8] * z;
+            this.components[1] = e[1] * x + e[5] * y + e[9] * z;
+            this.components[2] = e[2] * x + e[6] * y + e[10] * z;
+
+            this.normalize();
+
+            return this;
+        }
+    }, {
+        key: 'applyQuaternion',
+        value: function applyQuaternion(q) {
+            var x = this.components[0];
+            var y = this.components[1];
+            var z = this.components[2];
+
+            var qx = q.components[0];
+            var qy = q.components[1];
+            var qz = q.components[2];
+            var qw = q.components[3];
+
+            var ix = qw * x + qy * z - qz * y;
+            var iy = qw * y + qz * x - qx * z;
+            var iz = qw * z + qx * y - qy * x;
+            var iw = -qx * x - qy * y - qz * z;
+
+            this.components[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+            this.components[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+            this.components[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+
+            return this;
+        }
+    }, {
+        key: 'distanceToSq',
+        value: function distanceToSq(v) {
+            var dx = this.components[0] - v.components[0];
+            var dy = this.components[1] - v.components[1];
+            var dz = this.components[2] - v.components[2];
+
+            return dx * dx + dy * dy + dz * dz;
+        }
+    }, {
+        key: 'distanceTo',
+        value: function distanceTo(v) {
+            return Math.sqrt(this.distanceToSq(v));
+        }
+    }, {
+        key: 'clone',
+        value: function clone() {
+            return new Lore.Vector3f(this.components[0], this.components[1], this.components[2]);
+        }
+    }, {
+        key: 'equals',
+        value: function equals(v) {
+            return this.components[0] === v.components[0] && this.components[1] === v.components[1] && this.components[2] === v.components[2];
+        }
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return '(' + this.components[0] + ', ' + this.components[1] + ', ' + this.components[2] + ')';
+        }
+    }], [{
+        key: 'normalize',
+        value: function normalize(v) {
+            return Lore.Vector3f.divideScalar(v, v.length());
+        }
+    }, {
+        key: 'multiply',
+        value: function multiply(u, v) {
+            return new Lore.Vector3f(u.components[0] * v.components[0], u.components[1] * v.components[1], u.components[2] * v.components[2]);
+        }
+    }, {
+        key: 'multiplyScalar',
+        value: function multiplyScalar(v, s) {
+            return new Lore.Vector3f(v.components[0] * s, v.components[1] * s, v.components[2] * s);
+        }
+    }, {
+        key: 'divide',
+        value: function divide(u, v) {
+            return new Lore.Vector3f(u.components[0] / v.components[0], u.components[1] / v.components[1], u.components[2] / v.components[2]);
+        }
+    }, {
+        key: 'divideScalar',
+        value: function divideScalar(v, s) {
+            return new Lore.Vector3f(v.components[0] / s, v.components[1] / s, v.components[2] / s);
+        }
+    }, {
+        key: 'add',
+        value: function add(u, v) {
+            return new Lore.Vector3f(u.components[0] + v.components[0], u.components[1] + v.components[1], u.components[2] + v.components[2]);
+        }
+    }, {
+        key: 'subtract',
+        value: function subtract(u, v) {
+            return new Lore.Vector3f(u.components[0] - v.components[0], u.components[1] - v.components[1], u.components[2] - v.components[2]);
+        }
+    }, {
+        key: 'cross',
+        value: function cross(u, v) {
+            return new Lore.Vector3f(u.components[1] * v.components[2] - u.components[2] * v.components[1], u.components[2] * v.components[0] - u.components[0] * v.components[2], u.components[0] * v.components[1] - u.components[1] * v.components[0]);
+        }
+    }, {
+        key: 'dot',
+        value: function dot(u, v) {
+            return u.components[0] * v.components[0] + u.components[1] * v.components[1] + u.components[2] * v.components[2];
+        }
+    }, {
+        key: 'forward',
+        value: function forward() {
+            return new Lore.Vector3f(0, 0, 1);
+        }
+    }, {
+        key: 'up',
+        value: function up() {
+            return new Lore.Vector3f(0, 1, 0);
+        }
+    }, {
+        key: 'right',
+        value: function right() {
+            return new Lore.Vector3f(1, 0, 0);
+        }
+    }]);
+
+    return Vector3f;
+}();
+
+/** A class representing a 3x3 float matrix */
+Lore.Matrix3f = function () {
+    /**
+     * The constructor for the class Matrix3f.
+     *
+     * @param {Float32Array} [entries=new Float32Array(...)] The Float32Array to which the entries will be set. If no value is provided, the matrix will be initialized to the identity matrix.
+     */
+    function Matrix3f() {
+        var entries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+
+        _classCallCheck(this, Matrix3f);
+
+        this.entries = entries;
+    }
+
+    /**
+     * Clones the matrix and returns the clone as a new Matrix3f object.
+     *
+     * @returns {Matrix3f} The clone.
+     */
+
+
+    _createClass(Matrix3f, [{
+        key: 'clone',
+        value: function clone() {
+            return new Lore.Matrix3f(new Float32Array(this.entries));
         }
 
-        // Update the camera
-        var offset = this.camera.position.clone().subtract(this.lookAt);
-
-        this.spherical.setFromVector(offset);
-        this.spherical.components[1] += this.dPhi;
-        this.spherical.components[2] += this.dTheta;
-        this.spherical.limit(0.0, 0.5 * Math.PI, -Infinity, Infinity);
-        this.spherical.secure();
-
-        // Limit radius here
-
-        this.lookAt.add(this.dPan);
-        offset.setFromSphericalCoords(this.spherical);
-
-        this.camera.position.copyFrom(this.lookAt).add(offset);
-
-        this.camera.setLookAt(this.lookAt);
-
-        this.camera.updateViewMatrix();
-
-        this.dPhi = 0.0;
-        this.dTheta = 0.0;
-        this.dPan.set(0, 0, 0);
-
-        this.raiseEvent('updated');
-    },
-
-    setView: function setView(phi, theta) {
-        var offset = this.camera.position.clone().subtract(this.lookAt);
-
-        this.spherical.setFromVector(offset);
-        this.spherical.components[1] = phi;
-        this.spherical.components[2] = theta;
-        this.spherical.secure();
-
-        offset.setFromSphericalCoords(this.spherical);
-
-        this.camera.position.copyFrom(this.lookAt).add(offset);
-
-        this.camera.setLookAt(this.lookAt);
-
-        this.camera.updateViewMatrix();
-
-        this.raiseEvent('updated');
-    },
-
-    zoomIn: function zoomIn() {
-        this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
-        this.camera.updateProjectionMatrix();
-        this.raiseEvent('zoomchanged', this.camera.zoom);
-        this.raiseEvent('updated');
-    },
-
-    zoomOut: function zoomOut() {
-        this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
-        this.camera.updateProjectionMatrix();
-        this.raiseEvent('zoomchanged', this.camera.zoom);
-        this.raiseEvent('updated');
-    },
-
-    setTopView: function setTopView() {
-        this.setView(0.0, 2.0 * Math.PI);
-        this.rotationLocked = true;
-    },
-
-    setBottomView: function setBottomView() {
-        this.rotationLocked = true;
-    },
-
-    setRightView: function setRightView() {
-        this.setView(0.5 * Math.PI, 0.5 * Math.PI);
-        this.rotationLocked = true;
-    },
-
-    setLeftView: function setLeftView() {
-        this.setView(0.5 * Math.PI, -0.5 * Math.PI);
-        this.rotationLocked = true;
-    },
-
-    setFrontView: function setFrontView() {
-        this.setView(0.5 * Math.PI, 2.0 * Math.PI);
-        this.rotationLocked = true;
-    },
-
-    setBackView: function setBackView() {
-        this.setView(0.5 * Math.PI, Math.PI);
-        this.rotationLocked = true;
-    },
-
-    setFreeView: function setFreeView() {
-        this.setView(0.25 * Math.PI, 0.25 * Math.PI);
-        this.rotationLocked = false;
-    }
-});
-
-Lore.CameraBase = function () {
-    Lore.Node.call(this);
-    this.type = 'Lore.CameraBase';
-    this.renderer = null;
-    this.isProjectionMatrixStale = false;
-    this.isViewMatrixStale = false;
-
-    this.projectionMatrix = new Lore.ProjectionMatrix();
-    this.viewMatrix = new Lore.Matrix4f();
-};
-
-Lore.CameraBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
-    constructor: Lore.CameraBase,
-
-    init: function init(gl, program) {
-        this.gl = gl;
-        this.program = program;
-    },
-
-    setLookAt: function setLookAt(v) {
-        this.rotation.lookAt(this.position, v, Lore.Vector3f.up());
-    },
-
-    updateProjectionMatrix: function updateProjectionMatrix() {},
-
-    updateViewMatrix: function updateViewMatrix() {
-        this.update();
-        var viewMatrix = this.modelMatrix.clone();
-        viewMatrix.invert();
-        this.viewMatrix = viewMatrix;
-        this.isViewMatrixStale = true;
-    },
-
-    getProjectionMatrix: function getProjectionMatrix() {
-        return this.projectionMatrix.entries;
-    },
-
-    getViewMatrix: function getViewMatrix() {
-        return this.viewMatrix.entries;
-    },
-
-    sceneToScreen: function sceneToScreen(v, renderer) {
-        var vector = v.clone();
-        var canvas = renderer.canvas;
-        vector.project(this);
-
-        // Map to 2D screen space
-        // Correct for high dpi display by dividing by device pixel ratio
-        var x = Math.round((vector.components[0] + 1) * canvas.width / 2); // / window.devicePixelRatio;
-        var y = Math.round((-vector.components[1] + 1) * canvas.height / 2); // / window.devicePixelRatio;
-
-        return [x, y];
-    }
-});
-
-Lore.OrthographicCamera = function (left, right, top, bottom, near, far) {
-    Lore.CameraBase.call(this);
-    this.type = 'Lore.OrthographicCamera';
-    this.zoom = 1.0;
-    this.left = left;
-    this.right = right;
-    this.top = top;
-    this.bottom = bottom;
-    this.near = near || 0.1;
-    this.far = far || 2500;
-
-    this.updateProjectionMatrix();
-};
-
-Lore.OrthographicCamera.prototype = Object.assign(Object.create(Lore.CameraBase.prototype), {
-    constructor: Lore.OrthographicCamera,
-
-    updateProjectionMatrix: function updateProjectionMatrix() {
-        var width = (this.right - this.left) / (2.0 * this.zoom);
-        var height = (this.top - this.bottom) / (2.0 * this.zoom);
-        var x = (this.right + this.left) / 2.0;
-        var y = (this.top + this.bottom) / 2.0;
-
-        var left = x - width;
-        var right = x + width;
-        var top = y + height;
-        var bottom = y - height;
-
-        this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
-        this.isProjectionMatrixStale = true;
-    }
-});
-
-Lore.Array2 = function (arr) {
-    this.arr = arr;
-};
-
-Lore.Array2.prototype = {
-    constructor: Lore.Array2,
-
-    multiply: function multiply(index, x, y) {
-        index <<= 1;
-        this.arr[index] *= x;
-        this.arr[index + 1] *= y;
-    },
-
-    multiplyScalar: function multiplyScalar(index, s) {
-        index <<= 1;
-        this.arr[index] *= s;
-        this.arr[index + 1] *= s;
-    },
-
-    divide: function divide(index, x, y) {
-        index <<= 1;
-        this.arr[index] /= x;
-        this.arr[index + 1] /= y;
-    },
-
-    divideScalar: function divideScalar(index, s) {
-        index <<= 1;
-        this.arr[index] /= s;
-        this.arr[index + 1] /= s;
-    },
-
-    add: function add(index, x, y) {
-        index <<= 1;
-        this.arr[index] += x;
-        this.arr[index + 1] += y;
-    },
-
-    subtract: function subtract(index, x, y) {
-        index <<= 1;
-        this.arr[index] -= x;
-        this.arr[index + 1] -= y;
-    }
-};
-
-Lore.Array3 = function (arr) {
-    this.arr = arr;
-};
-
-Lore.Array3.prototype = {
-    constructor: Lore.Array3,
-
-    multiply: function multiply(index, x, y, z) {
-        index *= 3;
-        this.arr[index] *= x;
-        this.arr[index + 1] *= y;
-        this.arr[index + 2] *= z;
-    },
-
-    multiplyScalar: function multiplyScalar(index, s) {
-        index *= 3;
-        this.arr[index] *= s;
-        this.arr[index + 1] *= s;
-        this.arr[index + 2] *= s;
-    },
-
-    divide: function divide(index, x, y, z) {
-        index *= 3;
-        this.arr[index] /= x;
-        this.arr[index + 1] /= y;
-        this.arr[index + 2] /= z;
-    },
-
-    divideScalar: function divideScalar(index, s) {
-        index *= 3;
-        this.arr[index] /= s;
-        this.arr[index + 1] /= s;
-        this.arr[index + 2] /= s;
-    },
-
-    add: function add(index, x, y, z) {
-        index *= 3;
-        this.arr[index] += x;
-        this.arr[index + 1] += y;
-        this.arr[index + 2] += z;
-    },
-
-    subtract: function subtract(index, x, y, z) {
-        index *= 3;
-        this.arr[index] -= x;
-        this.arr[index + 1] -= y;
-        this.arr[index + 2] -= z;
-    }
-};
-
-Lore.Vector2f = function (x, y) {
-    this.components = new Float32Array(2);
-    this.components[0] = x || 0.0;
-    this.components[1] = y || 0.0;
-};
-
-Lore.Vector2f.prototype = {
-    constructor: Lore.Vector2f,
-
-    set: function set(x, y) {
-        this.components[0] = x;
-        this.components[1] = y;
-
-        return this;
-    },
-
-    getX: function getX() {
-        return this.components[0];
-    },
-
-    getY: function getY() {
-        return this.components[1];
-    },
-
-    setX: function setX(x) {
-        this.components[0] = x;
-    },
-
-    setY: function setY(y) {
-        this.components[1] = y;
-    },
-
-    lengthSq: function lengthSq() {
-        return this.components[0] * this.components[0] + this.components[1] * this.components[1];
-    },
-
-    length: function length() {
-        return Math.sqrt(this.lengthSq());
-    },
-
-    multiply: function multiply(v) {
-        this.components[0] *= v.components[0];
-        this.components[1] *= v.components[1];
-        return this;
-    },
-
-    multiplyScalar: function multiplyScalar(s) {
-        this.components[0] *= s;
-        this.components[1] *= s;
-        return this;
-    },
-
-    divide: function divide(v) {
-        this.components[0] /= v.components[0];
-        this.components[1] /= v.components[1];
-        return this;
-    },
-
-    divideScalar: function divideScalar(s) {
-        this.components[0] /= s;
-        this.components[1] /= s;
-        return this;
-    },
-
-    add: function add(v) {
-        this.components[0] += v.components[0];
-        this.components[1] += v.components[1];
-        return this;
-    },
-
-    subtract: function subtract(v) {
-        this.components[0] -= v.components[0];
-        this.components[1] -= v.components[1];
-        return this;
-    },
-
-    clone: function clone() {
-        return new Lore.Vector2f(this.components[0], this.components[1]);
-    },
-
-    equals: function equals(v) {
-        return this.components[0] === v.components[0] && this.components[1] === v.components[1];
-    }
-};
-
-Lore.Vector2f.multiply = function (u, v) {
-    return new Lore.Vector2f(u.components[0] * v.components[0], u.components[1] * v.components[1]);
-};
-
-Lore.Vector2f.multiplyScalar = function (v, s) {
-    return new Lore.Vector2f(v.components[0] * s, v.components[1] * s);
-};
-
-Lore.Vector2f.divide = function (u, v) {
-    return new Lore.Vector2f(u.components[0] / v.components[0], u.components[1] / v.components[1]);
-};
-
-Lore.Vector2f.divideScalar = function (v, s) {
-    return new Lore.Vector2f(v.components[0] / s, v.components[1] / s);
-};
-
-Lore.Vector2f.add = function (u, v) {
-    return new Lore.Vector2f(u.components[0] + v.components[0], u.components[1] + v.components[1]);
-};
-
-Lore.Vector2f.subtract = function (u, v) {
-    return new Lore.Vector2f(u.components[0] - v.components[0], u.components[1] - v.components[1]);
-};
-
-Lore.Vector3f = function (x, y, z) {
-    if (arguments.length === 1) {
-        this.components = new Float32Array(x);
-    } else {
-        this.components = new Float32Array(3);
-        this.components[0] = x || 0.0;
-        this.components[1] = y || 0.0;
-        this.components[2] = z || 0.0;
-    }
-};
-
-Lore.Vector3f.prototype = {
-    constructor: Lore.Vector3f,
-
-    set: function set(x, y, z) {
-        this.components[0] = x;
-        this.components[1] = y;
-        this.components[2] = z;
-        return this;
-    },
-
-    getX: function getX() {
-        return this.components[0];
-    },
-
-    getY: function getY() {
-        return this.components[1];
-    },
-
-    getZ: function getZ() {
-        return this.components[2];
-    },
-
-    setX: function setX(x) {
-        this.components[0] = x;
-        return this;
-    },
-
-    setY: function setY(y) {
-        this.components[1] = y;
-        return this;
-    },
-
-    setZ: function setZ(z) {
-        this.components[2] = z;
-        return this;
-    },
-
-    setFromSphericalCoords: function setFromSphericalCoords(s) {
-        var radius = s.components[0];
-        var phi = s.components[1];
-        var theta = s.components[2];
-
-        var t = Math.sin(phi) * radius;
-
-        this.components[0] = Math.sin(theta) * t;
-        this.components[1] = Math.cos(phi) * radius;
-        this.components[2] = Math.cos(theta) * t;
-
-        return this;
-    },
-
-    copyFrom: function copyFrom(v) {
-        this.components[0] = v.components[0];
-        this.components[1] = v.components[1];
-        this.components[2] = v.components[2];
-        return this;
-    },
-
-    setLength: function setLength(length) {
-        return this.multiplyScalar(length / this.length());
-    },
-
-    lengthSq: function lengthSq() {
-        return this.components[0] * this.components[0] + this.components[1] * this.components[1] + this.components[2] * this.components[2];
-    },
-
-    length: function length() {
-        return Math.sqrt(this.lengthSq());
-    },
-
-    normalize: function normalize() {
-        return this.divideScalar(this.length());
-    },
-
-    multiply: function multiply(v) {
-        this.components[0] *= v.components[0];
-        this.components[1] *= v.components[1];
-        this.components[2] *= v.components[2];
-        return this;
-    },
-
-    multiplyScalar: function multiplyScalar(s) {
-        this.components[0] *= s;
-        this.components[1] *= s;
-        this.components[2] *= s;
-        return this;
-    },
-
-    divide: function divide(v) {
-        this.components[0] /= v.components[0];
-        this.components[1] /= v.components[1];
-        this.components[2] /= v.components[2];
-        return this;
-    },
-
-    divideScalar: function divideScalar(s) {
-        this.components[0] /= s;
-        this.components[1] /= s;
-        this.components[2] /= s;
-        return this;
-    },
-
-    add: function add(v) {
-        this.components[0] += v.components[0];
-        this.components[1] += v.components[1];
-        this.components[2] += v.components[2];
-        return this;
-    },
-
-    subtract: function subtract(v) {
-        this.components[0] -= v.components[0];
-        this.components[1] -= v.components[1];
-        this.components[2] -= v.components[2];
-        return this;
-    },
-
-    dot: function dot(v) {
-        return this.components[0] * v.components[0] + this.components[1] * v.components[1] + this.components[2] * v.components[2];
-    },
-
-    cross: function cross(v) {
-        return new Lore.Vector3f(this.components[1] * v.components[2] - this.components[2] * v.components[1], this.components[2] * v.components[0] - this.components[0] * v.components[2], this.components[0] * v.components[1] - this.components[1] * v.components[0]);
-    },
-
-    project: function project(camera) {
-        return this.applyProjection(Lore.Matrix4f.multiply(camera.projectionMatrix, Lore.Matrix4f.invert(camera.modelMatrix)));
-    },
-
-    unproject: function unproject(camera) {
-        return this.applyProjection(Lore.Matrix4f.multiply(camera.modelMatrix, Lore.Matrix4f.invert(camera.projectionMatrix)));
-    },
-
-    applyProjection: function applyProjection(m) {
-        var x = this.components[0];
-        var y = this.components[1];
-        var z = this.components[2];
-
-        var e = m.entries;
-        var p = 1.0 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
-
-        this.components[0] = (e[0] * x + e[4] * y + e[8] * z + e[12]) * p;
-        this.components[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * p;
-        this.components[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * p;
-
-        return this;
-    },
-
-    toDirection: function toDirection(m) {
-        var x = this.components[0];
-        var y = this.components[1];
-        var z = this.components[2];
-
-        var e = m.entries;
-
-        this.components[0] = e[0] * x + e[4] * y + e[8] * z;
-        this.components[1] = e[1] * x + e[5] * y + e[9] * z;
-        this.components[2] = e[2] * x + e[6] * y + e[10] * z;
-
-        this.normalize();
-    },
-
-    applyQuaternion: function applyQuaternion(q) {
-        var x = this.components[0];
-        var y = this.components[1];
-        var z = this.components[2];
-
-        var qx = q.components[0];
-        var qy = q.components[1];
-        var qz = q.components[2];
-        var qw = q.components[3];
-
-        var ix = qw * x + qy * z - qz * y;
-        var iy = qw * y + qz * x - qx * z;
-        var iz = qw * z + qx * y - qy * x;
-        var iw = -qx * x - qy * y - qz * z;
-
-        this.components[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-        this.components[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-        this.components[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-
-        return this;
-    },
-
-    distanceToSq: function distanceToSq(v) {
-        var dx = this.components[0] - v.components[0];
-        var dy = this.components[1] - v.components[1];
-        var dz = this.components[2] - v.components[2];
-
-        return dx * dx + dy * dy + dz * dz;
-    },
-
-    distanceTo: function distanceTo(v) {
-        return Math.sqrt(this.distanceToSq(v));
-    },
-
-    clone: function clone() {
-        return new Lore.Vector3f(this.components[0], this.components[1], this.components[2]);
-    },
-
-    equals: function equals(v) {
-        return this.components[0] === v.components[0] && this.components[1] === v.components[1] && this.components[2] === v.components[2];
-    },
-
-    toString: function toString() {
-        return '(' + this.components[0] + ', ' + this.components[1] + ', ' + this.components[2] + ')';
-    }
-};
-
-Lore.Vector3f.normalize = function (v) {
-    return Lore.Vector3f.divideScalar(v, v.length());
-};
-
-Lore.Vector3f.multiply = function (u, v) {
-    return new Lore.Vector3f(u.components[0] * v.components[0], u.components[1] * v.components[1], u.components[2] * v.components[2]);
-};
-
-Lore.Vector3f.multiplyScalar = function (v, s) {
-    return new Lore.Vector3f(v.components[0] * s, v.components[1] * s, v.components[2] * s);
-};
-
-Lore.Vector3f.divide = function (u, v) {
-    return new Lore.Vector3f(u.components[0] / v.components[0], u.components[1] / v.components[1], u.components[2] / v.components[2]);
-};
-
-Lore.Vector3f.divideScalar = function (v, s) {
-    return new Lore.Vector3f(v.components[0] / s, v.components[1] / s, v.components[2] / s);
-};
-
-Lore.Vector3f.add = function (u, v) {
-    return new Lore.Vector3f(u.components[0] + v.components[0], u.components[1] + v.components[1], u.components[2] + v.components[2]);
-};
-
-Lore.Vector3f.subtract = function (u, v) {
-    return new Lore.Vector3f(u.components[0] - v.components[0], u.components[1] - v.components[1], u.components[2] - v.components[2]);
-};
-
-Lore.Vector3f.cross = function (u, v) {
-    return new Lore.Vector3f(u.components[1] * v.components[2] - u.components[2] * v.components[1], u.components[2] * v.components[0] - u.components[0] * v.components[2], u.components[0] * v.components[1] - u.components[1] * v.components[0]);
-};
-
-Lore.Vector3f.dot = function (u, v) {
-    return u.components[0] * v.components[0] + u.components[1] * v.components[1] + u.components[2] * v.components[2];
-};
-
-Lore.Vector3f.forward = function () {
-    return new Lore.Vector3f(0, 0, 1);
-};
-
-Lore.Vector3f.up = function () {
-    return new Lore.Vector3f(0, 1, 0);
-};
-
-Lore.Vector3f.right = function () {
-    return new Lore.Vector3f(1, 0, 0);
-};
-
-Lore.Matrix3f = function (entries) {
-    this.entries = entries || new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
-};
-
-Lore.Matrix3f.prototype = {
-    constructor: Lore.Matrix3f,
-
-    clone: function clone() {
-        return new Lore.Matrix3f(new Float32Array(this.entries));
-    },
-
-    equals: function equals(m) {
-        for (var i = 0; i < this.entries.length; i++) {
-            if (this.entries[i] !== m.entries[i]) return false;
+        /**
+         * Compares this matrix to another matrix.
+         *
+         * @param {Matrix3f} mat A matrix to be compared to this matrix.
+         * @returns {boolean} A boolean indicating whether or not the two matrices are identical.
+         */
+
+    }, {
+        key: 'equals',
+        value: function equals(mat) {
+            for (var i = 0; i < this.entries.length; i++) {
+                if (this.entries[i] !== mat.entries[i]) {
+                    return false;
+                }
+            }
+
+            return true;
         }
+    }]);
 
-        return true;
-    }
-};
+    return Matrix3f;
+}();
 
-Lore.Matrix4f = function (entries) {
+Lore.Matrix4f = function () {
     // Do NOT go double precision on GPUs!!!
     // See:
     // http://stackoverflow.com/questions/2079906/float-vs-double-on-graphics-hardware
-    this.entries = entries || new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-};
 
-Lore.Matrix4f.prototype = {
-    constructor: Lore.Matrix4f,
+    function Matrix4f() {
+        var entries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 
-    set: function set(m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32, m03, m13, m23, m33) {
-        this.entries.set([m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32, m03, m13, m23, m33]);
-    },
+        _classCallCheck(this, Matrix4f);
 
-    multiplyA: function multiplyA(b) {
-        // First, store the values in local variables.
-        // See:
-        // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
+        this.entries = entries;
+    }
 
-        var a00 = this.entries[0],
-            a01 = this.entries[4],
-            a02 = this.entries[8],
-            a03 = this.entries[12];
-        var a10 = this.entries[1],
-            a11 = this.entries[5],
-            a12 = this.entries[9],
-            a13 = this.entries[13];
-        var a20 = this.entries[2],
-            a21 = this.entries[6],
-            a22 = this.entries[10],
-            a23 = this.entries[14];
-        var a30 = this.entries[3],
-            a31 = this.entries[7],
-            a32 = this.entries[11],
-            a33 = this.entries[15];
-
-        var b00 = b.entries[0],
-            b01 = b.entries[4],
-            b02 = b.entries[8],
-            b03 = b.entries[12];
-        var b10 = b.entries[1],
-            b11 = b.entries[5],
-            b12 = b.entries[9],
-            b13 = b.entries[13];
-        var b20 = b.entries[2],
-            b21 = b.entries[6],
-            b22 = b.entries[10],
-            b23 = b.entries[14];
-        var b30 = b.entries[3],
-            b31 = b.entries[7],
-            b32 = b.entries[11],
-            b33 = b.entries[15];
-
-        this.entries[0] = a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30;
-        this.entries[1] = a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30;
-        this.entries[2] = a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30;
-        this.entries[3] = a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31;
-        this.entries[4] = a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30;
-        this.entries[5] = a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31;
-        this.entries[6] = a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31;
-        this.entries[7] = a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31;
-        this.entries[8] = a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32;
-        this.entries[9] = a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32;
-        this.entries[10] = a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32;
-        this.entries[11] = a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32;
-        this.entries[12] = a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33;
-        this.entries[13] = a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33;
-        this.entries[14] = a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33;
-        this.entries[15] = a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33;
-
-        return this;
-    },
-
-    multiplyB: function multiplyB(a) {
-        // First, store the values in local variables.
-        // See:
-        // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
-
-        var a00 = a.entries[0],
-            a01 = a.entries[4],
-            a02 = a.entries[8],
-            a03 = a.entries[12];
-        var a10 = a.entries[1],
-            a11 = a.entries[5],
-            a12 = a.entries[9],
-            a13 = a.entries[13];
-        var a20 = a.entries[2],
-            a21 = a.entries[6],
-            a22 = a.entries[10],
-            a23 = a.entries[14];
-        var a30 = a.entries[3],
-            a31 = a.entries[7],
-            a32 = a.entries[11],
-            a33 = a.entries[15];
-
-        var b00 = this.entries[0],
-            b01 = this.entries[4],
-            b02 = this.entries[8],
-            b03 = this.entries[12];
-        var b10 = this.entries[1],
-            b11 = this.entries[5],
-            b12 = this.entries[9],
-            b13 = this.entries[13];
-        var b20 = this.entries[2],
-            b21 = this.entries[6],
-            b22 = this.entries[10],
-            b23 = this.entries[14];
-        var b30 = this.entries[3],
-            b31 = this.entries[7],
-            b32 = this.entries[11],
-            b33 = this.entries[15];
-
-        this.entries[0] = a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30;
-        this.entries[1] = a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30;
-        this.entries[2] = a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30;
-        this.entries[3] = a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31;
-        this.entries[4] = a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30;
-        this.entries[5] = a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31;
-        this.entries[6] = a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31;
-        this.entries[7] = a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31;
-        this.entries[8] = a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32;
-        this.entries[9] = a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32;
-        this.entries[10] = a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32;
-        this.entries[11] = a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32;
-        this.entries[12] = a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33;
-        this.entries[13] = a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33;
-        this.entries[14] = a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33;
-        this.entries[15] = a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33;
-
-        return this;
-    },
-
-    scale: function scale(v) {
-        var x = v.components[0];
-        var y = v.components[1];
-        var z = v.components[2];
-
-        this.entries[0] *= x;
-        this.entries[1] *= x;
-        this.entries[2] *= x;
-        this.entries[3] *= x;
-
-        this.entries[4] *= y;
-        this.entries[5] *= y;
-        this.entries[6] *= y;
-        this.entries[7] *= y;
-
-        this.entries[8] *= z;
-        this.entries[9] *= z;
-        this.entries[10] *= z;
-        this.entries[11] *= z;
-
-        return this;
-    },
-
-    setPosition: function setPosition(v) {
-        this.entries[12] = v.components[0];
-        this.entries[13] = v.components[1];
-        this.entries[14] = v.components[2];
-
-        return this;
-    },
-
-    setRotation: function setRotation(q) {
-        var x = q.components[0];
-        var y = q.components[1];
-        var z = q.components[2];
-        var w = q.components[3];
-
-        var x2 = x + x,
-            y2 = y + y,
-            z2 = z + z;
-        var xx = x * x2,
-            xy = x * y2,
-            xz = x * z2;
-        var yy = y * y2,
-            yz = y * z2,
-            zz = z * z2;
-        var wx = w * x2,
-            wy = w * y2,
-            wz = w * z2;
-
-        this.entries[0] = 1 - (yy + zz);
-        this.entries[1] = xy + wz;
-        this.entries[2] = xz - wy;
-        this.entries[4] = xy - wz;
-        this.entries[5] = 1 - (xx + zz);
-        this.entries[6] = yz + wx;
-        this.entries[8] = xz + wy;
-        this.entries[9] = yz - wx;
-        this.entries[10] = 1 - (xx + yy);
-
-        this.entries[3] = 0.0;
-        this.entries[7] = 0.0;
-        this.entries[11] = 0.0;
-        this.entries[12] = 0.0;
-        this.entries[13] = 0.0;
-        this.entries[14] = 0.0;
-        this.entries[15] = 1.0;
-
-        return this;
-    },
-
-    determinant: function determinant() {
-        var a00 = a.entries[0],
-            a01 = a.entries[4],
-            a02 = a.entries[8],
-            a03 = a.entries[12];
-        var a10 = a.entries[1],
-            a11 = a.entries[5],
-            a12 = a.entries[9],
-            a13 = a.entries[13];
-        var a20 = a.entries[2],
-            a21 = a.entries[6],
-            a22 = a.entries[10],
-            a23 = a.entries[14];
-        var a30 = a.entries[3],
-            a31 = a.entries[7],
-            a32 = a.entries[11],
-            a33 = a.entries[15];
-
-        return a30 * (a03 * a12 * a21 - a02 * a13 * a21 - a03 * a11 * a22 + a01 * a13 * a22 + a02 * a11 * a23 - a01 * a12 * a23) + a31 * (a00 * a12 * a23 - a00 * a13 * a22 + a03 * a10 * a22 - a02 * a10 * a23 + a02 * a13 * a20 - a03 * a12 * a20) + a32 * (a00 * a13 * a21 - a00 * a11 * a23 - a03 * a10 * a21 + a01 * a10 * a23 + a03 * a11 * a20 - a01 * a13 * a20) + a33 * (-a02 * a11 * a20 - a00 * a12 * a21 + a00 * a11 * a22 + a02 * a10 * a21 - a01 * a10 * a22 + a01 * a12 * a20);
-    },
-
-    decompose: function decompose(outPosition, outQuaternion, outScale) {
-        var v = new Lore.Vector3f();
-        var m = new Lore.Matrix4f();
-
-        // The position is the simple one
-        position.set(this.entries[12], this.entries[13], this.entries[14]);
-
-        // Calculate the scale
-        var sx = Math.sqrt(this.entries[0] * this.entries[0] + this.entries[1] * this.entries[1] + this.entries[2] * this.entries[2]);
-
-        var sy = Math.sqrt(this.entries[4] * this.entries[4] + this.entries[5] * this.entries[5] + this.entries[6] * this.entries[6]);
-
-        var sz = Math.sqrt(this.entries[8] * this.entries[8] + this.entries[9] * this.entries[9] + this.entries[10] * this.entries[10]);
-
-        var det = this.determinant();
-        if (det < 0) sx = -sx;
-
-        // Set the scale
-        outScale.set(sx, sy, sz);
-
-        // Get the info for the quaternion, this involves scaling the rotation
-        // See:
-        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-        var isx = 1.0 / sx;
-        var isy = 1.0 / sy;
-        var isz = 1.0 / sz;
-
-        m.entries.set(this.entries);
-
-        m.entries[0] *= isx;
-        m.entries[1] *= isx;
-        m.entries[2] *= isx;
-
-        m.entries[4] *= isy;
-        m.entries[5] *= isy;
-        m.entries[6] *= isy;
-
-        m.entries[8] *= isz;
-        m.entries[9] *= isz;
-        m.entries[10] *= isz;
-
-        outQuaternion.setFromMatrix(m);
-
-        return this;
-    },
-
-    compose: function compose(position, quaternion, scale) {
-        this.setRotation(quaternion);
-        this.scale(scale);
-        this.setPosition(position);
-
-        return this;
-    },
-
-    invert: function invert() {
-        // Fugly implementation lifted from MESA (originally in C++)
-        var im = new Lore.Matrix4f();
-        var m = this.entries;
-
-        im.entries[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
-
-        im.entries[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
-
-        im.entries[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
-
-        im.entries[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
-
-        im.entries[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
-
-        im.entries[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
-
-        im.entries[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
-
-        im.entries[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
-
-        im.entries[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
-
-        im.entries[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
-
-        im.entries[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
-
-        im.entries[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
-
-        im.entries[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
-
-        im.entries[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
-
-        im.entries[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
-
-        im.entries[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
-
-        var det = m[0] * im.entries[0] + m[1] * im.entries[4] + m[2] * im.entries[8] + m[3] * im.entries[12];
-
-        if (det == 0) throw 'Determinant is zero.';
-
-        det = 1.0 / det;
-
-        for (var i = 0; i < 16; i++) {
-            this.entries[i] = im.entries[i] * det;
-        }return this;
-    },
-
-    clone: function clone() {
-        return new Lore.Matrix4f(new Float32Array(this.entries));
-    },
-
-    equals: function equals(a) {
-        for (var i = 0; i < this.entries.length; i++) {
-            if (this.entries[i] !== a.entries[i]) return false;
+    _createClass(Matrix4f, [{
+        key: 'set',
+        value: function set(m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32, m03, m13, m23, m33) {
+            this.entries.set([m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32, m03, m13, m23, m33]);
         }
+    }, {
+        key: 'multiplyA',
+        value: function multiplyA(b) {
+            // First, store the values in local variables.
+            // See:
+            // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
 
-        return true;
-    },
+            var a00 = this.entries[0],
+                a01 = this.entries[4],
+                a02 = this.entries[8],
+                a03 = this.entries[12];
+            var a10 = this.entries[1],
+                a11 = this.entries[5],
+                a12 = this.entries[9],
+                a13 = this.entries[13];
+            var a20 = this.entries[2],
+                a21 = this.entries[6],
+                a22 = this.entries[10],
+                a23 = this.entries[14];
+            var a30 = this.entries[3],
+                a31 = this.entries[7],
+                a32 = this.entries[11],
+                a33 = this.entries[15];
 
-    toString: function toString() {
-        console.log(this.entries[0] + ', ' + this.entries[4] + ', ' + this.entries[8] + ', ' + this.entries[12]);
-        console.log(this.entries[1] + ', ' + this.entries[5] + ', ' + this.entries[9] + ', ' + this.entries[13]);
-        console.log(this.entries[2] + ', ' + this.entries[6] + ', ' + this.entries[10] + ', ' + this.entries[14]);
-        console.log(this.entries[3] + ', ' + this.entries[7] + ', ' + this.entries[11] + ', ' + this.entries[15]);
-    }
-};
+            var b00 = b.entries[0],
+                b01 = b.entries[4],
+                b02 = b.entries[8],
+                b03 = b.entries[12];
+            var b10 = b.entries[1],
+                b11 = b.entries[5],
+                b12 = b.entries[9],
+                b13 = b.entries[13];
+            var b20 = b.entries[2],
+                b21 = b.entries[6],
+                b22 = b.entries[10],
+                b23 = b.entries[14];
+            var b30 = b.entries[3],
+                b31 = b.entries[7],
+                b32 = b.entries[11],
+                b33 = b.entries[15];
 
-Lore.Matrix4f.multiply = function (a, b) {
-    // First, store the values in local variables.
-    // See:
-    // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
+            this.entries[0] = a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30;
+            this.entries[1] = a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30;
+            this.entries[2] = a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30;
+            this.entries[3] = a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31;
+            this.entries[4] = a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30;
+            this.entries[5] = a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31;
+            this.entries[6] = a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31;
+            this.entries[7] = a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31;
+            this.entries[8] = a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32;
+            this.entries[9] = a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32;
+            this.entries[10] = a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32;
+            this.entries[11] = a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32;
+            this.entries[12] = a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33;
+            this.entries[13] = a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33;
+            this.entries[14] = a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33;
+            this.entries[15] = a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33;
 
-    var a00 = a.entries[0],
-        a01 = a.entries[4],
-        a02 = a.entries[8],
-        a03 = a.entries[12];
-    var a10 = a.entries[1],
-        a11 = a.entries[5],
-        a12 = a.entries[9],
-        a13 = a.entries[13];
-    var a20 = a.entries[2],
-        a21 = a.entries[6],
-        a22 = a.entries[10],
-        a23 = a.entries[14];
-    var a30 = a.entries[3],
-        a31 = a.entries[7],
-        a32 = a.entries[11],
-        a33 = a.entries[15];
+            return this;
+        }
+    }, {
+        key: 'multiplyB',
+        value: function multiplyB(a) {
+            // First, store the values in local variables.
+            // See:
+            // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
 
-    var b00 = b.entries[0],
-        b01 = b.entries[4],
-        b02 = b.entries[8],
-        b03 = b.entries[12];
-    var b10 = b.entries[1],
-        b11 = b.entries[5],
-        b12 = b.entries[9],
-        b13 = b.entries[13];
-    var b20 = b.entries[2],
-        b21 = b.entries[6],
-        b22 = b.entries[10],
-        b23 = b.entries[14];
-    var b30 = b.entries[3],
-        b31 = b.entries[7],
-        b32 = b.entries[11],
-        b33 = b.entries[15];
+            var a00 = a.entries[0],
+                a01 = a.entries[4],
+                a02 = a.entries[8],
+                a03 = a.entries[12];
+            var a10 = a.entries[1],
+                a11 = a.entries[5],
+                a12 = a.entries[9],
+                a13 = a.entries[13];
+            var a20 = a.entries[2],
+                a21 = a.entries[6],
+                a22 = a.entries[10],
+                a23 = a.entries[14];
+            var a30 = a.entries[3],
+                a31 = a.entries[7],
+                a32 = a.entries[11],
+                a33 = a.entries[15];
 
-    return new Lore.Matrix4f(new Float32Array([a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30, a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30, a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30, a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30, a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31, a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31, a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31, a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31, a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32, a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32, a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32, a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32, a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33, a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33, a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33, a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33]));
-};
+            var b00 = this.entries[0],
+                b01 = this.entries[4],
+                b02 = this.entries[8],
+                b03 = this.entries[12];
+            var b10 = this.entries[1],
+                b11 = this.entries[5],
+                b12 = this.entries[9],
+                b13 = this.entries[13];
+            var b20 = this.entries[2],
+                b21 = this.entries[6],
+                b22 = this.entries[10],
+                b23 = this.entries[14];
+            var b30 = this.entries[3],
+                b31 = this.entries[7],
+                b32 = this.entries[11],
+                b33 = this.entries[15];
 
-Lore.Matrix4f.fromQuaternion = function (q) {
-    // First, store the values in local variables.
-    // See:
-    // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
-    // https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
-    var x = q.components[0],
-        y = q.components[1],
-        z = q.components[2],
-        w = q.components[3];
-    var x2 = x + x,
-        y2 = y + y,
-        z2 = z + z;
-    var xx = x * x2,
-        xy = x * y2,
-        xz = x * z2;
-    var yy = y * y2,
-        yz = y * z2,
-        zz = z * z2;
-    var wx = w * x2,
-        wy = w * y2,
-        wz = w * z2;
+            this.entries[0] = a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30;
+            this.entries[1] = a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30;
+            this.entries[2] = a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30;
+            this.entries[3] = a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31;
+            this.entries[4] = a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30;
+            this.entries[5] = a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31;
+            this.entries[6] = a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31;
+            this.entries[7] = a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31;
+            this.entries[8] = a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32;
+            this.entries[9] = a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32;
+            this.entries[10] = a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32;
+            this.entries[11] = a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32;
+            this.entries[12] = a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33;
+            this.entries[13] = a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33;
+            this.entries[14] = a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33;
+            this.entries[15] = a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33;
 
-    return new Lore.Matrix4f(new Float32Array([1 - (yy + zz), xy + wz, xz - wy, 0, xy - wz, 1 - (xx + zz), yz + wx, 0, xz + wy, yz - wx, 1 - (xx + yy), 0, 0, 0, 0, 1]));
-};
+            return this;
+        }
+    }, {
+        key: 'scale',
+        value: function scale(v) {
+            var x = v.components[0];
+            var y = v.components[1];
+            var z = v.components[2];
 
-Lore.Matrix4f.lookAt = function (cameraPosition, target, up) {
-    // See here in order to return a quaternion directly:
-    // http://www.euclideanspace.com/maths/algebra/vectors/lookat/
-    var z = Lore.Vector3f.subtract(cameraPosition, target).normalize();
+            this.entries[0] *= x;
+            this.entries[1] *= x;
+            this.entries[2] *= x;
+            this.entries[3] *= x;
 
-    if (z.lengthSq() === 0.0) {
-        z.components[2] = 1.0;
-    }
+            this.entries[4] *= y;
+            this.entries[5] *= y;
+            this.entries[6] *= y;
+            this.entries[7] *= y;
 
-    var x = Lore.Vector3f.cross(up, z).normalize();
+            this.entries[8] *= z;
+            this.entries[9] *= z;
+            this.entries[10] *= z;
+            this.entries[11] *= z;
 
-    if (x.lengthSq() === 0.0) {
-        z.components[2] += 0.0001;
-        x = Lore.Vector3f.cross(up, z).normalize();
-    }
+            return this;
+        }
+    }, {
+        key: 'setPosition',
+        value: function setPosition(v) {
+            this.entries[12] = v.components[0];
+            this.entries[13] = v.components[1];
+            this.entries[14] = v.components[2];
 
-    var y = Lore.Vector3f.cross(z, x);
-    return new Lore.Matrix4f(new Float32Array([x.components[0], x.components[1], x.components[2], 0, y.components[0], y.components[1], y.components[2], 0, z.components[0], z.components[1], z.components[2], 0, 0, 0, 0, 1]));
-};
+            return this;
+        }
+    }, {
+        key: 'setRotation',
+        value: function setRotation(q) {
+            var x = q.components[0];
+            var y = q.components[1];
+            var z = q.components[2];
+            var w = q.components[3];
 
-Lore.Matrix4f.compose = function (position, quaternion, scale) {
-    var m = new Lore.Matrix4f();
+            var x2 = x + x,
+                y2 = y + y,
+                z2 = z + z;
+            var xx = x * x2,
+                xy = x * y2,
+                xz = x * z2;
+            var yy = y * y2,
+                yz = y * z2,
+                zz = z * z2;
+            var wx = w * x2,
+                wy = w * y2,
+                wz = w * z2;
 
-    m.setRotation(quaternion);
-    m.scale(scale);
-    m.setPosition(position);
+            this.entries[0] = 1 - (yy + zz);
+            this.entries[1] = xy + wz;
+            this.entries[2] = xz - wy;
+            this.entries[4] = xy - wz;
+            this.entries[5] = 1 - (xx + zz);
+            this.entries[6] = yz + wx;
+            this.entries[8] = xz + wy;
+            this.entries[9] = yz - wx;
+            this.entries[10] = 1 - (xx + yy);
 
-    return m;
-};
+            this.entries[3] = 0.0;
+            this.entries[7] = 0.0;
+            this.entries[11] = 0.0;
+            this.entries[12] = 0.0;
+            this.entries[13] = 0.0;
+            this.entries[14] = 0.0;
+            this.entries[15] = 1.0;
 
-Lore.Matrix4f.invert = function (matrix) {
-    // Fugly implementation lifted from MESA (originally in C++)
-    var im = new Lore.Matrix4f();
+            return this;
+        }
+    }, {
+        key: 'determinant',
+        value: function determinant() {
+            var a00 = a.entries[0],
+                a01 = a.entries[4],
+                a02 = a.entries[8],
+                a03 = a.entries[12];
+            var a10 = a.entries[1],
+                a11 = a.entries[5],
+                a12 = a.entries[9],
+                a13 = a.entries[13];
+            var a20 = a.entries[2],
+                a21 = a.entries[6],
+                a22 = a.entries[10],
+                a23 = a.entries[14];
+            var a30 = a.entries[3],
+                a31 = a.entries[7],
+                a32 = a.entries[11],
+                a33 = a.entries[15];
 
-    var m = matrix.entries;
+            return a30 * (a03 * a12 * a21 - a02 * a13 * a21 - a03 * a11 * a22 + a01 * a13 * a22 + a02 * a11 * a23 - a01 * a12 * a23) + a31 * (a00 * a12 * a23 - a00 * a13 * a22 + a03 * a10 * a22 - a02 * a10 * a23 + a02 * a13 * a20 - a03 * a12 * a20) + a32 * (a00 * a13 * a21 - a00 * a11 * a23 - a03 * a10 * a21 + a01 * a10 * a23 + a03 * a11 * a20 - a01 * a13 * a20) + a33 * (-a02 * a11 * a20 - a00 * a12 * a21 + a00 * a11 * a22 + a02 * a10 * a21 - a01 * a10 * a22 + a01 * a12 * a20);
+        }
+    }, {
+        key: 'decompose',
+        value: function decompose(outPosition, outQuaternion, outScale) {
+            var v = new Lore.Vector3f();
+            var m = new Lore.Matrix4f();
 
-    im.entries[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
+            // The position is the simple one
+            position.set(this.entries[12], this.entries[13], this.entries[14]);
 
-    im.entries[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
+            // Calculate the scale
+            var sx = Math.sqrt(this.entries[0] * this.entries[0] + this.entries[1] * this.entries[1] + this.entries[2] * this.entries[2]);
 
-    im.entries[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
+            var sy = Math.sqrt(this.entries[4] * this.entries[4] + this.entries[5] * this.entries[5] + this.entries[6] * this.entries[6]);
 
-    im.entries[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
+            var sz = Math.sqrt(this.entries[8] * this.entries[8] + this.entries[9] * this.entries[9] + this.entries[10] * this.entries[10]);
 
-    im.entries[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+            var det = this.determinant();
 
-    im.entries[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+            if (det < 0) {
+                sx = -sx;
+            }
 
-    im.entries[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+            // Set the scale
+            outScale.set(sx, sy, sz);
 
-    im.entries[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+            // Get the info for the quaternion, this involves scaling the rotation
+            // See:
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+            var isx = 1.0 / sx;
+            var isy = 1.0 / sy;
+            var isz = 1.0 / sz;
 
-    im.entries[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+            m.entries.set(this.entries);
 
-    im.entries[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+            m.entries[0] *= isx;
+            m.entries[1] *= isx;
+            m.entries[2] *= isx;
 
-    im.entries[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+            m.entries[4] *= isy;
+            m.entries[5] *= isy;
+            m.entries[6] *= isy;
 
-    im.entries[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+            m.entries[8] *= isz;
+            m.entries[9] *= isz;
+            m.entries[10] *= isz;
 
-    im.entries[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+            outQuaternion.setFromMatrix(m);
 
-    im.entries[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+            return this;
+        }
+    }, {
+        key: 'compose',
+        value: function compose(position, quaternion, scale) {
+            this.setRotation(quaternion);
+            this.scale(scale);
+            this.setPosition(position);
 
-    im.entries[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+            return this;
+        }
+    }, {
+        key: 'invert',
+        value: function invert() {
+            // Fugly implementation lifted from MESA (originally in C++)
+            var im = new Lore.Matrix4f();
+            var m = this.entries;
 
-    im.entries[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
+            im.entries[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
 
-    var det = m[0] * im.entries[0] + m[1] * im.entries[4] + m[2] * im.entries[8] + m[3] * im.entries[12];
+            im.entries[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
 
-    if (det == 0) throw 'Determinant is zero.';
+            im.entries[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
 
-    det = 1.0 / det;
+            im.entries[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
 
-    for (var i = 0; i < 16; i++) {
-        im.entries[i] = im.entries[i] * det;
-    }return im;
-};
+            im.entries[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+
+            im.entries[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+
+            im.entries[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+
+            im.entries[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+
+            im.entries[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+
+            im.entries[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+
+            im.entries[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+
+            im.entries[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+
+            im.entries[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+
+            im.entries[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+
+            im.entries[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+
+            im.entries[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
+
+            var det = m[0] * im.entries[0] + m[1] * im.entries[4] + m[2] * im.entries[8] + m[3] * im.entries[12];
+
+            if (det == 0) {
+                throw 'Determinant is zero.';
+            }
+
+            det = 1.0 / det;
+
+            for (var i = 0; i < 16; i++) {
+                this.entries[i] = im.entries[i] * det;
+            }
+
+            return this;
+        }
+    }, {
+        key: 'clone',
+        value: function clone() {
+            return new Lore.Matrix4f(new Float32Array(this.entries));
+        }
+    }, {
+        key: 'equals',
+        value: function equals(a) {
+            for (var i = 0; i < this.entries.length; i++) {
+                if (this.entries[i] !== a.entries[i]) return false;
+            }
+
+            return true;
+        }
+    }, {
+        key: 'toString',
+        value: function toString() {
+            console.log(this.entries[0] + ', ' + this.entries[4] + ', ' + this.entries[8] + ', ' + this.entries[12]);
+            console.log(this.entries[1] + ', ' + this.entries[5] + ', ' + this.entries[9] + ', ' + this.entries[13]);
+            console.log(this.entries[2] + ', ' + this.entries[6] + ', ' + this.entries[10] + ', ' + this.entries[14]);
+            console.log(this.entries[3] + ', ' + this.entries[7] + ', ' + this.entries[11] + ', ' + this.entries[15]);
+        }
+    }], [{
+        key: 'multiply',
+        value: function multiply(a, b) {
+            // First, store the values in local variables.
+            // See:
+            // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
+
+            var a00 = a.entries[0],
+                a01 = a.entries[4],
+                a02 = a.entries[8],
+                a03 = a.entries[12];
+            var a10 = a.entries[1],
+                a11 = a.entries[5],
+                a12 = a.entries[9],
+                a13 = a.entries[13];
+            var a20 = a.entries[2],
+                a21 = a.entries[6],
+                a22 = a.entries[10],
+                a23 = a.entries[14];
+            var a30 = a.entries[3],
+                a31 = a.entries[7],
+                a32 = a.entries[11],
+                a33 = a.entries[15];
+
+            var b00 = b.entries[0],
+                b01 = b.entries[4],
+                b02 = b.entries[8],
+                b03 = b.entries[12];
+            var b10 = b.entries[1],
+                b11 = b.entries[5],
+                b12 = b.entries[9],
+                b13 = b.entries[13];
+            var b20 = b.entries[2],
+                b21 = b.entries[6],
+                b22 = b.entries[10],
+                b23 = b.entries[14];
+            var b30 = b.entries[3],
+                b31 = b.entries[7],
+                b32 = b.entries[11],
+                b33 = b.entries[15];
+
+            return new Lore.Matrix4f(new Float32Array([a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30, a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30, a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30, a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30, a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31, a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31, a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31, a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31, a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32, a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32, a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32, a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32, a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33, a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33, a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33, a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33]));
+        }
+    }, {
+        key: 'fromQuaternion',
+        value: function fromQuaternion(q) {
+            // First, store the values in local variables.
+            // See:
+            // http://blog.tojicode.com/2010/06/stupidly-fast-webgl-matricies.html
+            // https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
+            var x = q.components[0],
+                y = q.components[1],
+                z = q.components[2],
+                w = q.components[3];
+            var x2 = x + x,
+                y2 = y + y,
+                z2 = z + z;
+            var xx = x * x2,
+                xy = x * y2,
+                xz = x * z2;
+            var yy = y * y2,
+                yz = y * z2,
+                zz = z * z2;
+            var wx = w * x2,
+                wy = w * y2,
+                wz = w * z2;
+
+            return new Lore.Matrix4f(new Float32Array([1 - (yy + zz), xy + wz, xz - wy, 0, xy - wz, 1 - (xx + zz), yz + wx, 0, xz + wy, yz - wx, 1 - (xx + yy), 0, 0, 0, 0, 1]));
+        }
+    }, {
+        key: 'lookAt',
+        value: function lookAt(cameraPosition, target, up) {
+            // See here in order to return a quaternion directly:
+            // http://www.euclideanspace.com/maths/algebra/vectors/lookat/
+            var z = Lore.Vector3f.subtract(cameraPosition, target).normalize();
+
+            if (z.lengthSq() === 0.0) {
+                z.components[2] = 1.0;
+            }
+
+            var x = Lore.Vector3f.cross(up, z).normalize();
+
+            if (x.lengthSq() === 0.0) {
+                z.components[2] += 0.0001;
+                x = Lore.Vector3f.cross(up, z).normalize();
+            }
+
+            var y = Lore.Vector3f.cross(z, x);
+
+            return new Lore.Matrix4f(new Float32Array([x.components[0], x.components[1], x.components[2], 0, y.components[0], y.components[1], y.components[2], 0, z.components[0], z.components[1], z.components[2], 0, 0, 0, 0, 1]));
+        }
+    }, {
+        key: 'compose',
+        value: function compose(position, quaternion, scale) {
+            var m = new Lore.Matrix4f();
+
+            m.setRotation(quaternion);
+            m.scale(scale);
+            m.setPosition(position);
+
+            return m;
+        }
+    }, {
+        key: 'invert',
+        value: function invert(matrix) {
+            // Fugly implementation lifted from MESA (originally in C++)
+            var im = new Lore.Matrix4f();
+
+            var m = matrix.entries;
+
+            im.entries[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
+
+            im.entries[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
+
+            im.entries[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
+
+            im.entries[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
+
+            im.entries[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+
+            im.entries[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+
+            im.entries[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+
+            im.entries[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+
+            im.entries[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+
+            im.entries[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+
+            im.entries[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+
+            im.entries[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+
+            im.entries[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+
+            im.entries[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+
+            im.entries[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+
+            im.entries[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
+
+            var det = m[0] * im.entries[0] + m[1] * im.entries[4] + m[2] * im.entries[8] + m[3] * im.entries[12];
+
+            if (det == 0) {
+                throw 'Determinant is zero.';
+            }
+
+            det = 1.0 / det;
+
+            for (var i = 0; i < 16; i++) {
+                im.entries[i] = im.entries[i] * det;
+            }
+
+            return im;
+        }
+    }]);
+
+    return Matrix4f;
+}();
 
 Lore.Quaternion = function (x, y, z, w) {
     if (arguments.length === 1) {
@@ -2772,23 +2899,23 @@ Lore.Quaternion.prototype = {
             this.components[2] = (m10 - m01) * s;
             this.components[3] = 0.25 / s;
         } else if (m00 > m11 && m00 > m22) {
-            var s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
-            this.components[0] = 0.25 * s;
-            this.components[1] = (m01 + m10) / s;
-            this.components[2] = (m02 + m20) / s;
-            this.components[3] = (m21 - m12) / s;
+            var _s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
+            this.components[0] = 0.25 * _s;
+            this.components[1] = (m01 + m10) / _s;
+            this.components[2] = (m02 + m20) / _s;
+            this.components[3] = (m21 - m12) / _s;
         } else if (m11 > m22) {
-            var s = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
-            this.components[0] = (m01 + m10) / s;
-            this.components[1] = 0.25 * s;
-            this.components[2] = (m12 + m21) / s;
-            this.components[3] = (m02 - m20) / s;
+            var _s2 = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
+            this.components[0] = (m01 + m10) / _s2;
+            this.components[1] = 0.25 * _s2;
+            this.components[2] = (m12 + m21) / _s2;
+            this.components[3] = (m02 - m20) / _s2;
         } else {
-            var s = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
-            this.components[0] = (m02 + m20) / s;
-            this.components[1] = (m12 + m21) / s;
-            this.components[2] = 0.25 * s;
-            this.components[3] = (m10 - m01) / s;
+            var _s3 = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
+            this.components[0] = (m02 + m20) / _s3;
+            this.components[1] = (m12 + m21) / _s3;
+            this.components[2] = 0.25 * _s3;
+            this.components[3] = (m10 - m01) / _s3;
         }
 
         return this;
@@ -2887,96 +3014,127 @@ Lore.Quaternion.slerp = function (q, p, t) {
     return new Lore.Quaternion(q.components[0] * ratioA + tmp.components[0] * ratioB, q.components[1] * ratioA + tmp.components[1] * ratioB, q.components[2] * ratioA + tmp.components[2] * ratioB, q.components[3] * ratioA + tmp.components[3] * ratioB);
 };
 
-Lore.SphericalCoords = function (radius, phi, theta) {
-    this.components = new Float32Array(3);
-    this.radius = radius !== undefined ? radius : 1.0;
-    this.phi = phi ? phi : 0.0;
-    this.theta = theta ? theta : 0.0;
-};
+Lore.SphericalCoords = function () {
+    function SphericalCoords(radius, phi, theta) {
+        _classCallCheck(this, SphericalCoords);
 
-Lore.SphericalCoords.prototype = {
-    constructor: Lore.SphericalCoords,
+        this.components = new Float32Array(3);
+        this.radius = radius !== undefined ? radius : 1.0;
+        this.phi = phi ? phi : 0.0;
+        this.theta = theta ? theta : 0.0;
+    }
 
-    set: function set(radius, phi, theta) {
-        this.components[0] = radius;
-        this.components[1] = phi;
-        this.components[2] = theta;
+    _createClass(SphericalCoords, [{
+        key: 'set',
+        value: function set(radius, phi, theta) {
+            this.components[0] = radius;
+            this.components[1] = phi;
+            this.components[2] = theta;
 
-        return this;
-    },
-
-    secure: function secure() {
-        this.components[1] = Math.max(0.000001, Math.min(Math.PI - 0.000001, this.components[1]));
-        return this;
-    },
-
-    setFromVector: function setFromVector(v) {
-        this.components[0] = v.length();
-
-        if (this.components[0] === 0.0) {
-            this.components[1] = 0.0;
-            this.components[2] = 0.0;
-        } else {
-            this.components[1] = Math.acos(Math.max(-1.0, Math.min(1.0, v.components[1] / this.components[0])));
-            this.components[2] = Math.atan2(v.components[0], v.components[2]);
+            return this;
         }
+    }, {
+        key: 'secure',
+        value: function secure() {
+            this.components[1] = Math.max(0.000001, Math.min(Math.PI - 0.000001, this.components[1]));
 
-        return this;
-    },
+            return this;
+        }
+    }, {
+        key: 'setFromVector',
+        value: function setFromVector(v) {
+            this.components[0] = v.length();
 
-    limit: function limit(phiMin, phiMax, thetaMin, thetaMax) {
-        // Limits for orbital controls
-        this.components[1] = Math.max(phiMin, Math.min(phiMax, this.components[1]));
-        this.components[2] = Math.max(thetaMin, Math.min(thetaMax, this.components[2]));
-    },
+            if (this.components[0] === 0.0) {
+                this.components[1] = 0.0;
+                this.components[2] = 0.0;
+            } else {
+                this.components[1] = Math.acos(Math.max(-1.0, Math.min(1.0, v.components[1] / this.components[0])));
+                this.components[2] = Math.atan2(v.components[0], v.components[2]);
+            }
 
-    clone: function clone() {
-        return new Lore.SphericalCoords(this.radius, this.phi, this.theta);
-    },
+            return this;
+        }
+    }, {
+        key: 'limit',
+        value: function limit(phiMin, phiMax, thetaMin, thetaMax) {
+            // Limits for orbital controls
+            this.components[1] = Math.max(phiMin, Math.min(phiMax, this.components[1]));
+            this.components[2] = Math.max(thetaMin, Math.min(thetaMax, this.components[2]));
+        }
+    }, {
+        key: 'clone',
+        value: function clone() {
+            return new Lore.SphericalCoords(this.radius, this.phi, this.theta);
+        }
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return '(' + this.components[0] + ', ' + this.components[1] + ', ' + this.components[2] + ')';
+        }
+    }]);
 
-    toString: function toString() {
-        return '(' + this.components[0] + ', ' + this.components[1] + ', ' + this.components[2] + ')';
+    return SphericalCoords;
+}();
+
+/** A class representing a projection matrix */
+Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
+    _inherits(ProjectionMatrix, _Lore$Matrix4f);
+
+    function ProjectionMatrix() {
+        _classCallCheck(this, ProjectionMatrix);
+
+        return _possibleConstructorReturn(this, (ProjectionMatrix.__proto__ || Object.getPrototypeOf(ProjectionMatrix)).apply(this, arguments));
     }
-};
 
-Lore.ProjectionMatrix = function () {
-    Lore.Matrix4f.call(this);
-};
+    _createClass(ProjectionMatrix, [{
+        key: 'setOrthographic',
 
-Lore.ProjectionMatrix.prototype = Object.assign(Object.create(Lore.Matrix4f.prototype), {
-    constructor: Lore.ProjectionMatrix,
+        /**
+         * Set the projection matrix to an orthographic projection.
+         *
+         * @param {number} left The left edge.
+         * @param {number} right The right edge.
+         * @param {number} top The top edge.
+         * @param {number} bottom The bottom edge.
+         * @param {number} near The near-cutoff value.
+         * @param {number} far The far-cutoff value.
+         * @returns {ProjectionMatrix} Returns this projection matrix.
+         */
+        value: function setOrthographic(left, right, top, bottom, near, far) {
+            var w = 1.0 / (right - left);
+            var h = 1.0 / (top - bottom);
+            var d = 1.0 / (far - near);
 
-    setOrthographic: function setOrthographic(left, right, top, bottom, near, far) {
-        var w = 1.0 / (right - left);
-        var h = 1.0 / (top - bottom);
-        var d = 1.0 / (far - near);
+            var x = (right + left) * w;
+            var y = (top + bottom) * h;
+            var z = (far + near) * d;
 
-        var x = (right + left) * w;
-        var y = (top + bottom) * h;
-        var z = (far + near) * d;
+            this.set();
 
-        this.set();
+            this.entries[0] = 2 * w;
+            this.entries[4] = 0;
+            this.entries[8] = 0;
+            this.entries[12] = -x;
+            this.entries[1] = 0;
+            this.entries[5] = 2 * h;
+            this.entries[9] = 0;
+            this.entries[13] = -y;
+            this.entries[2] = 0;
+            this.entries[6] = 0;
+            this.entries[10] = -2 * d;
+            this.entries[14] = -z;
+            this.entries[3] = 0;
+            this.entries[7] = 0;
+            this.entries[11] = 0;
+            this.entries[15] = 1;
 
-        this.entries[0] = 2 * w;
-        this.entries[4] = 0;
-        this.entries[8] = 0;
-        this.entries[12] = -x;
-        this.entries[1] = 0;
-        this.entries[5] = 2 * h;
-        this.entries[9] = 0;
-        this.entries[13] = -y;
-        this.entries[2] = 0;
-        this.entries[6] = 0;
-        this.entries[10] = -2 * d;
-        this.entries[14] = -z;
-        this.entries[3] = 0;
-        this.entries[7] = 0;
-        this.entries[11] = 0;
-        this.entries[15] = 1;
+            return this;
+        }
+    }]);
 
-        return this;
-    }
-});
+    return ProjectionMatrix;
+}(Lore.Matrix4f);
 
 Lore.Statistics = function () {};
 
@@ -3046,230 +3204,284 @@ Lore.Statistics.scale = function (value, oldMin, oldMax, newMin, newMax) {
     return (newMax - newMin) * (value - oldMin) / (oldMax - oldMin) + newMin;
 };
 
-Lore.Ray = function (source, direction) {
-    this.source = source || new Lore.Vector3f();
-    this.direction = direction || new Lore.Vector3f();
-};
+Lore.Ray = function () {
+    function Ray(source, direction) {
+        _classCallCheck(this, Ray);
 
-Lore.Ray.prototype = {
-    constructor: Lore.Ray,
-
-    copyFrom: function copyFrom(r) {
-        this.source.copyFrom(r.source);
-        this.direction.copyFrom(r.direction);
-
-        return this;
-    },
-
-    applyProjection: function applyProjection(m) {
-        this.direction.add(this.source).applyProjection(m);
-        this.source.applyProjection(m);
-        this.direction.subtract(this.source);
-        this.direction.normalize();
-
-        return this;
-    },
-
-    // See if the two following functions can be optimized
-    distanceSqToPoint: function distanceSqToPoint(v) {
-        var tmp = Lore.Vector3f.subtract(v, this.source);
-        var directionDistance = tmp.dot(this.direction);
-
-        if (directionDistance < 0) return this.source.distanceToSq(v);
-
-        tmp.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
-
-        return tmp.distanceToSq(v);
-    },
-
-    closestPointToPoint: function closestPointToPoint(v) {
-        var result = Lore.Vector3f.subtract(v, this.source);
-        var directionDistance = result.dot(this.direction);
-
-        if (directionDistance < 0) return result.copyFrom(this.source);
-
-        return result.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
-    }
-};
-
-function RadixSort() {
-    this.max = undefined;
-    this.mask = undefined;
-    this.histograms = undefined;
-    this.indices = undefined;
-    this.tmpIndices = undefined;
-}
-
-RadixSort.prototype.sort = function (arr, copyArray) {
-    var array = null;
-    if (copyArray) {
-        array = new arr.constructor(arr.length);
-        array.set(arr);
-    } else {
-        array = arr;
+        this.source = source || new Lore.Vector3f();
+        this.direction = direction || new Lore.Vector3f();
     }
 
-    this.max = 1 << 11; // = 2^11 = 2048 = 0x00000800
-    this.mask = this.max - 1; // = 2047 = 0x000007FF
-    this.histograms = new Int32Array(this.max * Math.ceil(64 / 11));
+    _createClass(Ray, [{
+        key: 'copyFrom',
+        value: function copyFrom(r) {
+            this.source.copyFrom(r.source);
+            this.direction.copyFrom(r.direction);
 
-    var input = new Int32Array(array.buffer, array.byteOffset, array.byteLength >> 2);
-
-    var nPasses = Math.ceil(array.BYTES_PER_ELEMENT * 8 / 11);
-    var maxOffset = this.max * (nPasses - 1);
-    var msbMask = 1 << (array.BYTES_PER_ELEMENT * 8 - 1) % 11;
-    var lastMask = (msbMask << 1) - 1;
-    var tmp = null;
-
-    var aux = new input.constructor(input.length);
-
-    // In order to keep track of the indices
-    this.indices = new Uint32Array(input.length);
-    this.tmpIndices = new Uint32Array(input.length);
-    var normIndices = new Uint32Array(input.length);
-
-    var n = this.max * nPasses;
-    for (var i = 0; i < n; i++) {
-        this.histograms[i] = 0;
-    } // Create the histogram
-    this.initHistograms(input, maxOffset, lastMask);
-
-    // Create the offset table
-    for (var i = 0; i <= maxOffset; i += this.max) {
-        var sum = 0;
-        for (var j = i; j < i + this.max; j++) {
-            var tmpSum = this.histograms[j] + sum;
-            this.histograms[j] = sum - 1;
-            sum = tmpSum;
+            return this;
         }
-    }
+    }, {
+        key: 'applyProjection',
+        value: function applyProjection(m) {
+            this.direction.add(this.source).applyProjection(m);
+            this.source.applyProjection(m);
+            this.direction.subtract(this.source);
+            this.direction.normalize();
 
-    // Sort by least significant byte
-    this.lsbPass(input, aux);
-    tmp = aux;
-    aux = input;
-    input = tmp;
-
-    this.pass(input, aux);
-    tmp = aux;
-    aux = input;
-    input = tmp;
-
-    // Sort by most significant byte
-    this.msbPass(input, aux, msbMask);
-
-    // This part is not needed, why was it still in???
-
-    // "Normalize" the indices, since they are split up just like the floats
-    // so 0, 1 -> 0, 2, 3 -> 2, etc.
-    // use multiplications not divisions for the second index -> speeeeed
-    // Also, invert it
-    // for(var i = 0; i < normIndices.length; i++) {
-    // 	normIndices[normIndices.length - i] = this.indices[i];
-    // }
-
-    return {
-        array: new Float32Array(aux.buffer, aux.byteOffset, array.length),
-        indices: this.indices // instead of normIndices
-    };
-};
-
-RadixSort.prototype.lsbPass = function (arr, aux) {
-    for (var i = 0, n = arr.length; i < n; i++) {
-        var val = arr[i];
-        var sign = val >> 31;
-        val ^= sign | 0x80000000;
-        var x = ++this.histograms[val & this.mask];
-        this.indices[x] = i;
-        aux[x] = val;
-    }
-};
-
-RadixSort.prototype.pass = function (arr, aux) {
-    var n = arr.length;
-
-    for (var i = 0; i < n; i++) {
-        var val = arr[i];
-        var x = ++this.histograms[this.max + (val >>> 11 & this.mask)];
-        this.tmpIndices[x] = this.indices[i];
-        aux[x] = val;
-    }
-
-    this.indices.set(this.tmpIndices);
-};
-
-RadixSort.prototype.msbPass = function (arr, aux, msbMask) {
-    var lastMask = (msbMask << 1) - 1;
-    var n = arr.length;
-    var offset = 2 * this.max;
-
-    for (var i = 0; i < n; i++) {
-        var val = arr[i];
-        var sign = val >> 31;
-        var x = ++this.histograms[offset + (val >>> 22 & lastMask)];
-        this.tmpIndices[x] = this.indices[i];
-        aux[x] = val ^ (~sign | 0x80000000);
-    }
-
-    this.indices.set(this.tmpIndices);
-};
-
-RadixSort.prototype.initHistograms = function (arr, maxOffset, lastMask) {
-    var n = arr.length;
-
-    for (var i = 0; i < n; i++) {
-        var val = arr[i];
-        var sign = val >> 31;
-        val ^= sign | 0x80000000;
-
-        for (var j = 0, k = 0; j < maxOffset; j += this.max, k += 11) {
-            this.histograms[j + (val >>> k & this.mask)]++;
+            return this;
         }
 
-        this.histograms[j + (val >>> k & lastMask)]++;
+        // See if the two following functions can be optimized
+
+    }, {
+        key: 'distanceSqToPoint',
+        value: function distanceSqToPoint(v) {
+            var tmp = Lore.Vector3f.subtract(v, this.source);
+            var directionDistance = tmp.dot(this.direction);
+
+            if (directionDistance < 0) {
+                return this.source.distanceToSq(v);
+            }
+
+            tmp.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
+
+            return tmp.distanceToSq(v);
+        }
+    }, {
+        key: 'closestPointToPoint',
+        value: function closestPointToPoint(v) {
+            var result = Lore.Vector3f.subtract(v, this.source);
+            var directionDistance = result.dot(this.direction);
+
+            if (directionDistance < 0) {
+                return result.copyFrom(this.source);
+            }
+
+            return result.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
+        }
+    }]);
+
+    return Ray;
+}();
+
+var RadixSort = function () {
+    function RadixSort() {
+        _classCallCheck(this, RadixSort);
+
+        this.max = undefined;
+        this.mask = undefined;
+        this.histograms = undefined;
+        this.indices = undefined;
+        this.tmpIndices = undefined;
     }
-};
 
-Lore.HelperBase = function (renderer, geometryName, shaderName) {
-    Lore.Node.call(this);
+    _createClass(RadixSort, [{
+        key: 'sort',
+        value: function sort(arr, copyArray) {
+            var array = null;
 
-    this.renderer = renderer;
-    this.shader = Lore.Shaders[shaderName];
-    this.geometry = this.renderer.createGeometry(geometryName, shaderName);
-};
+            if (copyArray) {
+                array = new arr.constructor(arr.length);
+                array.set(arr);
+            } else {
+                array = arr;
+            }
 
-Lore.HelperBase.prototype = Object.assign(Object.create(Lore.Node.prototype), {
-    constructor: Lore.HelperBase,
+            this.max = 1 << 11; // = 2^11 = 2048 = 0x00000800
+            this.mask = this.max - 1; // = 2047 = 0x000007FF
+            this.histograms = new Int32Array(this.max * Math.ceil(64 / 11));
 
-    setAttribute: function setAttribute(name, data) {
-        this.geometry.addAttribute(name, data);
-    },
+            var input = new Int32Array(array.buffer, array.byteOffset, array.byteLength >> 2);
+            var nPasses = Math.ceil(array.BYTES_PER_ELEMENT * 8 / 11);
+            var maxOffset = this.max * (nPasses - 1);
+            var msbMask = 1 << (array.BYTES_PER_ELEMENT * 8 - 1) % 11;
+            var lastMask = (msbMask << 1) - 1;
+            var tmp = null;
+            var aux = new input.constructor(input.length);
 
-    getAttribute: function getAttribute(name) {
-        return this.geometry.attributes[name].data;
-    },
+            // In order to keep track of the indices
+            this.indices = new Uint32Array(input.length);
+            this.tmpIndices = new Uint32Array(input.length);
 
-    updateAttribute: function updateAttribute(name, index, value) {
-        var attr = this.geometry.attributes[name];
+            var normIndices = new Uint32Array(input.length);
+            var n = this.max * nPasses;
 
-        var j = index * attr.attributeLength;
+            for (var i = 0; i < n; i++) {
+                this.histograms[i] = 0;
+            }
 
-        for (var i = 0; i < attr.attributeLength; i++) {
-            attr.data[j + i] = value[i] || attr.data[j + i];
-        }attr.stale = true;
-    },
+            // Create the histogram
+            this.initHistograms(input, maxOffset, lastMask);
 
-    updateAttributeAll: function updateAttributeAll(name, values) {
-        var attr = this.geometry.attributes[name];
-        for (var i = 0; i < attr.data.length; i++) {
-            attr.data[i] = values[i];
-        }attr.stale = true;
-    },
+            // Create the offset table
+            for (var _i = 0; _i <= maxOffset; _i += this.max) {
+                var sum = 0;
 
-    draw: function draw() {
-        this.geometry.draw(this.renderer);
+                for (var _j = _i; _j < _i + this.max; _j++) {
+                    var tmpSum = this.histograms[_j] + sum;
+
+                    this.histograms[_j] = sum - 1;
+                    sum = tmpSum;
+                }
+            }
+
+            // Sort by least significant byte
+            this.lsbPass(input, aux);
+            tmp = aux;
+            aux = input;
+            input = tmp;
+
+            this.pass(input, aux);
+            tmp = aux;
+            aux = input;
+            input = tmp;
+
+            // Sort by most significant byte
+            this.msbPass(input, aux, msbMask);
+
+            // This part is not needed, why was it still in???
+
+            // "Normalize" the indices, since they are split up just like the floats
+            // so 0, 1 -> 0, 2, 3 -> 2, etc.
+            // use multiplications not divisions for the second index -> speeeeed
+            // Also, invert it
+            // for(let i = 0; i < normIndices.length; i++) {
+            // 	normIndices[normIndices.length - i] = this.indices[i];
+            // }
+
+            return {
+                array: new Float32Array(aux.buffer, aux.byteOffset, array.length),
+                indices: this.indices // instead of normIndices
+            };
+        }
+    }, {
+        key: 'lsbPass',
+        value: function lsbPass(arr, aux) {
+            for (var i = 0, n = arr.length; i < n; i++) {
+                var val = arr[i];
+                var sign = val >> 31;
+
+                val ^= sign | 0x80000000;
+
+                var x = ++this.histograms[val & this.mask];
+
+                this.indices[x] = i;
+                aux[x] = val;
+            }
+        }
+    }, {
+        key: 'pass',
+        value: function pass(arr, aux) {
+            var n = arr.length;
+
+            for (var i = 0; i < n; i++) {
+                var val = arr[i];
+                var x = ++this.histograms[this.max + (val >>> 11 & this.mask)];
+
+                this.tmpIndices[x] = this.indices[i];
+                aux[x] = val;
+            }
+
+            this.indices.set(this.tmpIndices);
+        }
+    }, {
+        key: 'msbPass',
+        value: function msbPass(arr, aux, msbMask) {
+            var lastMask = (msbMask << 1) - 1;
+            var n = arr.length;
+            var offset = 2 * this.max;
+
+            for (var i = 0; i < n; i++) {
+                var val = arr[i];
+                var sign = val >> 31;
+                var x = ++this.histograms[offset + (val >>> 22 & lastMask)];
+
+                this.tmpIndices[x] = this.indices[i];
+                aux[x] = val ^ (~sign | 0x80000000);
+            }
+
+            this.indices.set(this.tmpIndices);
+        }
+    }, {
+        key: 'initHistograms',
+        value: function initHistograms(arr, maxOffset, lastMask) {
+            var n = arr.length;
+
+            for (var i = 0; i < n; i++) {
+                var val = arr[i];
+                var sign = val >> 31;
+
+                val ^= sign | 0x80000000;
+
+                for (var _j2 = 0, _k = 0; _j2 < maxOffset; _j2 += this.max, _k += 11) {
+                    this.histograms[_j2 + (val >>> _k & this.mask)]++;
+                }
+
+                this.histograms[j + (val >>> k & lastMask)]++;
+            }
+        }
+    }]);
+
+    return RadixSort;
+}();
+
+Lore.HelperBase = function (_Lore$Node2) {
+    _inherits(HelperBase, _Lore$Node2);
+
+    function HelperBase(renderer, geometryName, shaderName) {
+        _classCallCheck(this, HelperBase);
+
+        var _this6 = _possibleConstructorReturn(this, (HelperBase.__proto__ || Object.getPrototypeOf(HelperBase)).call(this));
+
+        _this6.renderer = renderer;
+        _this6.shader = Lore.Shaders[shaderName];
+        _this6.geometry = _this6.renderer.createGeometry(geometryName, shaderName);
+        return _this6;
     }
-});
+
+    _createClass(HelperBase, [{
+        key: 'setAttribute',
+        value: function setAttribute(name, data) {
+            this.geometry.addAttribute(name, data);
+        }
+    }, {
+        key: 'getAttribute',
+        value: function getAttribute(name) {
+            return this.geometry.attributes[name].data;
+        }
+    }, {
+        key: 'updateAttribute',
+        value: function updateAttribute(name, index, value) {
+            var attr = this.geometry.attributes[name];
+
+            var j = index * attr.attributeLength;
+
+            for (var i = 0; i < attr.attributeLength; i++) {
+                attr.data[j + i] = value[i] || attr.data[j + i];
+            }
+
+            attr.stale = true;
+        }
+    }, {
+        key: 'updateAttributeAll',
+        value: function updateAttributeAll(name, values) {
+            var attr = this.geometry.attributes[name];
+
+            for (var i = 0; i < attr.data.length; i++) {
+                attr.data[i] = values[i];
+            }
+
+            attr.stale = true;
+        }
+    }, {
+        key: 'draw',
+        value: function draw() {
+            this.geometry.draw(this.renderer);
+        }
+    }]);
+
+    return HelperBase;
+}(Lore.Node);
 
 Lore.PointHelper = function (renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
@@ -3295,17 +3507,17 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     setPositionsXYZ: function setPositionsXYZ(x, y, z, length) {
         var positions = new Float32Array(length * 3);
         for (var i = 0; i < length; i++) {
-            var j = 3 * i;
-            positions[j] = x[i] || 0;
-            positions[j + 1] = y[i] || 0;
-            positions[j + 2] = z[i] || 0;
+            var _j3 = 3 * i;
+            positions[_j3] = x[i] || 0;
+            positions[_j3 + 1] = y[i] || 0;
+            positions[_j3 + 2] = z[i] || 0;
         }
 
         if (this.opts.octree) {
             var initialBounds = Lore.AABB.fromPoints(positions);
             var indices = new Uint32Array(length);
-            for (var i = 0; i < length; i++) {
-                indices[i] = i;
+            for (var _i2 = 0; _i2 < length; _i2++) {
+                indices[_i2] = _i2;
             }this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
             this.octree.build(indices, positions, initialBounds);
         }
@@ -3324,21 +3536,21 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         var colors = this.getAttribute('color');
 
         for (var i = 0; i < r.length; i++) {
-            var j = 3 * i;
-            c[j] = r[i];
-            c[j + 1] = g[i];
-            c[j + 2] = b[i];
+            var _j4 = 3 * i;
+            c[_j4] = r[i];
+            c[_j4 + 1] = g[i];
+            c[_j4 + 2] = b[i];
         }
 
         // Convert to HOS (Hue, Opacity, Size)
-        for (var i = 0; i < c.length; i += 3) {
-            var r = c[i];
-            var g = c[i + 1];
-            var b = c[i + 2];
+        for (var _i3 = 0; _i3 < c.length; _i3 += 3) {
+            var _r = c[_i3];
+            var _g = c[_i3 + 1];
+            var _b = c[_i3 + 2];
 
-            c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
-            c[i + 1] = colors[1];
-            c[i + 2] = colors[2];
+            c[_i3] = Lore.Color.rgbToHsl(_r, _g, _b)[0];
+            c[_i3 + 1] = colors[1];
+            c[_i3 + 2] = colors[2];
         }
 
         this.updateColors(c);
@@ -3447,10 +3659,10 @@ Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototyp
     setPositionsXYZ: function setPositionsXYZ(x, y, z, length) {
         var positions = new Float32Array(length * 3);
         for (var i = 0; i < length; i++) {
-            var j = 3 * i;
-            positions[j] = x[i] || 0;
-            positions[j + 1] = y[i] || 0;
-            positions[j + 2] = z[i] || 0;
+            var _j5 = 3 * i;
+            positions[_j5] = x[i] || 0;
+            positions[_j5 + 1] = y[i] || 0;
+            positions[_j5 + 2] = z[i] || 0;
         }
 
         this.setAttribute('position', positions);
@@ -3590,7 +3802,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[0];
-        for (var i = 0; i < xTicks.count - 1; i++) {
+        for (var _i4 = 0; _i4 < xTicks.count - 1; _i4++) {
             pos += xTickOffset;
             // From
             positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
@@ -3600,7 +3812,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Y ticks
         pos = p[1];
         col = yTicks.color.components;
-        for (var i = 0; i < yTicks.count - 1; i++) {
+        for (var _i5 = 0; _i5 < yTicks.count - 1; _i5++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
@@ -3608,7 +3820,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[1];
-        for (var i = 0; i < yTicks.count - 1; i++) {
+        for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
@@ -3618,7 +3830,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Z ticks
         pos = p[2];
         col = zTicks.color.components;
-        for (var i = 0; i < zTicks.count - 1; i++) {
+        for (var _i7 = 0; _i7 < zTicks.count - 1; _i7++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
@@ -3626,7 +3838,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[2];
-        for (var i = 0; i < zTicks.count - 1; i++) {
+        for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
@@ -3757,13 +3969,13 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         if (!isNaN(parseFloat(item))) {
             var positions = this.target.geometry.attributes['position'].data;
             var colors = this.target.geometry.attributes['color'].data;
-            var k = item * 3;
+            var _k2 = item * 3;
             item = {
                 distance: -1,
                 index: item,
                 locCode: -1,
-                position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-                color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+                position: new Lore.Vector3f(positions[_k2], positions[_k2 + 1], positions[_k2 + 2]),
+                color: colors ? [colors[_k2], colors[_k2 + 1], colors[_k2 + 2]] : null
             };
         }
 
@@ -3878,14 +4090,14 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         var i = 0;
         for (key in aabbs) {
             var c = aabbs[key].center.components;
-            var k = i * 3;
-            colors[k] = 1;
-            colors[k + 1] = 1;
-            colors[k + 2] = 1;
+            var _k3 = i * 3;
+            colors[_k3] = 1;
+            colors[_k3 + 1] = 1;
+            colors[_k3 + 2] = 1;
 
-            positions[k] = c[0];
-            positions[k + 1] = c[1];
-            positions[k + 2] = c[2];
+            positions[_k3] = c[0];
+            positions[_k3 + 1] = c[1];
+            positions[_k3 + 2] = c[2];
 
             i++;
         }
@@ -3968,8 +4180,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         for (var i = 0; i < indices.length; i++) {
             var index = indices[i].index;
             var locCode = indices[i].locCode;
-            var k = index * 3;
-            var v = new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]);
+            var _k4 = index * 3;
+            var v = new Lore.Vector3f(positions[_k4], positions[_k4 + 1], positions[_k4 + 2]);
 
             var rayPointDistanceSq = ray.distanceSqToPoint(v);
             if (rayPointDistanceSq < localThresholdSq) {
@@ -3984,7 +4196,7 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
                     index: index,
                     locCode: locCode,
                     position: v,
-                    color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+                    color: colors ? [colors[_k4], colors[_k4 + 1], colors[_k4 + 2]] : null
                 });
             }
         }
@@ -4072,153 +4284,223 @@ Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.proto
     }
 });
 
-Lore.FileReaderBase = function (elementId) {
-    this.elementId = elementId;
-    this.element = document.getElementById(this.elementId);
-    this.eventListeners = {};
-    var that = this;
-    this.element.addEventListener('change', function () {
-        var fileReader = new FileReader();
+Lore.FileReaderBase = function () {
+    function FileReaderBase(elementId) {
+        _classCallCheck(this, FileReaderBase);
 
-        fileReader.onload = function () {
-            that.loaded(fileReader.result);
+        this.elementId = elementId;
+        this.element = document.getElementById(this.elementId);
+        this.eventListeners = {};
+
+        var that = this;
+
+        this.element.addEventListener('change', function () {
+            var fileReader = new FileReader();
+
+            fileReader.onload = function () {
+                that.loaded(fileReader.result);
+            };
+
+            fileReader.readAsBinaryString(this.files[0]);
+        });
+    }
+
+    _createClass(FileReaderBase, [{
+        key: 'addEventListener',
+        value: function addEventListener(eventName, callback) {
+            if (!this.eventListeners[eventName]) {
+                this.eventListeners[eventName] = [];
+            }
+
+            this.eventListeners[eventName].push(callback);
+        }
+    }, {
+        key: 'raiseEvent',
+        value: function raiseEvent(eventName, data) {
+            if (!this.eventListeners[eventName]) {
+                return;
+            }
+
+            for (var i = 0; i < this.eventListeners[eventName].length; i++) {
+                this.eventListeners[eventName][i](data);
+            }
+        }
+    }, {
+        key: 'loaded',
+        value: function loaded(data) {}
+    }]);
+
+    return FileReaderBase;
+}();
+
+Lore.CsvFileReader = function (_Lore$FileReaderBase) {
+    _inherits(CsvFileReader, _Lore$FileReaderBase);
+
+    function CsvFileReader(elementId, options) {
+        _classCallCheck(this, CsvFileReader);
+
+        var _this7 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+
+        _this7.defaults = {
+            separator: ',',
+            cols: [],
+            types: [],
+            header: true
         };
 
-        fileReader.readAsBinaryString(this.files[0]);
-    });
-};
-
-Lore.FileReaderBase.prototype = {
-    constructor: Lore.FileReaderBase,
-
-    addEventListener: function addEventListener(eventName, callback) {
-        if (!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
-        this.eventListeners[eventName].push(callback);
-    },
-
-    raiseEvent: function raiseEvent(eventName, data) {
-        if (!this.eventListeners[eventName]) return;
-
-        for (var i = 0; i < this.eventListeners[eventName].length; i++) {
-            this.eventListeners[eventName][i](data);
-        }
-    },
-
-    loaded: function loaded(data) {}
-};
-
-Lore.CsvFileReader = function (elementId, options) {
-    Lore.FileReaderBase.call(this, elementId);
-
-    this.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
-    this.columns = [];
-};
-
-Lore.CsvFileReader.prototype = Object.assign(Object.create(Lore.FileReaderBase.prototype), {
-    constructor: Lore.CsvFileReader,
-
-    loaded: function loaded(data) {
-        data = data.replace('\n\n', '\n');
-        data = data.replace(/^\s+|\s+$/g, '');
-        var lines = data.split('\n');
-        var length = lines.length;
-        var init = true;
-        var loadCols = this.opts.cols;
-
-        var h = this.opts.header ? 1 : 0;
-        for (var i = h; i < length; i++) {
-            var values = lines[i].split(this.opts.separator);
-
-            if (loadCols.length == 0) for (var j = 0; j < values.length; j++) {
-                loadCols.push[j];
-            }if (init) {
-                for (var j = 0; j < loadCols.length; j++) {
-                    this.createArray(j, this.opts.types[j], length - h);
-                }init = false;
-            }
-
-            for (var j = 0; j < loadCols.length; j++) {
-                this.columns[j][i - h] = values[loadCols[j]];
-            }
-        }
-
-        this.raiseEvent('loaded', this.columns);
-    },
-
-    createArray: function createArray(index, type, length) {
-        if (type == 'Int8Array') this.columns[index] = new Int8Array(length);else if (type == 'Uint8Array') this.columns[index] = new Uint8Array(length);else if (type == 'Uint8ClampedArray') this.columns[index] = new Uint8ClampedArray(length);else if (type == 'Int16Array') this.columns[index] = new Int16Array(length);else if (type == 'Uint16Array') this.columns[index] = new Uint16Array(length);else if (type == 'Int32Array') this.columns[index] = new Int32Array(length);else if (type == 'Uint32Array') this.columns[index] = new Uint32Array(length);else if (type == 'Float32Array') this.columns[index] = new Float32Array(length);else if (type == 'Float64Array') this.columns[index] = new Float64Array(length);else this.columns[index] = new Array(length);
-    }
-});
-
-Lore.CsvFileReader.defaults = {
-    separator: ',',
-    cols: [],
-    types: [],
-    header: true
-};
-
-Lore.Utils = {};
-
-Lore.Utils.extend = function () {
-    var extended = {};
-    var deep = false;
-    var i = 0;
-    var length = arguments.length;
-
-    if (Object.prototype.toString.call(arguments[0]) === '[object Boolean]') {
-        deep = arguments[0];
-        i++;
+        _this7.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
+        _this7.columns = [];
+        return _this7;
     }
 
-    var merge = function merge(obj) {
-        for (var prop in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-                if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
-                    extended[prop] = Lore.Utils.extend(true, extended[prop], obj[prop]);
-                } else {
-                    extended[prop] = obj[prop];
+    _createClass(CsvFileReader, [{
+        key: 'loaded',
+        value: function loaded(data) {
+            data = data.replace('\n\n', '\n');
+            data = data.replace(/^\s+|\s+$/g, '');
+
+            var lines = data.split('\n');
+            var length = lines.length;
+            var init = true;
+            var loadCols = this.opts.cols;
+            var h = this.opts.header ? 1 : 0;
+
+            for (var i = h; i < length; i++) {
+                var values = lines[i].split(this.opts.separator);
+
+                if (loadCols.length == 0) for (var _j6 = 0; _j6 < values.length; _j6++) {
+                    loadCols.push[_j6];
+                }
+
+                if (init) {
+                    for (var _j7 = 0; _j7 < loadCols.length; _j7++) {
+                        this.createArray(_j7, this.opts.types[_j7], length - h);
+                    }
+
+                    init = false;
+                }
+
+                for (var _j8 = 0; _j8 < loadCols.length; _j8++) {
+                    this.columns[_j8][i - h] = values[loadCols[_j8]];
                 }
             }
+
+            this.raiseEvent('loaded', this.columns);
+
+            return this;
         }
-    };
+    }, {
+        key: 'createArray',
+        value: function createArray(index, type, length) {
+            if (type == 'Int8Array') {
+                this.columns[index] = new Int8Array(length);
+            } else if (type == 'Uint8Array') {
+                this.columns[index] = new Uint8Array(length);
+            } else if (type == 'Uint8ClampedArray') {
+                this.columns[index] = new Uint8ClampedArray(length);
+            } else if (type == 'Int16Array') {
+                this.columns[index] = new Int16Array(length);
+            } else if (type == 'Uint16Array') {
+                this.columns[index] = new Uint16Array(length);
+            } else if (type == 'Int32Array') {
+                this.columns[index] = new Int32Array(length);
+            } else if (type == 'Uint32Array') {
+                this.columns[index] = new Uint32Array(length);
+            } else if (type == 'Float32Array') {
+                this.columns[index] = new Float32Array(length);
+            } else if (type == 'Float64Array') {
+                this.columns[index] = new Float64Array(length);
+            } else {
+                this.columns[index] = new Array(length);
+            }
 
-    for (; i < length; i++) {
-        var obj = arguments[i];
-        merge(obj);
+            return this;
+        }
+    }]);
+
+    return CsvFileReader;
+}(Lore.FileReaderBase);
+
+Lore.Utils = function () {
+    function Utils() {
+        _classCallCheck(this, Utils);
     }
 
-    return extended;
-};
+    _createClass(Utils, null, [{
+        key: 'extend',
+        value: function extend() {
+            var extended = {};
+            var deep = false;
+            var i = 0;
+            var length = arguments.length;
 
-Lore.Utils.arrayContains = function (array, value) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] === value) return true;
-    }
+            if (Object.prototype.toString.call(arguments[0]) === '[object Boolean]') {
+                deep = arguments[0];
+                i++;
+            }
 
-    return false;
-};
+            var merge = function merge(obj) {
+                for (var prop in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                        if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
+                            extended[prop] = Lore.Utils.extend(true, extended[prop], obj[prop]);
+                        } else {
+                            extended[prop] = obj[prop];
+                        }
+                    }
+                }
+            };
 
-Lore.Utils.concatTypedArrays = function (a, b) {
-    var c = new a.constructor(a.length + b.length);
-    c.set(a);
-    c.set(b, a.length);
+            for (; i < length; i++) {
+                var obj = arguments[i];
+                merge(obj);
+            }
 
-    return c;
-};
+            return extended;
+        }
+    }, {
+        key: 'arrayContains',
+        value: function arrayContains(array, value) {
+            for (var i = 0; i < array.length; i++) {
+                if (array[i] === value) {
+                    return true;
+                }
+            }
 
-Lore.Utils.msb = function (n) {
-    return n & 0x80000000 ? 31 : Lore.Utils.msb(n << 1 | 1) - 1;
-};
+            return false;
+        }
+    }, {
+        key: 'concatTypedArrays',
+        value: function concatTypedArrays(a, b) {
+            var c = new a.constructor(a.length + b.length);
 
-Lore.Utils.mergePointDistances = function (a, b) {
-    var newObj = {};
+            c.set(a);
+            c.set(b, a.length);
 
-    newObj.indices = Lore.Utils.concatTypedArrays(a.indices, b.indices);
-    newObj.distancesSq = Lore.Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
-    return newObj;
-};
+            return c;
+        }
+    }, {
+        key: 'msb',
+        value: function msb(n) {
+            return n & 0x80000000 ? 31 : Lore.Utils.msb(n << 1 | 1) - 1;
+        }
+    }, {
+        key: 'mergePointDistances',
+        value: function mergePointDistances(a, b) {
+            var newObj = {};
+
+            newObj.indices = Lore.Utils.concatTypedArrays(a.indices, b.indices);
+            newObj.distancesSq = Lore.Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
+
+            return newObj;
+        }
+    }]);
+
+    return Utils;
+}();
 
 Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
+    type: new Lore.Uniform('type', 0.0, 'float'),
     fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
     cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'hsv.g = 0.5 + 0.4 * rand(position.xy);', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
@@ -4298,15 +4580,19 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
  * @param {number} threshold - A threshold indicating whether or not a further subdivision is needed based on the number of data points in the current node.
  * @param {number} maxDepth - A maximum depth of the octree.
  */
-Lore.Octree = function (threshold, maxDepth) {
-    this.threshold = threshold || 500;
-    this.maxDepth = maxDepth || 8;
-    this.points = {};
-    this.aabbs = {};
-};
 
-Lore.Octree.prototype = {
-    constructor: Lore.Octree,
+Lore.Octree = function () {
+    function Octree(threshold, maxDepth) {
+        _classCallCheck(this, Octree);
+
+        this.threshold = threshold || 500;
+        this.maxDepth = maxDepth || 8;
+        this.points = {};
+        this.aabbs = {};
+
+        this.offsets = [[-0.5, -0.5, -0.5], [-0.5, -0.5, +0.5], [-0.5, +0.5, -0.5], [-0.5, +0.5, +0.5], [+0.5, -0.5, -0.5], [+0.5, -0.5, +0.5], [+0.5, +0.5, -0.5], [+0.5, +0.5, +0.5]];
+    }
+
     /**
      * Builds the octree by assigning the indices of data points and axis-aligned bounding boxes to assoziative arrays indexed by the location code.
      * @param {Uint32Array} pointIndices - An set of points that are either sub-divided into sub nodes or assigned to the current node.
@@ -4314,1013 +4600,1205 @@ Lore.Octree.prototype = {
      * @param {PLOTTER.AABB} aabb - The bounding box of the current node.
      * @param {number} locCode - A binary code encoding the id and the level of the current node.
      */
-    build: function build(pointIndices, vertices, aabb, locCode) {
-        locCode = locCode || 1;
 
-        // Set the location code of the axis-aligned bounding box
-        aabb.setLocCode(locCode);
 
-        // Store the axis aligned bounding box of this node
-        // and set the points belonging to the node to null
-        this.points[locCode] = null;
-        this.aabbs[locCode] = aabb;
+    _createClass(Octree, [{
+        key: 'build',
+        value: function build(pointIndices, vertices, aabb, locCode) {
+            locCode = locCode || 1;
 
-        // Check if this node reaches the maximum depth or the threshold
-        var depth = this.getDepth(locCode);
-        if (pointIndices.length <= this.threshold || depth >= this.maxDepth) {
-            this.points[locCode] = new Uint32Array(pointIndices.length);
+            // Set the location code of the axis-aligned bounding box
+            aabb.setLocCode(locCode);
+
+            // Store the axis aligned bounding box of this node
+            // and set the points belonging to the node to null
+            this.points[locCode] = null;
+            this.aabbs[locCode] = aabb;
+
+            // Check if this node reaches the maximum depth or the threshold
+            var depth = this.getDepth(locCode);
+
+            if (pointIndices.length <= this.threshold || depth >= this.maxDepth) {
+                this.points[locCode] = new Uint32Array(pointIndices.length);
+                for (var i = 0; i < pointIndices.length; i++) {
+                    this.points[locCode][i] = pointIndices[i];
+                }
+
+                return true;
+            }
+
+            var childPointCounts = new Uint32Array(8);
+            var codes = new Float32Array(pointIndices.length);
+
             for (var i = 0; i < pointIndices.length; i++) {
-                this.points[locCode][i] = pointIndices[i];
+                // Points are indices to the vertices array
+                // which stores x,y,z coordinates linear
+                var k = pointIndices[i] * 3;
+
+                // Assign point to subtree, this gives a code
+                // 000, 001, 010, 011, 100, 101, 110, 111
+                // (-> 8 possible subtrees)
+                if (vertices[k + 0] >= aabb.center.components[0]) codes[i] |= 4;
+                if (vertices[k + 1] >= aabb.center.components[1]) codes[i] |= 2;
+                if (vertices[k + 2] >= aabb.center.components[2]) codes[i] |= 1;
+
+                childPointCounts[codes[i]]++;
             }
-            return true;
-        }
 
-        var childPointCounts = new Uint32Array(8);
-        var codes = new Float32Array(pointIndices.length);
+            var nextPoints = new Array(8);
+            var nextAabb = new Array(8);
 
-        for (var i = 0; i < pointIndices.length; i++) {
-            // Points are indices to the vertices array
-            // which stores x,y,z coordinates linear
-            var k = pointIndices[i] * 3;
+            for (var i = 0; i < 8; i++) {
+                if (childPointCounts[i] == 0) continue;
+                nextPoints[i] = new Uint32Array(childPointCounts[i]);
 
-            // Assign point to subtree, this gives a code
-            // 000, 001, 010, 011, 100, 101, 110, 111
-            // (-> 8 possible subtrees)
-            if (vertices[k + 0] >= aabb.center.components[0]) codes[i] |= 4;
-            if (vertices[k + 1] >= aabb.center.components[1]) codes[i] |= 2;
-            if (vertices[k + 2] >= aabb.center.components[2]) codes[i] |= 1;
-
-            childPointCounts[codes[i]]++;
-        }
-
-        var nextPoints = new Array(8);
-        var nextAabb = new Array(8);
-
-        for (var i = 0; i < 8; i++) {
-            if (childPointCounts[i] == 0) continue;
-            nextPoints[i] = new Uint32Array(childPointCounts[i]);
-
-            for (var j = 0, k = 0; j < pointIndices.length; j++) {
-                if (codes[j] == i) {
-                    nextPoints[i][k++] = pointIndices[j];
+                for (var j = 0, k = 0; j < pointIndices.length; j++) {
+                    if (codes[j] == i) {
+                        nextPoints[i][k++] = pointIndices[j];
+                    }
                 }
+
+                var o = this.offsets[i];
+                var offset = new Lore.Vector3f(o[0], o[1], o[2]);
+                offset.multiplyScalar(aabb.radius);
+                nextAabb[i] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
             }
-            var o = Lore.Octree.OctreeOffsets[i];
-            var offset = new Lore.Vector3f(o[0], o[1], o[2]);
-            offset.multiplyScalar(aabb.radius);
-            nextAabb[i] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
-        }
 
-        for (var i = 0; i < 8; i++) {
-            if (childPointCounts[i] == 0) continue;
-            var nextLocCode = this.generateLocCode(locCode, i);
-            this.build(nextPoints[i], vertices, nextAabb[i], nextLocCode);
-        }
-    },
+            for (var i = 0; i < 8; i++) {
+                if (childPointCounts[i] == 0) {
+                    continue;
+                }
 
-    /**
-     * Returns an array containing the location codes of all the axis-aligned
-     * bounding boxes inside this octree.
-     */
-    getLocCodes: function getLocCodes() {
-        return Object.keys(this.aabbs);
-    },
-
-    /**
-     * Calculates the depth of the node from its location code.
-     * @param {number} locCode - A binary code encoding the id and the level of the current node.
-     * @returns {number} The depth of the node with the provided location code.
-     */
-    getDepth: function getDepth(locCode) {
-        // If the msb is at position 6 (e.g. 1000000) the
-        // depth is 2, since the locCode contains two nodes (2 x 3 bits)
-        return Lore.Utils.msb(locCode) / 3;
-    },
-
-    /**
-     * Generates a location code for a node based on the full code of the parent and the code of the current node.
-     * @param {number} The full location code of the parent node.
-     * @param {number} The 3 bit code of the current node.
-     * @returns {number} The full location code for the current node.
-     */
-    generateLocCode: function generateLocCode(parentCode, nodeCode) {
-        // Insert the code of this new node, just before the msb (that is set to 1)
-        // of the parents code
-        var msb = Lore.Utils.msb(parentCode);
-
-        if (msb == -1) {
-            return nodeCode | 8;
-        } else {
-            // Left-shift the parent code by msb
-            parentCode = parentCode <<= 3;
-            // OR parent code with node code
-            return parentCode | nodeCode;
-        }
-    },
-
-    /**
-     * The callback that is called when a node of the octree is visited.
-     * @callback PLOTTER.Octree~traverseCallback
-     * @param {Uint32Array} points - The points associated with the node.
-     * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
-     * @param {number} locCode - The location code of the node.
-     */
-    /**
-     * Traverses the octree depth-first.
-     * @param {PLOTTER.Octree~traverseCallback} traverseCallback - Is called for each node where a axis-aligned bounding box exists.
-     * @param {number} locCode - The location code of the node that serves as the starting node for the traversion.
-     */
-    traverse: function traverse(traverseCallback, locCode) {
-        locCode = locCode || 1;
-
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
-
-            // If it has an aabb, it exists
-            if (this.aabbs[next]) {
-                traverseCallback(this.points[next], this.aabbs[next], next);
-                this.traverse(traverseCallback, next);
+                var nextLocCode = this.generateLocCode(locCode, i);
+                this.build(nextPoints[i], vertices, nextAabb[i], nextLocCode);
             }
+
+            return this;
         }
-    },
 
-    /**
-     * The callback that is called when a node of the octree is visited which meets the condition.
-     * @callback PLOTTER.Octree~traverseIfCallback
-     * @param {Uint32Array} points - The points associated with the node.
-     * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
-     * @param {number} locCode - The location code of the node.
-     */
-    /**
-     * The callback that is called to test a node.
-     * @callback PLOTTER.Octree~conditionCallback
-     * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
-     * @param {number} locCode - The location code of the node.
-     */
-    /**
-     * Traverses the octree depth-first, does not visit nodes / subtrees if a condition is not met.
-     * @param {PLOTTER.Octree~traverseIfCallback} traverseIfCallback - Is called for each node where a axis-aligned bounding box exists and returns either true or false, with false stopping further exploration of the subtree.
-     * @param {PLOTTER.Octree~conditionCallback} conditionCallback - Is called to test whether or not a subtree should be explored.
-     * @param {number} locCode - The location code of the node that serves as the starting node for the traversion.
-     */
-    traverseIf: function traverseIf(traverseIfCallback, conditionCallback, locCode) {
-        locCode = locCode || 1;
+        /**
+         * Returns an array containing the location codes of all the axis-aligned
+         * bounding boxes inside this octree.
+         */
 
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
-
-            // If it has an aabb, it exists
-            if (this.aabbs[next]) {
-                if (!conditionCallback(this.aabbs[next], next)) continue;
-                traverseIfCallback(this.points[next], this.aabbs[next], next);
-                this.traverseIf(traverseIfCallback, conditionCallback, next);
-            }
+    }, {
+        key: 'getLocCodes',
+        value: function getLocCodes() {
+            return Object.keys(this.aabbs);
         }
-    },
 
-    /**
-     * Searches for octree nodes that are intersected by the ray and returns all the points associated with those nodes.
-     * @param {Lore.Raycaster} raycaster - The raycaster used for checking for intersects.
-     * @returns {Array} A set of points which are associated with octree nodes intersected by the ray.
-     */
-    raySearch: function raySearch(raycaster) {
-        var result = [];
+        /**
+         * Calculates the depth of the node from its location code.
+         * @param {number} locCode - A binary code encoding the id and the level of the current node.
+         * @returns {number} The depth of the node with the provided location code.
+         */
 
-        // Info: shouldn't be necessary any more
-        // Always add the points from the root
-        // The root has the location code 1
-        // ... looks like it's still necessary
-        if (this.points[1]) {
-            for (var i = 0; i < this.points[1].length; i++) {
-                result.push({ index: this.points[1][i], locCode: 1 });
+    }, {
+        key: 'getDepth',
+        value: function getDepth(locCode) {
+            // If the msb is at position 6 (e.g. 1000000) the
+            // depth is 2, since the locCode contains two nodes (2 x 3 bits)
+            return Lore.Utils.msb(locCode) / 3;
+        }
+
+        /**
+         * Generates a location code for a node based on the full code of the parent and the code of the current node.
+         * @param {number} The full location code of the parent node.
+         * @param {number} The 3 bit code of the current node.
+         * @returns {number} The full location code for the current node.
+         */
+
+    }, {
+        key: 'generateLocCode',
+        value: function generateLocCode(parentCode, nodeCode) {
+            // Insert the code of this new node, just before the msb (that is set to 1)
+            // of the parents code
+            var msb = Lore.Utils.msb(parentCode);
+
+            if (msb == -1) {
+                return nodeCode | 8;
+            } else {
+                // Left-shift the parent code by msb
+                parentCode = parentCode <<= 3;
+                // OR parent code with node code
+                return parentCode | nodeCode;
             }
         }
 
-        // Calculate the direction, and the percentage
-        // of the direction, of the ray
-        var dir = raycaster.ray.direction.clone();
-        dir.normalize();
-        var inverseDir = new Lore.Vector3f(1, 1, 1);
-        inverseDir.divide(dir);
+        /**
+         * The callback that is called when a node of the octree is visited.
+         * @callback PLOTTER.Octree~traverseCallback
+         * @param {Uint32Array} points - The points associated with the node.
+         * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
+         * @param {number} locCode - The location code of the node.
+         */
+        /**
+         * Traverses the octree depth-first.
+         * @param {PLOTTER.Octree~traverseCallback} traverseCallback - Is called for each node where a axis-aligned bounding box exists.
+         * @param {number} locCode - The location code of the node that serves as the starting node for the traversion.
+         */
 
-        this.traverseIf(function (points, aabb, locCode) {
-            // If there is an aabb, that contains no points but only
-            // nodes, skip here
-            if (!points) return;
-            for (var i = 0; i < points.length; i++) {
-                result.push({ index: points[i], locCode: locCode });
-            }
-        }, function (aabb, locCode) {
-            return aabb.cylinderTest(raycaster.ray.source, inverseDir, raycaster.far, raycaster.threshold);
-        });
+    }, {
+        key: 'traverse',
+        value: function traverse(traverseCallback, locCode) {
+            locCode = locCode || 1;
 
-        return result;
-    },
+            for (var i = 0; i < 8; i++) {
+                var next = locCode << 3 | i;
 
-    /**
-     * Returns an array containing all the centers of the axis-aligned bounding boxes
-     * in this octree that have points associated with them.
-     * @returns {Array} An array containing the centers as Lore.Vector3f objects.
-     */
-    getCenters: function getCenters(threshold) {
-        threshold = threshold || 0;
-        var centers = new Array();
-
-        this.traverse(function (points, aabb, next) {
-            if (points && points.length > threshold) {
-                centers.push(aabb.center);
-            }
-        });
-
-        return centers;
-    },
-
-    /**
-     * This function returns the closest box in the octree to the point given as an argument.
-     * @param {Lore.Vector3f} point - The point.
-     * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
-     * @param {number} locCode - The starting locCode, if not set, starts at the root.
-     * @returns {Lore.AABB} The closest axis-aligned bounding box to the input point.
-     */
-    getClosestBox: function getClosestBox(point, threshold, locCode) {
-        locCode = locCode || 1;
-
-        var closest = -1;
-        var minDist = Number.MAX_VALUE;
-
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
-
-            // If it has an aabb, it exists
-            if (this.aabbs[next]) {
-                // Continue if under threshold
-                if (this.points[next] && this.points[next].length < threshold) continue;
-
-                var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
-                if (dist < minDist) {
-                    minDist = dist;
-                    closest = next;
+                // If it has an aabb, it exists
+                if (this.aabbs[next]) {
+                    traverseCallback(this.points[next], this.aabbs[next], next);
+                    this.traverse(traverseCallback, next);
                 }
             }
         }
 
-        if (closest < 0) return this.aabbs[locCode];else return this.getClosestBox(point, threshold, closest);
-    },
+        /**
+         * The callback that is called when a node of the octree is visited which meets the condition.
+         * @callback PLOTTER.Octree~traverseIfCallback
+         * @param {Uint32Array} points - The points associated with the node.
+         * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
+         * @param {number} locCode - The location code of the node.
+         */
+        /**
+         * The callback that is called to test a node.
+         * @callback PLOTTER.Octree~conditionCallback
+         * @param {PLOTTER.AABB} aabb - The axis-aligned bounding box associated with the node.
+         * @param {number} locCode - The location code of the node.
+         */
+        /**
+         * Traverses the octree depth-first, does not visit nodes / subtrees if a condition is not met.
+         * @param {PLOTTER.Octree~traverseIfCallback} traverseIfCallback - Is called for each node where a axis-aligned bounding box exists and returns either true or false, with false stopping further exploration of the subtree.
+         * @param {PLOTTER.Octree~conditionCallback} conditionCallback - Is called to test whether or not a subtree should be explored.
+         * @param {number} locCode - The location code of the node that serves as the starting node for the traversion.
+         */
 
-    /**
-     * This function returns the closest box in the octree to the point given as an argument. The distance measured is to the
-     * box center.
-     * @param {Lore.Vector3f} point - The point.
-     * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
-     * @param {number} locCode - The starting locCode, if not set, starts at the root.
-     * @returns {Lore.AABB} The closest axis-aligned bounding box to the input point.
-     */
-    getClosestBoxFromCenter: function getClosestBoxFromCenter(point, threshold, locCode) {
-        locCode = locCode || 1;
+    }, {
+        key: 'traverseIf',
+        value: function traverseIf(traverseIfCallback, conditionCallback, locCode) {
+            locCode = locCode || 1;
 
-        var closest = -1;
-        var minDist = Number.MAX_VALUE;
+            for (var i = 0; i < 8; i++) {
+                var next = locCode << 3 | i;
 
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
+                // If it has an aabb, it exists
+                if (this.aabbs[next]) {
+                    if (!conditionCallback(this.aabbs[next], next)) {
+                        continue;
+                    }
 
-            // If it has an aabb, it exists
-            if (this.aabbs[next]) {
-                // Continue if under threshold
-                if (this.points[next] && this.points[next].length < threshold) continue;
-
-                var dist = this.aabbs[next].distanceFromCenterToPointSq(point.components[0], point.components[1], point.components[2]);
-                if (dist < minDist) {
-                    minDist = dist;
-                    closest = next;
+                    traverseIfCallback(this.points[next], this.aabbs[next], next);
+                    this.traverseIf(traverseIfCallback, conditionCallback, next);
                 }
             }
         }
 
-        if (closest < 0) return this.aabbs[locCode];else return this.getClosestBox(point, threshold, closest);
-    },
+        /**
+         * Searches for octree nodes that are intersected by the ray and returns all the points associated with those nodes.
+         * @param {Lore.Raycaster} raycaster - The raycaster used for checking for intersects.
+         * @returns {Array} A set of points which are associated with octree nodes intersected by the ray.
+         */
 
-    /**
-     * This function returns the farthest box in the octree to the point given as an argument.
-     * @param {Lore.Vector3f} point - The point.
-     * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
-     * @param {number} locCode - The starting locCode, if not set, starts at the root.
-     * @returns {Lore.AABB} The farthest axis-aligned bounding box to the input point.
-     */
-    getFarthestBox: function getFarthestBox(point, threshold, locCode) {
-        locCode = locCode || 1;
+    }, {
+        key: 'raySearch',
+        value: function raySearch(raycaster) {
+            var result = [];
 
-        var farthest = -1;
-        var maxDist = Number.MIN_VALUE;
-
-        for (var i = 0; i < 8; i++) {
-            var next = locCode << 3 | i;
-
-            // If it has an aabb, it exists
-            if (this.aabbs[next]) {
-                // Continue if under threshold
-                if (this.points[next] && this.points[next].length < threshold) continue;
-
-                var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
-                if (dist > maxDist) {
-                    maxDist = dist;
-                    farthest = next;
+            // Info: shouldn't be necessary any more
+            // Always add the points from the root
+            // The root has the location code 1
+            // ... looks like it's still necessary
+            if (this.points[1]) {
+                for (var i = 0; i < this.points[1].length; i++) {
+                    result.push({
+                        index: this.points[1][i],
+                        locCode: 1
+                    });
                 }
             }
+
+            // Calculate the direction, and the percentage
+            // of the direction, of the ray
+            var dir = raycaster.ray.direction.clone();
+            dir.normalize();
+
+            var inverseDir = new Lore.Vector3f(1, 1, 1);
+            inverseDir.divide(dir);
+
+            this.traverseIf(function (points, aabb, locCode) {
+                // If there is an aabb, that contains no points but only
+                // nodes, skip here
+                if (!points) {
+                    return;
+                }
+
+                for (var i = 0; i < points.length; i++) {
+                    result.push({
+                        index: points[i],
+                        locCode: locCode
+                    });
+                }
+            }, function (aabb, locCode) {
+                return aabb.cylinderTest(raycaster.ray.source, inverseDir, raycaster.far, raycaster.threshold);
+            });
+
+            return result;
         }
 
-        if (farthest < 0) return this.aabbs[locCode];else return this.getFarthestBox(point, threshold, farthest);
-    },
+        /**
+         * Returns an array containing all the centers of the axis-aligned bounding boxes
+         * in this octree that have points associated with them.
+         * @returns {Array} An array containing the centers as Lore.Vector3f objects.
+         */
 
-    /**
-     * Finds the closest point inside the octree to the point provided as an argument.
-     * @param {Lore.Vector3f} point - The point.
-     * @param {Float32Array} - An array containing the positions of the points.
-     * @param {number} threshold - Only consider points inside a axis-aligned bounding box with a minimum of [threshold] points.
-     * @param {number} locCode - If specified, the axis-aligned bounding box in which the point is searched for. If not set, all boxes are searched.
-     * @returns {Lore.Vector3f} The position of the closest point.
-     */
-    getClosestPoint: function getClosestPoint(point, positions, threshold, locCode) {
-        threshold = threshold || 0;
-        var minDist = Number.MAX_VALUE;
-        var result = null;
+    }, {
+        key: 'getCenters',
+        value: function getCenters(threshold) {
+            threshold = threshold || 0;
+            var centers = new Array();
 
-        var box = null;
+            this.traverse(function (points, aabb, next) {
+                if (points && points.length > threshold) {
+                    centers.push(aabb.center);
+                }
+            });
 
-        if (locCode) box = this.aabbs[locCode];else box = this.getClosestBox(point, threshold);
+            return centers;
+        }
 
-        var boxPoints = this.points[box.getLocCode()];
+        /**
+         * This function returns the closest box in the octree to the point given as an argument.
+         * @param {Lore.Vector3f} point - The point.
+         * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
+         * @param {number} locCode - The starting locCode, if not set, starts at the root.
+         * @returns {Lore.AABB} The closest axis-aligned bounding box to the input point.
+         */
 
-        // If the box does not contain any points
-        if (!boxPoints) return null;
+    }, {
+        key: 'getClosestBox',
+        value: function getClosestBox(point, threshold, locCode) {
+            locCode = locCode || 1;
 
-        for (var i = 0; i < boxPoints.length; i++) {
-            var index = boxPoints[i];
-            index *= 3;
-            var x = positions[index];
-            var y = positions[index + 1];
-            var z = positions[index + 2];
+            var closest = -1;
+            var minDist = Number.MAX_VALUE;
 
-            var pc = point.components;
+            for (var i = 0; i < 8; i++) {
+                var next = locCode << 3 | i;
 
-            var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
-            if (distSq < minDist) {
-                minDist = distSq;
-                result = { x: x, y: y, z: z };
+                // If it has an aabb, it exists
+                if (this.aabbs[next]) {
+                    // Continue if under threshold
+                    if (this.points[next] && this.points[next].length < threshold) {
+                        continue;
+                    }
+
+                    var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closest = next;
+                    }
+                }
+            }
+
+            if (closest < 0) {
+                return this.aabbs[locCode];
+            } else {
+                return this.getClosestBox(point, threshold, closest);
             }
         }
 
-        if (!result) return null;
+        /**
+         * This function returns the closest box in the octree to the point given as an argument. The distance measured is to the
+         * box center.
+         * @param {Lore.Vector3f} point - The point.
+         * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
+         * @param {number} locCode - The starting locCode, if not set, starts at the root.
+         * @returns {Lore.AABB} The closest axis-aligned bounding box to the input point.
+         */
 
-        return new Lore.Vector3f(result.x, result.y, result.z);
-    },
+    }, {
+        key: 'getClosestBoxFromCenter',
+        value: function getClosestBoxFromCenter(point, threshold, locCode) {
+            locCode = locCode || 1;
 
-    /**
-     * Finds the farthest point inside the octree to the point provided as an argument.
-     * @param {Lore.Vector3f} point - The point.
-     * @param {Float32Array} - An array containing the positions of the points.
-     * @param {number} threshold - Only consider points inside a axis-aligned bounding box with a minimum of [threshold] points.
-     * @param {number} locCode - If specified, the axis-aligned bounding box in which the point is searched for. If not set, all boxes are searched.
-     * @returns {Lore.Vector3f} The position of the farthest point.
-     */
-    getFarthestPoint: function getFarthestPoint(point, positions, threshold, locCode) {
-        threshold = threshold || 0;
-        var maxDist = Number.MIN_VALUE;
-        var result = null;
+            var closest = -1;
+            var minDist = Number.MAX_VALUE;
 
-        // Get farthest box
-        var box = null;
+            for (var i = 0; i < 8; i++) {
+                var next = locCode << 3 | i;
 
-        if (locCode) box = this.aabbs[locCode];else box = this.getFArthestBox(point, threshold);
+                // If it has an aabb, it exists
+                if (this.aabbs[next]) {
+                    // Continue if under threshold
+                    if (this.points[next] && this.points[next].length < threshold) {
+                        continue;
+                    }
 
-        var boxPoints = this.points[box.getLocCode()];
+                    var dist = this.aabbs[next].distanceFromCenterToPointSq(point.components[0], point.components[1], point.components[2]);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closest = next;
+                    }
+                }
+            }
 
-        // If the box does not contain any points
-        if (!boxPoints) return null;
-
-        for (var i = 0; i < boxPoints.length; i++) {
-            var index = boxPoints[i];
-            index *= 3;
-            var x = positions[index];
-            var y = positions[index + 1];
-            var z = positions[index + 2];
-
-            var pc = point.components;
-
-            var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
-            if (distSq > maxDist) {
-                maxDist = distSq;
-                result = { x: x, y: y, z: z };
+            if (closest < 0) {
+                return this.aabbs[locCode];
+            } else {
+                return this.getClosestBox(point, threshold, closest);
             }
         }
 
-        if (!result) return null;
+        /**
+         * This function returns the farthest box in the octree to the point given as an argument.
+         * @param {Lore.Vector3f} point - The point.
+         * @param {number} threshold - The minimum number of points an axis-aligned bounding box should contain to count as a hit.
+         * @param {number} locCode - The starting locCode, if not set, starts at the root.
+         * @returns {Lore.AABB} The farthest axis-aligned bounding box to the input point.
+         */
 
-        return new Lore.Vector3f(result.x, result.y, result.z);
-    },
+    }, {
+        key: 'getFarthestBox',
+        value: function getFarthestBox(point, threshold, locCode) {
+            locCode = locCode || 1;
 
-    /**
-     * Returns the parent of a given location code by simply shifting it to the right by tree, removing the current code.
-     * @param {number} locCode - The location code of a node.
-     */
-    getParent: function getParent(locCode) {
-        return locCode >>> 3;
-    },
+            var farthest = -1;
+            var maxDist = Number.MIN_VALUE;
 
-    /**
-     * Find neighbouring axis-aligned bounding boxes.
-     * @param {number} locCode - The location code of the axis-aligned bounding box whose neighbours will be returned
-     * @returns {Array} An array of location codes of the neighbouring axis-aligned bounding boxes.
-     */
-    getNeighbours: function getNeighbours(locCode) {
-        var self = this;
-        var locCodes = new Array();
-        this.traverseIf(function (points, aabbs, code) {
-            if (points && points.length > 0 && code != locCode) {
-                locCodes.push(code);
-            }
-        }, function (aabb, code) {
-            // Exit branch if this node is not a neighbour
-            return aabb.testAABB(self.aabbs[locCode]);
-        });
+            for (var i = 0; i < 8; i++) {
+                var next = locCode << 3 | i;
 
-        return locCodes;
-    },
+                // If it has an aabb, it exists
+                if (this.aabbs[next]) {
+                    // Continue if under threshold
+                    if (this.points[next] && this.points[next].length < threshold) {
+                        continue;
+                    }
 
-    /**
-     * The callback that is called when the nearest neighbours have been found.
-     * @callback PLOTTER.Plot~kNNCallback
-     * @param {Uint32Array} e - An array containing containing the k-nearest neighbours ordered by distance (ascending).
-     */
-    /**
-     * Returns the k-nearest neighbours of a vertex.
-     * @param {number} k - The number of nearest neighbours to return.
-     * @param {number} point - The index of a vertex or a vertex.
-     * @param {number} locCode - The location code of the axis-aligned bounding box containing the vertex. If not set, the box is searched for.
-     * @param {Float32Array} positions - The position information for the points indexed in this octree.
-     * @param {PLOTTER.Plot~kNNCallback} kNNCallback - The callback that is called after the k-nearest neighbour search has finished.
-     */
-    kNearestNeighbours: function kNearestNeighbours(k, point, locCode, positions, kNNCallback) {
-        k += 1; // Account for the fact, that the point itself should be returned as well.
-        var length = positions / 3;
-        var p = point;
-
-        if (!isNaN(parseFloat(point))) var p = { x: positions[p * 3], y: positions[p * 3 + 1], z: positions[p * 3 + 2] };
-
-        if (locCode === null) locCode = this.getClosestBoxFromCenter(new Lore.Vector3f(p.x, p.y, p.z), 0).locCode;
-
-        // Calculte the distances to the other cells
-        var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
-
-        // Calculte the distances to the other points in the same cell
-        var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
-
-        // Sort the indices according to distance
-        var radixSort = new RadixSort();
-        var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
-
-        // Sort the neighbours according to distance
-        var sortedCellDistances = radixSort.sort(cellDistances.distancesSq, true);
-
-        // Since the closest points always stay the closest points event when adding
-        // the points of another cell, instead of resizing the array, just define
-        // an offset
-        var pointOffset = 0;
-
-        // Get all the neighbours from this cell that are closer than the nereast box
-        var indexCount = 0;
-        var indices = new Uint32Array(k);
-        console.log(sortedPointDistances, sortedCellDistances);
-        for (var i = 0; indexCount < k && i < sortedPointDistances.array.length; i++) {
-            // Break if closest neighbouring cell is closer than the closest remaining point
-            if (sortedPointDistances.array[i] > sortedCellDistances.array[0]) {
-                // Set the offset to the most distant closest member
-                pointOffset = i;
-                break;
+                    var dist = this.aabbs[next].distanceToPointSq(point.components[0], point.components[1], point.components[2]);
+                    if (dist > maxDist) {
+                        maxDist = dist;
+                        farthest = next;
+                    }
+                }
             }
 
-            indices[i] = pointDistances.indices[sortedPointDistances.indices[i]];
-            indexCount++;
+            if (farthest < 0) {
+                return this.aabbs[locCode];
+            } else {
+                return this.getFarthestBox(point, threshold, farthest);
+            }
         }
 
-        // If enough neighbours have been found in the same cell, no need to continue
-        if (indexCount == k) {
+        /**
+         * Finds the closest point inside the octree to the point provided as an argument.
+         * @param {Lore.Vector3f} point - The point.
+         * @param {Float32Array} - An array containing the positions of the points.
+         * @param {number} threshold - Only consider points inside a axis-aligned bounding box with a minimum of [threshold] points.
+         * @param {number} locCode - If specified, the axis-aligned bounding box in which the point is searched for. If not set, all boxes are searched.
+         * @returns {Lore.Vector3f} The position of the closest point.
+         */
+
+    }, {
+        key: 'getClosestPoint',
+        value: function getClosestPoint(point, positions, threshold, locCode) {
+            threshold = threshold || 0;
+            var minDist = Number.MAX_VALUE;
+            var result = null;
+
+            var box = null;
+
+            if (locCode) {
+                box = this.aabbs[locCode];
+            } else {
+                box = this.getClosestBox(point, threshold);
+            }
+
+            var boxPoints = this.points[box.getLocCode()];
+
+            // If the box does not contain any points
+            if (!boxPoints) {
+                return null;
+            }
+
+            for (var i = 0; i < boxPoints.length; i++) {
+                var index = boxPoints[i];
+                index *= 3;
+                var x = positions[index];
+                var y = positions[index + 1];
+                var z = positions[index + 2];
+
+                var pc = point.components;
+
+                var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
+                if (distSq < minDist) {
+                    minDist = distSq;
+                    result = {
+                        x: x,
+                        y: y,
+                        z: z
+                    };
+                }
+            }
+
+            if (!result) {
+                return null;
+            }
+
+            return new Lore.Vector3f(result.x, result.y, result.z);
+        }
+
+        /**
+         * Finds the farthest point inside the octree to the point provided as an argument.
+         * @param {Lore.Vector3f} point - The point.
+         * @param {Float32Array} - An array containing the positions of the points.
+         * @param {number} threshold - Only consider points inside a axis-aligned bounding box with a minimum of [threshold] points.
+         * @param {number} locCode - If specified, the axis-aligned bounding box in which the point is searched for. If not set, all boxes are searched.
+         * @returns {Lore.Vector3f} The position of the farthest point.
+         */
+
+    }, {
+        key: 'getFarthestPoint',
+        value: function getFarthestPoint(point, positions, threshold, locCode) {
+            threshold = threshold || 0;
+            var maxDist = Number.MIN_VALUE;
+            var result = null;
+
+            // Get farthest box
+            var box = null;
+
+            if (locCode) {
+                box = this.aabbs[locCode];
+            } else {
+                box = this.getFArthestBox(point, threshold);
+            }
+
+            var boxPoints = this.points[box.getLocCode()];
+
+            // If the box does not contain any points
+            if (!boxPoints) {
+                return null;
+            }
+
+            for (var i = 0; i < boxPoints.length; i++) {
+                var index = boxPoints[i];
+                index *= 3;
+                var x = positions[index];
+                var y = positions[index + 1];
+                var z = positions[index + 2];
+
+                var pc = point.components;
+
+                var distSq = Math.pow(pc[0] - x, 2) + Math.pow(pc[1] - y, 2) + Math.pow(pc[2] - z, 2);
+                if (distSq > maxDist) {
+                    maxDist = distSq;
+                    result = {
+                        x: x,
+                        y: y,
+                        z: z
+                    };
+                }
+            }
+
+            if (!result) {
+                return null;
+            }
+
+            return new Lore.Vector3f(result.x, result.y, result.z);
+        }
+
+        /**
+         * Returns the parent of a given location code by simply shifting it to the right by tree, removing the current code.
+         * @param {number} locCode - The location code of a node.
+         */
+
+    }, {
+        key: 'getParent',
+        value: function getParent(locCode) {
+            return locCode >>> 3;
+        }
+
+        /**
+         * Find neighbouring axis-aligned bounding boxes.
+         * @param {number} locCode - The location code of the axis-aligned bounding box whose neighbours will be returned
+         * @returns {Array} An array of location codes of the neighbouring axis-aligned bounding boxes.
+         */
+
+    }, {
+        key: 'getNeighbours',
+        value: function getNeighbours(locCode) {
+            var self = this;
+            var locCodes = new Array();
+
+            this.traverseIf(function (points, aabbs, code) {
+                if (points && points.length > 0 && code != locCode) {
+                    locCodes.push(code);
+                }
+            }, function (aabb, code) {
+                // Exit branch if this node is not a neighbour
+                return aabb.testAABB(self.aabbs[locCode]);
+            });
+
+            return locCodes;
+        }
+
+        /**
+         * The callback that is called when the nearest neighbours have been found.
+         * @callback PLOTTER.Plot~kNNCallback
+         * @param {Uint32Array} e - An array containing containing the k-nearest neighbours ordered by distance (ascending).
+         */
+        /**
+         * Returns the k-nearest neighbours of a vertex.
+         * @param {number} k - The number of nearest neighbours to return.
+         * @param {number} point - The index of a vertex or a vertex.
+         * @param {number} locCode - The location code of the axis-aligned bounding box containing the vertex. If not set, the box is searched for.
+         * @param {Float32Array} positions - The position information for the points indexed in this octree.
+         * @param {PLOTTER.Plot~kNNCallback} kNNCallback - The callback that is called after the k-nearest neighbour search has finished.
+         */
+
+    }, {
+        key: 'kNearestNeighbours',
+        value: function kNearestNeighbours(k, point, locCode, positions, kNNCallback) {
+            k += 1; // Account for the fact, that the point itself should be returned as well.
+            var length = positions / 3;
+            var p = point;
+
+            if (!isNaN(parseFloat(point))) {
+                var p = {
+                    x: positions[p * 3],
+                    y: positions[p * 3 + 1],
+                    z: positions[p * 3 + 2]
+                };
+            }
+
+            if (locCode === null) {
+                locCode = this.getClosestBoxFromCenter(new Lore.Vector3f(p.x, p.y, p.z), 0).locCode;
+            }
+
+            // Calculte the distances to the other cells
+            var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
+
+            // Calculte the distances to the other points in the same cell
+            var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+
+            // Sort the indices according to distance
+            var radixSort = new RadixSort();
+            var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+
+            // Sort the neighbours according to distance
+            var sortedCellDistances = radixSort.sort(cellDistances.distancesSq, true);
+
+            // Since the closest points always stay the closest points event when adding
+            // the points of another cell, instead of resizing the array, just define
+            // an offset
+            var pointOffset = 0;
+
+            // Get all the neighbours from this cell that are closer than the nereast box
+            var indexCount = 0;
+            var indices = new Uint32Array(k);
+            console.log(sortedPointDistances, sortedCellDistances);
+            for (var i = 0; indexCount < k && i < sortedPointDistances.array.length; i++) {
+                // Break if closest neighbouring cell is closer than the closest remaining point
+                if (sortedPointDistances.array[i] > sortedCellDistances.array[0]) {
+                    // Set the offset to the most distant closest member
+                    pointOffset = i;
+                    break;
+                }
+
+                indices[i] = pointDistances.indices[sortedPointDistances.indices[i]];
+                indexCount++;
+            }
+
+            // If enough neighbours have been found in the same cell, no need to continue
+            if (indexCount == k) {
+                return indices;
+            }
+
+            for (var i = 0; i < sortedCellDistances.array.length; i++) {
+                // Get the points from the cell and merge them with the already found ones
+                var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
+                var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+
+                pointDistances = Lore.Octree.mergePointDistances(pointDistances, newPointDistances);
+
+                // Sort the merged points
+                var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
+
+                for (var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
+                    if (sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
+                        pointOffset = j;
+                        break;
+                    }
+
+                    indices[j] = pointDistances.indices[sortedNewPointDistances.indices[j]];
+                    indexCount++;
+                }
+
+                if (indexCount == k || indexCount >= length - 1) {
+                    // kNNCallback(indices);
+                    return indices;
+                }
+            }
+
+            //kNNCallback(indices);
             return indices;
         }
 
-        for (var i = 0; i < sortedCellDistances.array.length; i++) {
-            // Get the points from the cell and merge them with the already found ones
-            var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
-            var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+        /**
+         * Calculates the distances from a given point to all of the cells containing points
+         * @param {number} x - The x-value of the coordinate.
+         * @param {number} y - The y-value of the coordinate.
+         * @param {number} z - The z-value of the coordinate.
+         * @param {number} locCode - The location code of the cell containing the point.
+         * @returns {Object} An object containing arrays for the locCodes and the squred distances.
+         */
 
-            pointDistances = Lore.Octree.mergePointDistances(pointDistances, newPointDistances);
+    }, {
+        key: 'getCellDistancesToPoint',
+        value: function getCellDistancesToPoint(x, y, z, locCode) {
+            var locCodes = new Array();
 
-            // Sort the merged points
-            var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
-
-            for (var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
-                if (sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
-                    pointOffset = j;
-                    break;
+            this.traverse(function (points, aabb, code) {
+                if (points && points.length > 0 && code != locCode) {
+                    locCodes.push(code);
                 }
+            });
 
-                indices[j] = pointDistances.indices[sortedNewPointDistances.indices[j]];
-                indexCount++;
+            var dists = new Float32Array(locCodes.length);
+            for (var i = 0; i < locCodes.length; i++) {
+                dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
             }
 
-            if (indexCount == k || indexCount >= length - 1) {
-                // kNNCallback(indices);
-                return indices;
-            }
+            return {
+                locCodes: locCodes,
+                distancesSq: dists
+            };
         }
 
-        //kNNCallback(indices);
-        return indices;
+        /**
+         * Expands the current neighbourhood around the cell where the point specified by x, y, z is in.
+         * @param {number} x - The x-value of the coordinate.
+         * @param {number} y - The y-value of the coordinate.
+         * @param {number} z - The z-value of the coordinate.
+         * @param {number} locCode - The location code of the cell containing the point.
+         * @param {Object} cellDistances - The object containing location codes and distances.
+         * @returns {number} The number of added location codes.
+         */
 
-        /*
-        // Check the points contained in the
-        for(var i = cellOffset; i < sortedCellDistances.array.length; i++) {
-        // Get the points from the cell and merge them with the already found ones
-            var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
-            var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
-             pointDistances = PLOTTER.Helpers.mergePointDistances(pointDistances, newPointDistances);
-         // Sort the merged points
-            var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
-            for(var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
-                if(sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
-                    pointOffset = j;
-                    break;
+    }, {
+        key: 'expandNeighbourhood',
+        value: function expandNeighbourhood(x, y, z, locCode, cellDistances) {
+            var locCodes = cellDistances.locCodes;
+            var distancesSq = cellDistances.distancesSq;
+            var length = locCodes.length;
+
+            for (var i = length - 1; i >= 0; i--) {
+                var neighbours = this.getNeighbours(locCodes[i]);
+
+                for (var j = 0; j < neighbours.length; j++) {
+                    if (neighbours[j] == locCode) {
+                        // console.log(locCode);
+                    }
+
+                    if (neighbours[j] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
+                        locCodes.push(neighbours[j]);
+                    }
                 }
-                 indices[j] = pointDistances.indices[sortedNewPointDistances.indices[j]];
-                indexCount++;
             }
-             if(indexCount == k) {
-                kNNCallback(indices);
+
+            // Update the distances
+            var l1 = locCodes.length;
+            var l2 = distancesSq.length;
+
+            if (l1 == l2) {
                 return;
             }
-        }
-        */
-    },
 
-    /**
-     * Calculates the distances from a given point to all of the cells containing points
-     * @param {number} x - The x-value of the coordinate.
-     * @param {number} y - The y-value of the coordinate.
-     * @param {number} z - The z-value of the coordinate.
-     * @param {number} locCode - The location code of the cell containing the point.
-     * @returns {Object} An object containing arrays for the locCodes and the squred distances.
-     */
-    getCellDistancesToPoint: function getCellDistancesToPoint(x, y, z, locCode) {
-        var locCodes = new Array();
+            var dists = new Float32Array(l1 - l2);
 
-        this.traverse(function (points, aabb, code) {
-            if (points && points.length > 0 && code != locCode) {
-                locCodes.push(code);
+            for (var i = l2, c = 0; i < l1; i++, c++) {
+                dists[c] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
             }
-        });
 
-        var dists = new Float32Array(locCodes.length);
-        for (var i = 0; i < locCodes.length; i++) {
-            dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
+            cellDistances.distancesSq = Lore.Utils.concatTypedArrays(distancesSq, dists);
+
+            return locCodes.length - length;
         }
 
-        return { locCodes: locCodes, distancesSq: dists };
-    },
+        /**
+         * Returns a list of the cells neighbouring the cell with the provided locCode and the point specified by x, y and z.
+         * @param {number} x - The x-value of the coordinate.
+         * @param {number} y - The y-value of the coordinate.
+         * @param {number} z - The z-value of the coordinate.
+         * @param {number} locCode - The number of the axis-aligned bounding box.
+         * @returns {Object} An object containing arrays for the locCodes and the squred distances.
+         */
 
-    /**
-     * Expands the current neighbourhood around the cell where the point specified by x, y, z is in.
-     * @param {number} x - The x-value of the coordinate.
-     * @param {number} y - The y-value of the coordinate.
-     * @param {number} z - The z-value of the coordinate.
-     * @param {number} locCode - The location code of the cell containing the point.
-     * @param {Object} cellDistances - The object containing location codes and distances.
-     * @returns {number} The number of added location codes.
-     */
-    expandNeighbourhood: function expandNeighbourhood(x, y, z, locCode, cellDistances) {
-        var locCodes = cellDistances.locCodes;
-        var distancesSq = cellDistances.distancesSq;
-        var length = locCodes.length;
+    }, {
+        key: 'cellDistancesSq',
+        value: function cellDistancesSq(x, y, z, locCode) {
+            var locCodes = this.getNeighbours(locCode);
 
-        for (var i = length - 1; i >= 0; i--) {
-            var neighbours = this.getNeighbours(locCodes[i]);
+            var dists = new Float32Array(locCodes.length);
 
-            for (var j = 0; j < neighbours.length; j++) {
-                if (neighbours[j] == locCode) console.log(locCode);
-                if (neighbours[j] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
-                    locCodes.push(neighbours[j]);
+            for (var i = 0; i < locCodes.length; i++) {
+                dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
+            }
+
+            return {
+                locCodes: locCodes,
+                distancesSq: dists
+            };
+        }
+
+        /**
+         * Returns a list of the the squared distances of the points contained in the axis-aligned bounding box to the provided coordinates.
+         * @param {number} x - The x-value of the coordinate.
+         * @param {number} y - The y-value of the coordinate.
+         * @param {number} z - The z-value of the coordinate.
+         * @param {number} locCode - The number of the axis-aligned bounding box.
+         * @param {Float32Array} positions - The array containing the vertex coordinates.
+         * @returns {Object} An object containing arrays for the indices and distances.
+         */
+
+    }, {
+        key: 'pointDistancesSq',
+        value: function pointDistancesSq(x, y, z, locCode, positions) {
+            var points = this.points[locCode];
+            var indices = new Uint32Array(points.length);
+            var dists = new Float32Array(points.length);
+
+            for (var i = 0; i < points.length; i++) {
+                var index = points[i] * 3;
+                var x2 = positions[index];
+                var y2 = positions[index + 1];
+                var z2 = positions[index + 2];
+
+                indices[i] = points[i];
+                dists[i] = Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2) + Math.pow(z2 - z, 2);
+            }
+            return {
+                indices: indices,
+                distancesSq: dists
+            };
+        }
+
+        /**
+         * Concatenates the two typed arrays a and b and returns a new array. The two arrays have to be of the same type.
+         * Due to performance reasons, there is no check whether the types match.
+         * @param {Array} a - The first array.
+         * @param {Array} b - The second array.
+         * @returns {Array} The concatenated array.
+         */
+
+    }], [{
+        key: 'concatTypedArrays',
+        value: function concatTypedArrays(a, b) {
+            var c = new a.constructor(a.length + b.length);
+
+            c.set(a);
+            c.set(b, a.length);
+
+            return c;
+        }
+
+        /**
+         * Merges the two arrays (indices and distancesSq) in the point distances object.
+         * @param {Object} a - The first point distances object.
+         * @param {Object} b - The second point distances object.
+         * @returns {Object} The concatenated point distances object.
+         */
+
+    }, {
+        key: 'mergePointDistances',
+        value: function mergePointDistances(a, b) {
+            var newObj = {};
+
+            newObj.indices = Lore.Octree.concatTypedArrays(a.indices, b.indices);
+            newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
+
+            return newObj;
+        }
+
+        /**
+         * Merges the two arrays (locCodes and distancesSq) in the cell distances object.
+         * @param {Object} a - The first cell distances object.
+         * @param {Object} b - The second cell distances object.
+         * @returns {Object} The concatenated cell distances object.
+         */
+
+    }, {
+        key: 'mergeCellDistances',
+        value: function mergeCellDistances(a, b) {
+            var newObj = {};
+
+            newObj.locCodes = Lore.Octree.concatTypedArrays(a.locCodes, b.locCodes);
+            newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
+
+            return newObj;
+        }
+
+        /**
+         * Clones an octree.
+         * @param {Lore.Octree} original - The octree to be cloned.
+         * @returns {Lore.Octree} The cloned octree.
+         */
+
+    }, {
+        key: 'clone',
+        value: function clone(original) {
+            var clone = new Lore.Octree();
+
+            clone.threshold = original.threshold;
+            clone.maxDepth = original.maxDepth;
+            clone.points = original.points;
+
+            for (var property in original.aabbs) {
+                if (original.aabbs.hasOwnProperty(property)) {
+                    clone.aabbs[property] = Lore.AABB.clone(original.aabbs[property]);
                 }
             }
+
+            return clone;
         }
+    }]);
 
-        // Update the distances
-        var l1 = locCodes.length;
-        var l2 = distancesSq.length;
+    return Octree;
+}();
 
-        if (l1 == l2) return;
+/**
+* @class
+* Axis-aligned bounding boxes with the constraint that they are cubes with equal sides.
+* @property {Lore.Vector3f} center - The center of this axis-aligned bounding box.
+* @property {number} radius - The radius of this axis-aligned bounding box.
+* @property {number} locCode - The location code of this axis-aligned bounding box in the octree.
+* @property {number} left - The distance of the left plane to the world ZY plane.
+* @property {number} right - The distance of the right plane to the world ZY plane.
+* @property {number} back - The distance of the back plane to the world XY plane.
+* @property {number} front - The distance of the front plane to the world XY plane.
+* @property {number} bottom - The distance of the bottom plane to the world XZ plane.
+* @property {number} top - The distance of the top plane to the world XZ plane.
+* @property {Array} neighbours - The neighbours of this axis-aligned bounding box in an an octree.
+* @property {Float32Array} min - An array specifying the minimum corner point (x, y, z) of the axis-aligned bounding box.
+* @property {Float32Array} max - An array specifying the maximum corner point (x, y, z) of the axis-aligned bounding box.
+* @constructor
+* @param {Lore.Vector3f} center - A radius for this axis-aligned bounding box.
+* @param {number} radius - A radius for this axis-aligned bounding box.
+*/
+Lore.AABB = function () {
+    function AABB(center, radius) {
+        _classCallCheck(this, AABB);
 
-        var dists = new Float32Array(l1 - l2);
-        for (var i = l2, c = 0; i < l1; i++, c++) {
-            dists[c] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
-        }
+        this.center = center || new Lore.Vector3f();
+        this.radius = radius || 0;
+        this.locCode = 0;
+        this.left = 0;
+        this.right = 0;
+        this.back = 0;
+        this.front = 0;
+        this.bottom = 0;
+        this.top = 0;
+        this.neighbours = new Array(6);
+        this.min = new Float32Array(3);
+        this.max = new Float32Array(3);
 
-        cellDistances.distancesSq = Lore.Utils.concatTypedArrays(distancesSq, dists);
-
-        return locCodes.length - length;
-    },
-
-    /**
-     * Returns a list of the cells neighbouring the cell with the provided locCode and the point specified by x, y and z.
-     * @param {number} x - The x-value of the coordinate.
-     * @param {number} y - The y-value of the coordinate.
-     * @param {number} z - The z-value of the coordinate.
-     * @param {number} locCode - The number of the axis-aligned bounding box.
-     * @returns {Object} An object containing arrays for the locCodes and the squred distances.
-     */
-    cellDistancesSq: function cellDistancesSq(x, y, z, locCode) {
-        var locCodes = this.getNeighbours(locCode);
-
-        var dists = new Float32Array(locCodes.length);
-        for (var i = 0; i < locCodes.length; i++) {
-            dists[i] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
-        }
-
-        return { locCodes: locCodes, distancesSq: dists };
-    },
-
-    /**
-     * Returns a list of the the squared distances of the points contained in the axis-aligned bounding box to the provided coordinates.
-     * @param {number} x - The x-value of the coordinate.
-     * @param {number} y - The y-value of the coordinate.
-     * @param {number} z - The z-value of the coordinate.
-     * @param {number} locCode - The number of the axis-aligned bounding box.
-     * @param {Float32Array} positions - The array containing the vertex coordinates.
-     * @returns {Object} An object containing arrays for the indices and distances.
-     */
-    pointDistancesSq: function pointDistancesSq(x, y, z, locCode, positions) {
-        var points = this.points[locCode];
-        var indices = new Uint32Array(points.length);
-        var dists = new Float32Array(points.length);
-
-        for (var i = 0; i < points.length; i++) {
-            var index = points[i] * 3;
-            var x2 = positions[index];
-            var y2 = positions[index + 1];
-            var z2 = positions[index + 2];
-
-            indices[i] = points[i];
-            dists[i] = Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2) + Math.pow(z2 - z, 2);
-        }
-        return { indices: indices, distancesSq: dists };
+        this.updateDimensions();
     }
-};
-
-/**
- * Concatenates the two typed arrays a and b and returns a new array. The two arrays have to be of the same type.
- * Due to performance reasons, there is no check whether the types match.
- * @param {Array} a - The first array.
- * @param {Array} b - The second array.
- * @returns {Array} The concatenated array.
- */
-Lore.Octree.concatTypedArrays = function (a, b) {
-    var c = new a.constructor(a.length + b.length);
-    c.set(a);
-    c.set(b, a.length);
-
-    return c;
-};
-
-/**
- * Merges the two arrays (indices and distancesSq) in the point distances object.
- * @param {Object} a - The first point distances object.
- * @param {Object} b - The second point distances object.
- * @returns {Object} The concatenated point distances object.
- */
-Lore.Octree.mergePointDistances = function (a, b) {
-    var newObj = {};
-
-    newObj.indices = Lore.Octree.concatTypedArrays(a.indices, b.indices);
-    newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
-    return newObj;
-};
-
-/**
- * Merges the two arrays (locCodes and distancesSq) in the cell distances object.
- * @param {Object} a - The first cell distances object.
- * @param {Object} b - The second cell distances object.
- * @returns {Object} The concatenated cell distances object.
- */
-Lore.Octree.mergeCellDistances = function (a, b) {
-    var newObj = {};
-
-    newObj.locCodes = Lore.Octree.concatTypedArrays(a.locCodes, b.locCodes);
-    newObj.distancesSq = Lore.Octree.concatTypedArrays(a.distancesSq, b.distancesSq);
-
-    return newObj;
-};
-
-/**
- * Clones an octree.
- * @param {Lore.Octree} original - The octree to be cloned.
- * @returns {Lore.Octree} The cloned octree.
- */
-Lore.Octree.clone = function (original) {
-    var clone = new Lore.Octree();
-
-    clone.threshold = original.threshold;
-    clone.maxDepth = original.maxDepth;
-    clone.points = original.points;
-
-    for (var property in original.aabbs) {
-        if (original.aabbs.hasOwnProperty(property)) {
-            clone.aabbs[property] = Lore.AABB.clone(original.aabbs[property]);
-        }
-    }
-
-    return clone;
-};
-
-/**
- * An array containing 8 arrays to calculate the offset of child nodes given the center and the radius of a parent node.
- */
-Lore.Octree.OctreeOffsets = [[-0.5, -0.5, -0.5], [-0.5, -0.5, +0.5], [-0.5, +0.5, -0.5], [-0.5, +0.5, +0.5], [+0.5, -0.5, -0.5], [+0.5, -0.5, +0.5], [+0.5, +0.5, -0.5], [+0.5, +0.5, +0.5]];
-
-/**
- * @class
- * Axis-aligned bounding boxes with the constraint that they are cubes with equal sides.
- * @property {Lore.Vector3f} center - The center of this axis-aligned bounding box.
- * @property {number} radius - The radius of this axis-aligned bounding box.
- * @property {number} locCode - The location code of this axis-aligned bounding box in the octree.
- * @property {number} left - The distance of the left plane to the world ZY plane.
- * @property {number} right - The distance of the right plane to the world ZY plane.
- * @property {number} back - The distance of the back plane to the world XY plane.
- * @property {number} front - The distance of the front plane to the world XY plane.
- * @property {number} bottom - The distance of the bottom plane to the world XZ plane.
- * @property {number} top - The distance of the top plane to the world XZ plane.
- * @property {Array} neighbours - The neighbours of this axis-aligned bounding box in an an octree.
- * @property {Float32Array} min - An array specifying the minimum corner point (x, y, z) of the axis-aligned bounding box.
- * @property {Float32Array} max - An array specifying the maximum corner point (x, y, z) of the axis-aligned bounding box.
- * @constructor
- * @param {Lore.Vector3f} center - A radius for this axis-aligned bounding box.
- * @param {number} radius - A radius for this axis-aligned bounding box.
- */
-Lore.AABB = function (center, radius) {
-    this.center = center || new Lore.Vector3f();
-    this.radius = radius || 0;
-    this.locCode = 0;
-    this.left = 0;
-    this.right = 0;
-    this.back = 0;
-    this.front = 0;
-    this.bottom = 0;
-    this.top = 0;
-    this.neighbours = new Array(6);
-    this.min = new Float32Array(3);
-    this.max = new Float32Array(3);
-
-    this.updateDimensions();
-};
-
-Lore.AABB.prototype = {
-    constructor: Lore.AABB,
 
     /**
      * Calculates the distance of the axis-aligned bounding box's planes to the world planes.
      */
-    updateDimensions: function updateDimensions() {
-        var cx = this.center.components[0];
-        var cy = this.center.components[1];
-        var cz = this.center.components[2];
 
-        this.min[0] = cx - this.radius;
-        this.min[1] = cy - this.radius;
-        this.min[2] = cz - this.radius;
-        this.max[0] = cx + this.radius;
-        this.max[1] = cy + this.radius;
-        this.max[2] = cz + this.radius;
 
-        // Precalculate to simplify ray test
-        this.left = cx - this.radius;
-        this.right = cx + this.radius;
-        this.back = cz - this.radius;
-        this.front = cz + this.radius;
-        this.bottom = cy - this.radius;
-        this.top = cy + this.radius;
-    },
+    _createClass(AABB, [{
+        key: 'updateDimensions',
+        value: function updateDimensions() {
+            var cx = this.center.components[0];
+            var cy = this.center.components[1];
+            var cz = this.center.components[2];
 
-    /**
-     * Sets the location code of this axis-aligned bounding box.
-     * @param {number} locCode - The location code.
-     */
-    setLocCode: function setLocCode(locCode) {
-        this.locCode = locCode;
-    },
+            this.min[0] = cx - this.radius;
+            this.min[1] = cy - this.radius;
+            this.min[2] = cz - this.radius;
+            this.max[0] = cx + this.radius;
+            this.max[1] = cy + this.radius;
+            this.max[2] = cz + this.radius;
 
-    /**
-     * Gets the location code of this axis-aligned bounding box.
-     * @returns {number} The location code.
-     */
-    getLocCode: function getLocCode() {
-        return this.locCode;
-    },
+            // Precalculate to simplify ray test
+            this.left = cx - this.radius;
+            this.right = cx + this.radius;
+            this.back = cz - this.radius;
+            this.front = cz + this.radius;
+            this.bottom = cy - this.radius;
+            this.top = cy + this.radius;
 
-    /**
-     * Tests whether or not this axis-aligned bounding box is intersected by a ray.
-     * @param {Lore.Vector3f} source - The source of the ray.
-     * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
-     * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
-     * @returns {boolean} - Whether or not there is an intersect.
-     */
-    rayTest: function rayTest(source, inverseDir, dist) {
-        // dir is the precomputed inverse of the direction of the ray,
-        // this means that the costly divisions can be omitted
-        var oc = source.components;
-        var ic = inverseDir.components;
-
-        var t0 = (this.left - oc[0]) * ic[0];
-        var t1 = (this.right - oc[0]) * ic[0];
-        var t2 = (this.bottom - oc[1]) * ic[1];
-        var t3 = (this.top - oc[1]) * ic[1];
-        var t4 = (this.back - oc[2]) * ic[2];
-        var t5 = (this.front - oc[2]) * ic[2];
-
-        var maxT = Math.min(Math.max(t0, t1), Math.max(t2, t3), Math.max(t4, t5));
-
-        // Ray intersects in reverse direction, which means
-        // that the box is behind the camera
-        if (maxT < 0) return false;
-
-        var minT = Math.max(Math.min(t0, t1), Math.min(t2, t3), Math.min(t4, t5));
-
-        if (minT > maxT || minT > dist) return false;
-
-        // Intersection happens when minT is larger or equal to maxT
-        // and minT is smaller than the distance (distance == radius == ray.far)
-        return true;
-    },
-
-    /**
-     * Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.
-     * @param {Lore.Vector3f} source - The source of the ray.
-     * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
-     * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
-     * @param {number} radius - The radius of the cylinder
-     * @returns {boolean} - Whether or not there is an intersect.
-     */
-    cylinderTest: function cylinderTest(source, inverseDir, dist, radius) {
-        // Instead of testing an actual cylinder against this aabb, we simply
-        // expand the radius of the box temporarily.
-        this.radius += radius;
-        this.updateDimensions();
-
-        // Do the normal ray intersection test
-        var result = this.rayTest(source, inverseDir, dist);
-
-        this.radius -= radius;
-        this.updateDimensions();
-
-        return result;
-    },
-
-    /**
-     * Returns the square distance of this axis-aligned bounding box to the point supplied as an argument.
-     * @param {number} x - The x component of the point coordinate.
-     * @param {number} y - The y component of the point coordinate.
-     * @param {number} z - The z component of the point coordinate.
-     * @returns {number} The square distance of this axis-aligned bounding box to the input point.
-     */
-    distanceToPointSq: function distanceToPointSq(x, y, z) {
-        // From book, real time collision detection
-        var sqDist = 0;
-        var p = [x, y, z];
-        // Add the distances for each axis
-        for (var i = 0; i < 3; i++) {
-            if (p[i] < this.min[i]) sqDist += Math.pow(this.min[i] - p[i], 2);
-            if (p[i] > this.max[i]) sqDist += Math.pow(p[i] - this.max[i], 2);
+            return this;
         }
 
-        return sqDist;
-    },
+        /**
+         * Sets the location code of this axis-aligned bounding box.
+         * @param {number} locCode - The location code.
+         */
 
-    /**
-     * Returns the box that is closest to the point (measured from center).
-     * @param {number} x - The x component of the point coordinate.
-     * @param {number} y - The y component of the point coordinate.
-     * @param {number} z - The z component of the point coordinate.
-     * @returns {number} The square distance of this axis-aligned bounding box to the input point.
-     */
-    distanceFromCenterToPointSq: function distanceFromCenterToPointSq(x, y, z) {
-        var center = this.center.components;
-        return Math.pow(center[0] - x, 2) + Math.pow(center[1] - y, 2) + Math.pow(center[2] - z, 2);
-    },
+    }, {
+        key: 'setLocCode',
+        value: function setLocCode(locCode) {
+            this.locCode = locCode;
 
-    /**
-     * Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
-     * This method can also be used to assert whether or not two boxes are neighbours.
-     * @param {Lore.AABB} aabb - The axis-aligned bounding box to test against.
-     * @returns {boolean} - Whether or not there is an overlap.
-     */
-    testAABB: function testAABB(aabb) {
-        for (var i = 0; i < 3; i++) {
-            if (this.max[i] < aabb.min[i] || this.min[i] > aabb.max[i]) return false;
+            return this;
         }
-        return true;
-    }
-};
 
-/**
- * Creates a axis-aligned bounding box surrounding a set of vertices.
- * @param {Uint32Array} vertices - The vertices which will all be inside the axis-aligned bounding box.
- * @returns {Lore.AABB} An axis-aligned bounding box surrounding the vertices.
- */
-Lore.AABB.fromPoints = function (vertices) {
-    var x = vertices[0];
-    var y = vertices[1];
-    var z = vertices[2];
+        /**
+         * Gets the location code of this axis-aligned bounding box.
+         * @returns {number} The location code.
+         */
 
-    var min = new Lore.Vector3f(x, y, z);
-    var max = new Lore.Vector3f(x, y, z);
+    }, {
+        key: 'getLocCode',
+        value: function getLocCode() {
+            return this.locCode;
+        }
 
-    var minc = min.components;
-    var maxc = max.components;
+        /**
+         * Tests whether or not this axis-aligned bounding box is intersected by a ray.
+         * @param {Lore.Vector3f} source - The source of the ray.
+         * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
+         * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
+         * @returns {boolean} - Whether or not there is an intersect.
+         */
 
-    for (var i = 1; i < vertices.length / 3; i++) {
-        if (vertices[i * 3 + 0] < minc[0]) minc[0] = vertices[i * 3 + 0];
-        if (vertices[i * 3 + 1] < minc[1]) minc[1] = vertices[i * 3 + 1];
-        if (vertices[i * 3 + 2] < minc[2]) minc[2] = vertices[i * 3 + 2];
-        if (vertices[i * 3 + 0] > maxc[0]) maxc[0] = vertices[i * 3 + 0];
-        if (vertices[i * 3 + 1] > maxc[1]) maxc[1] = vertices[i * 3 + 1];
-        if (vertices[i * 3 + 2] > maxc[2]) maxc[2] = vertices[i * 3 + 2];
-    }
+    }, {
+        key: 'rayTest',
+        value: function rayTest(source, inverseDir, dist) {
+            // dir is the precomputed inverse of the direction of the ray,
+            // this means that the costly divisions can be omitted
+            var oc = source.components;
+            var ic = inverseDir.components;
 
-    // Calculate the radius in each direction
-    var radii = new Lore.Vector3f.subtract(max, min);
-    radii.multiplyScalar(0.5);
+            var t0 = (this.left - oc[0]) * ic[0];
+            var t1 = (this.right - oc[0]) * ic[0];
+            var t2 = (this.bottom - oc[1]) * ic[1];
+            var t3 = (this.top - oc[1]) * ic[1];
+            var t4 = (this.back - oc[2]) * ic[2];
+            var t5 = (this.front - oc[2]) * ic[2];
 
-    var rx = radii.components[0];
-    var ry = radii.components[1];
-    var rz = radii.components[2];
+            var maxT = Math.min(Math.max(t0, t1), Math.max(t2, t3), Math.max(t4, t5));
 
-    var center = new Lore.Vector3f(rx, ry, rz);
-    center.add(min);
-    // Since the octree always stores cubes, there is of course only
-    // one radius - take the biggest one
-    var radius = Math.max(rx, ry, rz);
-    return new Lore.AABB(center, radius);
-};
+            // Ray intersects in reverse direction, which means
+            // that the box is behind the camera
+            if (maxT < 0) {
+                return false;
+            }
 
-Lore.AABB.getCorners = function (aabb) {
-    var c = aabb.center.components;
-    var x = c[0];
-    var y = c[1];
-    var z = c[2];
-    var r = aabb.radius;
+            var minT = Math.max(Math.min(t0, t1), Math.min(t2, t3), Math.min(t4, t5));
 
-    return [[x - r, y - r, z - r], [x - r, y - r, z + r], [x - r, y + r, z - r], [x - r, y + r, z + r], [x + r, y - r, z - r], [x + r, y - r, z + r], [x + r, y + r, z - r], [x + r, y + r, z + r]];
-};
+            if (minT > maxT || minT > dist) {
+                return false;
+            }
 
-/**
- * Clones an axis-aligned bounding box.
- * @param {Lore.AABB} original - The axis-aligned bounding box to be cloned.
- * @returns {Lore.AABB} The cloned axis-aligned bounding box.
- */
-Lore.AABB.clone = function (original) {
-    var clone = new Lore.AABB();
-    clone.back = original.back;
-    clone.bottom = original.bottom;
-    clone.center = new Lore.Vector3f(original.center.components[0], original.center.components[1], original.center.components[2]);
-    clone.front = original.front;
-    clone.left = original.left;
-    clone.locCode = original.locCode;
-    clone.max = original.max;
-    clone.min = original.min;
-    clone.radius = original.radius;
-    clone.right = original.right;
-    clone.top = original.top;
+            // Intersection happens when minT is larger or equal to maxT
+            // and minT is smaller than the distance (distance == radius == ray.far)
+            return true;
+        }
 
-    return clone;
-};
+        /**
+         * Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.
+         * @param {Lore.Vector3f} source - The source of the ray.
+         * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
+         * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
+         * @param {number} radius - The radius of the cylinder
+         * @returns {boolean} - Whether or not there is an intersect.
+         */
+
+    }, {
+        key: 'cylinderTest',
+        value: function cylinderTest(source, inverseDir, dist, radius) {
+            // Instead of testing an actual cylinder against this aabb, we simply
+            // expand the radius of the box temporarily.
+            this.radius += radius;
+            this.updateDimensions();
+
+            // Do the normal ray intersection test
+            var result = this.rayTest(source, inverseDir, dist);
+
+            this.radius -= radius;
+            this.updateDimensions();
+
+            return result;
+        }
+
+        /**
+         * Returns the square distance of this axis-aligned bounding box to the point supplied as an argument.
+         * @param {number} x - The x component of the point coordinate.
+         * @param {number} y - The y component of the point coordinate.
+         * @param {number} z - The z component of the point coordinate.
+         * @returns {number} The square distance of this axis-aligned bounding box to the input point.
+         */
+
+    }, {
+        key: 'distanceToPointSq',
+        value: function distanceToPointSq(x, y, z) {
+            // From book, real time collision detection
+            var sqDist = 0;
+            var p = [x, y, z];
+            // Add the distances for each axis
+            for (var i = 0; i < 3; i++) {
+                if (p[i] < this.min[i]) sqDist += Math.pow(this.min[i] - p[i], 2);
+                if (p[i] > this.max[i]) sqDist += Math.pow(p[i] - this.max[i], 2);
+            }
+
+            return sqDist;
+        }
+
+        /**
+         * Returns the box that is closest to the point (measured from center).
+         * @param {number} x - The x component of the point coordinate.
+         * @param {number} y - The y component of the point coordinate.
+         * @param {number} z - The z component of the point coordinate.
+         * @returns {number} The square distance of this axis-aligned bounding box to the input point.
+         */
+
+    }, {
+        key: 'distanceFromCenterToPointSq',
+        value: function distanceFromCenterToPointSq(x, y, z) {
+            var center = this.center.components;
+
+            return Math.pow(center[0] - x, 2) + Math.pow(center[1] - y, 2) + Math.pow(center[2] - z, 2);
+        }
+
+        /**
+         * Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
+         * This method can also be used to assert whether or not two boxes are neighbours.
+         * @param {Lore.AABB} aabb - The axis-aligned bounding box to test against.
+         * @returns {boolean} - Whether or not there is an overlap.
+         */
+
+    }, {
+        key: 'testAABB',
+        value: function testAABB(aabb) {
+            for (var i = 0; i < 3; i++) {
+                if (this.max[i] < aabb.min[i] || this.min[i] > aabb.max[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * Creates a axis-aligned bounding box surrounding a set of vertices.
+         * @param {Uint32Array} vertices - The vertices which will all be inside the axis-aligned bounding box.
+         * @returns {Lore.AABB} An axis-aligned bounding box surrounding the vertices.
+         */
+
+    }], [{
+        key: 'fromPoints',
+        value: function fromPoints(vertices) {
+            var x = vertices[0];
+            var y = vertices[1];
+            var z = vertices[2];
+
+            var min = new Lore.Vector3f(x, y, z);
+            var max = new Lore.Vector3f(x, y, z);
+
+            var minc = min.components;
+            var maxc = max.components;
+
+            for (var i = 1; i < vertices.length / 3; i++) {
+                if (vertices[i * 3 + 0] < minc[0]) minc[0] = vertices[i * 3 + 0];
+                if (vertices[i * 3 + 1] < minc[1]) minc[1] = vertices[i * 3 + 1];
+                if (vertices[i * 3 + 2] < minc[2]) minc[2] = vertices[i * 3 + 2];
+                if (vertices[i * 3 + 0] > maxc[0]) maxc[0] = vertices[i * 3 + 0];
+                if (vertices[i * 3 + 1] > maxc[1]) maxc[1] = vertices[i * 3 + 1];
+                if (vertices[i * 3 + 2] > maxc[2]) maxc[2] = vertices[i * 3 + 2];
+            }
+
+            // Calculate the radius in each direction
+            var radii = new Lore.Vector3f.subtract(max, min);
+            radii.multiplyScalar(0.5);
+
+            var rx = radii.components[0];
+            var ry = radii.components[1];
+            var rz = radii.components[2];
+
+            var center = new Lore.Vector3f(rx, ry, rz);
+            center.add(min);
+            // Since the octree always stores cubes, there is of course only
+            // one radius - take the biggest one
+            var radius = Math.max(rx, ry, rz);
+
+            return new Lore.AABB(center, radius);
+        }
+    }, {
+        key: 'getCorners',
+        value: function getCorners(aabb) {
+            var c = aabb.center.components;
+            var x = c[0];
+            var y = c[1];
+            var z = c[2];
+            var r = aabb.radius;
+
+            return [[x - r, y - r, z - r], [x - r, y - r, z + r], [x - r, y + r, z - r], [x - r, y + r, z + r], [x + r, y - r, z - r], [x + r, y - r, z + r], [x + r, y + r, z - r], [x + r, y + r, z + r]];
+        }
+
+        /**
+         * Clones an axis-aligned bounding box.
+         * @param {Lore.AABB} original - The axis-aligned bounding box to be cloned.
+         * @returns {Lore.AABB} The cloned axis-aligned bounding box.
+         */
+
+    }, {
+        key: 'clone',
+        value: function clone(original) {
+            var clone = new Lore.AABB();
+            clone.back = original.back;
+            clone.bottom = original.bottom;
+            clone.center = new Lore.Vector3f(original.center.components[0], original.center.components[1], original.center.components[2]);
+            clone.front = original.front;
+            clone.left = original.left;
+            clone.locCode = original.locCode;
+            clone.max = original.max;
+            clone.min = original.min;
+            clone.radius = original.radius;
+            clone.right = original.right;
+            clone.top = original.top;
+
+            return clone;
+        }
+    }]);
+
+    return AABB;
+}();
 
 Lore.Raycaster = function () {
-    this.ray = new Lore.Ray();
-    this.near = 0;
-    this.far = 1000;
-    this.threshold = 0.5;
-};
+    function Raycaster() {
+        _classCallCheck(this, Raycaster);
 
-Lore.Raycaster.prototype = {
-    constructor: Lore.Raycaster,
-
-    set: function set(camera, mouseX, mouseY) {
-        this.near = camera.near;
-        this.far = camera.far;
-
-        this.ray.source.set(mouseX, mouseY, (camera.near + camera.far) / (camera.near - camera.far));
-        this.ray.source.unproject(camera);
-
-        this.ray.direction.set(0.0, 0.0, -1.0);
-        this.ray.direction.toDirection(camera.modelMatrix);
+        this.ray = new Lore.Ray();
+        this.near = 0;
+        this.far = 1000;
+        this.threshold = 0.5;
     }
-};
+
+    _createClass(Raycaster, [{
+        key: 'set',
+        value: function set(camera, mouseX, mouseY) {
+            this.near = camera.near;
+            this.far = camera.far;
+
+            this.ray.source.set(mouseX, mouseY, (camera.near + camera.far) / (camera.near - camera.far));
+            this.ray.source.unproject(camera);
+
+            this.ray.direction.set(0.0, 0.0, -1.0);
+            this.ray.direction.toDirection(camera.modelMatrix);
+
+            return this;
+        }
+    }]);
+
+    return Raycaster;
+}();
 
 Lore.UI = function (renderCanvas) {
     this.canvas = document.createElement('canvas');

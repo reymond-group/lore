@@ -1,48 +1,48 @@
-Lore.Ray = function(source, direction) {
-    this.source = source || new Lore.Vector3f();
-    this.direction = direction || new Lore.Vector3f();
-}
+Lore.Ray = class Ray {
 
-Lore.Ray.prototype = {
-    constructor: Lore.Ray,
+    constructor(source, direction) {
+        this.source = source || new Lore.Vector3f();
+        this.direction = direction || new Lore.Vector3f();
+    }
 
-    copyFrom: function(r) {
+    copyFrom(r) {
         this.source.copyFrom(r.source);
         this.direction.copyFrom(r.direction);
 
         return this;
-    },
+    }
 
-    applyProjection: function(m) {
+    applyProjection(m) {
         this.direction.add(this.source).applyProjection(m);
-		this.source.applyProjection(m);
-		this.direction.subtract(this.source);
-		this.direction.normalize();
+        this.source.applyProjection(m);
+        this.direction.subtract(this.source);
+        this.direction.normalize();
 
-		return this;
-    },
-
+        return this;
+    }
 
     // See if the two following functions can be optimized
-    distanceSqToPoint: function(v) {
-        var tmp = Lore.Vector3f.subtract(v, this.source);
-        var directionDistance = tmp.dot(this.direction);
+    distanceSqToPoint(v) {
+        let tmp = Lore.Vector3f.subtract(v, this.source);
+        let directionDistance = tmp.dot(this.direction);
 
-        if (directionDistance < 0)
+        if (directionDistance < 0) {
             return this.source.distanceToSq(v);
-            
+        }
+
         tmp.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
-        
+
         return tmp.distanceToSq(v);
-    },
+    }
 
-    closestPointToPoint: function(v) {
-        var result = Lore.Vector3f.subtract(v, this.source);
-		var directionDistance = result.dot(this.direction);
+    closestPointToPoint(v) {
+        let result = Lore.Vector3f.subtract(v, this.source);
+        let directionDistance = result.dot(this.direction);
 
-		if (directionDistance < 0)
-			return result.copyFrom(this.source);
+        if (directionDistance < 0) {
+            return result.copyFrom(this.source);
+        }
 
-		return result.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
+        return result.copyFrom(this.direction).multiplyScalar(directionDistance).add(this.source);
     }
 }

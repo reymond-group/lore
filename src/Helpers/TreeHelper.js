@@ -19,9 +19,9 @@ Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototyp
     },
 
     setPositionsXYZ: function (x, y, z, length) {
-        var positions = new Float32Array(length * 3);
-        for (var i = 0; i < length; i++) {
-            var j = 3 * i;
+        let positions = new Float32Array(length * 3);
+        for (let i = 0; i < length; i++) {
+            let j = 3 * i;
             positions[j] = x[i] || 0;
             positions[j + 1] = y[i] || 0;
             positions[j + 2] = z[i] || 0;
@@ -31,7 +31,7 @@ Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototyp
     },
 
     setPositionsXYZHSS: function (x, y, z, hue, saturation, size) {
-        var length = this.getMaxLength(x, y, z);
+        let length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
     },
@@ -74,14 +74,14 @@ Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototyp
     },
 
     getHue: function (index) {
-        var colors = this.getAttribute('color');
+        let colors = this.getAttribute('color');
         return colors[index * 3];
     },
 
     setHSS: function (hue, saturation, size, length) {
-        var c = new Float32Array(length * 3);
+        let c = new Float32Array(length * 3);
 
-        for (var i = 0; i < length * 3; i += 3) {
+        for (let i = 0; i < length * 3; i += 3) {
             c[i] = hue;
             c[i + 1] = saturation;
             c[i + 2] = size;

@@ -9,13 +9,13 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     this.hovered = null;
     this.selected = [];
 
-    var that = this;
+    let that = this;
 
     renderer.controls.addEventListener('dblclick', function(e) {
         if(e.e.mouse.state.middle || e.e.mouse.state.right) return;
-        var mouse = e.e.mouse.normalizedPosition;
+        let mouse = e.e.mouse.normalizedPosition;
 
-        var result = that.getIntersections(mouse);
+        let result = that.getIntersections(mouse);
         
         if(result.length > 0) {
             if(that.selectedContains(result[0].index)) return;
@@ -25,9 +25,9 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
 
     renderer.controls.addEventListener('mousemove', function(e) {
         if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
-        var mouse = e.e.mouse.normalizedPosition;
+        let mouse = e.e.mouse.normalizedPosition;
         
-        var result = that.getIntersections(mouse);
+        let result = that.getIntersections(mouse);
         
         if(result.length > 0) {
             if(that.hovered && that.hovered.index === result[0].index) return;
@@ -46,7 +46,7 @@ Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options
     });
 
     renderer.controls.addEventListener('updated', function() {
-        for(var i = 0; i < that.selected.length; i++) 
+        for(let i = 0; i < that.selected.length; i++) 
             that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
         
         if(that.hovered)
@@ -73,9 +73,9 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     addSelected: function(item) {
         // If item is only the index, create a dummy item
         if (!isNaN(parseFloat(item))) {
-            var positions = this.target.geometry.attributes['position'].data;
-            var colors = this.target.geometry.attributes['color'].data;
-            var k = item * 3;
+            let positions = this.target.geometry.attributes['position'].data;
+            let colors = this.target.geometry.attributes['color'].data;
+            let k = item * 3;
             item = {
                 distance: -1,
                 index: item,
@@ -85,7 +85,7 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
             };
         }
 
-        var index = this.selected.length;
+        let index = this.selected.length;
         this.selected.push(item);
         this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
         this.raiseEvent('selectedchanged', { e: this.selected });
@@ -102,7 +102,7 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     },
 
     selectedContains: function(index) {
-        for(var i = 0; i < this.selected.length; i++) {
+        for(let i = 0; i < this.selected.length; i++) {
             if(this.selected[i].index === index) return true;
         }
 
@@ -112,9 +112,9 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     setHovered: function(index) {
         if(that.hovered && that.hovered.index === result[0].index) return;
     
-        var k = index * 3;        
-        var positions = this.target.geometry.attributes['position'].data;
-        var colors = null;
+        let k = index * 3;        
+        let positions = this.target.geometry.attributes['position'].data;
+        let colors = null;
         
         if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
         
@@ -163,8 +163,8 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     getIntersections: function(mouse) {
         this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
 
-        var tmp = this.octree.raySearch(this.raycaster);
-        var result = this.rayIntersections(tmp);
+        let tmp = this.octree.raySearch(this.raycaster);
+        let result = this.rayIntersections(tmp);
         result.sort(function(a, b) { return a.distance - b.distance });
 
         return result;
@@ -178,22 +178,22 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     raiseEvent: function(eventName, data) {
         if(!this.eventListeners[eventName]) return;
 
-        for(var i = 0; i < this.eventListeners[eventName].length; i++)
+        for(let i = 0; i < this.eventListeners[eventName].length; i++)
             this.eventListeners[eventName][i](data);
     },
 
     drawCenters: function() {
         this.geometry.setMode(Lore.DrawModes.points);
 
-        var aabbs = this.octree.aabbs;
-        var length = Object.keys(aabbs).length;
-        var colors = new Float32Array(length * 3);
-        var positions = new Float32Array(length * 3);
+        let aabbs = this.octree.aabbs;
+        let length = Object.keys(aabbs).length;
+        let colors = new Float32Array(length * 3);
+        let positions = new Float32Array(length * 3);
 
-        var i = 0;
+        let i = 0;
         for(key in aabbs) {
-            var c = aabbs[key].center.components;
-            var k = i * 3;
+            let c = aabbs[key].center.components;
+            let k = i * 3;
             colors[k] = 1;
             colors[k + 1] = 1;
             colors[k + 2] = 1;
@@ -212,16 +212,16 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     drawBoxes: function() {
         this.geometry.setMode(Lore.DrawModes.lines);
 
-        var aabbs = this.octree.aabbs;
-        var length = Object.keys(aabbs).length;
-        var c = new Float32Array(length * 24 * 3);
-        var p = new Float32Array(length * 24 * 3);
+        let aabbs = this.octree.aabbs;
+        let length = Object.keys(aabbs).length;
+        let c = new Float32Array(length * 24 * 3);
+        let p = new Float32Array(length * 24 * 3);
 
-        for(var i = 0; i < c.length; i++) c[i] = 1;
+        for(let i = 0; i < c.length; i++) c[i] = 1;
 
-        var index = 0;
+        let index = 0;
         for(key in aabbs) {
-            var corners = Lore.AABB.getCorners(aabbs[key]);
+            let corners = Lore.AABB.getCorners(aabbs[key]);
             
             p[index++] = corners[0][0]; p[index++] = corners[0][1]; p[index++] = corners[0][2];
             p[index++] = corners[1][0]; p[index++] = corners[1][1]; p[index++] = corners[1][2];
@@ -264,34 +264,34 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
     },
 
     rayIntersections: function(indices) {
-        var result = [];
-        var inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
-        var ray = new Lore.Ray();
-        var threshold = this.raycaster.threshold * this.target.getPointScale();
-        var positions = this.target.geometry.attributes['position'].data;
-        var colors = null;
+        let result = [];
+        let inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
+        let ray = new Lore.Ray();
+        let threshold = this.raycaster.threshold * this.target.getPointScale();
+        let positions = this.target.geometry.attributes['position'].data;
+        let colors = null;
         if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
         
         // Only get points further away than the cutoff set in the point HelperBase
-        var cutoff = this.target.getCutoff();
+        let cutoff = this.target.getCutoff();
 
         ray.copyFrom(this.raycaster.ray).applyProjection(inverseMatrix);
 
-        var localThreshold = threshold; // / ((pointCloud.scale.x + pointCloud.scale.y + pointCloud.scale.z) / 3);
-	    var localThresholdSq = localThreshold * localThreshold;
+        let localThreshold = threshold; // / ((pointCloud.scale.x + pointCloud.scale.y + pointCloud.scale.z) / 3);
+	    let localThresholdSq = localThreshold * localThreshold;
 
-        for(var i = 0; i < indices.length; i++) {
-            var index = indices[i].index;
-            var locCode = indices[i].locCode;
-            var k = index * 3;
-            var v = new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]);
+        for(let i = 0; i < indices.length; i++) {
+            let index = indices[i].index;
+            let locCode = indices[i].locCode;
+            let k = index * 3;
+            let v = new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]);
             
-            var rayPointDistanceSq = ray.distanceSqToPoint(v);
+            let rayPointDistanceSq = ray.distanceSqToPoint(v);
             if(rayPointDistanceSq < localThresholdSq) {
-                var intersectedPoint = ray.closestPointToPoint(v);
+                let intersectedPoint = ray.closestPointToPoint(v);
                 intersectedPoint.applyProjection(this.target.modelMatrix);
-                var dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
-                var isVisible = Lore.FilterBase.isVisible(this.target.geometry, index);
+                let dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
+                let isVisible = Lore.FilterBase.isVisible(this.target.geometry, index);
                 if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
 
                 result.push({

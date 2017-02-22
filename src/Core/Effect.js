@@ -16,11 +16,11 @@ Lore.Effect.prototype = {
     constructor: Lore.Effect,
 
     initBuffer: function() {
-      var g = this.gl;
-      var texCoordLocation = g.getAttribLocation(this.shader.program, 'v_coord');
+      let g = this.gl;
+      let texCoordLocation = g.getAttribLocation(this.shader.program, 'v_coord');
 
       // provide texture coordinates for the rectangle.
-      var texCoordBuffer = g.createBuffer();
+      let texCoordBuffer = g.createBuffer();
       g.bindBuffer(g.ARRAY_BUFFER, texCoordBuffer);
       g.bufferData(g.ARRAY_BUFFER, new Float32Array([
            1.0,  1.0,
@@ -37,9 +37,9 @@ Lore.Effect.prototype = {
     },
 
     initTexture: function() {
-        var g = this.gl;
+        let g = this.gl;
 
-        var texture = g.createTexture();
+        let texture = g.createTexture();
         g.bindTexture(g.TEXTURE_2D, texture);
         g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
         g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
@@ -55,17 +55,17 @@ Lore.Effect.prototype = {
     },
 
     initFramebuffer: function() {
-        var g = this.gl;
+        let g = this.gl;
 
-        var framebuffer = g.createFramebuffer();
+        let framebuffer = g.createFramebuffer();
         g.bindFramebuffer(g.FRAMEBUFFER, framebuffer);
         return framebuffer;
     },
 
     initRenderbuffer: function() {
-      var g = this.gl;
+      let g = this.gl;
 
-      var renderbuffer = g.createRenderbuffer();
+      let renderbuffer = g.createRenderbuffer();
       g.bindRenderbuffer(g.RENDERBUFFER, renderbuffer);
 
       g.renderbufferStorage(g.RENDERBUFFER, g.DEPTH_COMPONENT16, this.renderer.getWidth(), this.renderer.getHeight());
@@ -78,13 +78,13 @@ Lore.Effect.prototype = {
     },
 
     bind: function() {
-        var g = this.gl;
+        let g = this.gl;
         g.bindFramebuffer(g.FRAMEBUFFER, this.framebuffer);
         g.clear(g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT);
     },
 
     unbind: function() {
-        var g = this.gl;
+        let g = this.gl;
         g.bindRenderbuffer(g.RENDERBUFFER, null);
         g.bindFramebuffer(g.FRAMEBUFFER, null);
 

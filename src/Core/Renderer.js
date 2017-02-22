@@ -21,17 +21,17 @@ Lore.Renderer = function(targetId, options) {
 
     // Disable context menu on right click
     this.canvas.addEventListener('contextmenu', function(e) {
-        if (e.button = 2) {
+        if (e.button === 2) {
             e.preventDefault();
             return false;
         }
     });
 
-    var that = this;
+    let that = this;
     that.init();
 
     // Attach the controls last
-    var center = options.center ? options.center : new Lore.Vector3f();
+    let center = options.center ? options.center : new Lore.Vector3f();
     that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
 }
 
@@ -40,9 +40,9 @@ Lore.Renderer.prototype = {
     ready: false,
     gl: null,
     init: function() {
-        var _this = this;
+        let _this = this;
 
-        var settings = { antialias: this.antialiasing };
+        let settings = { antialias: this.antialiasing };
 
         this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
 
@@ -51,36 +51,36 @@ Lore.Renderer.prototype = {
             return;
         }
 
-        var g = this.gl;
+        let g = this.gl;
         console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
 
         if(this.verbose) {
-            var hasAA = g.getContextAttributes().antialias;
-            var size = g.getParameter(g.SAMPLES);
+            let hasAA = g.getContextAttributes().antialias;
+            let size = g.getParameter(g.SAMPLES);
             console.info('Antialiasing: ' + hasAA + ' (' + size + 'x)');
 
-            var highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
-            var hasHighp = highp.precision != 0;
+            let highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
+            let hasHighp = highp.precision != 0;
             console.info('High precision support: ' + hasHighp);
         }
 
         // Blending
         //g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
         // Extensions
-        var oes = 'OES_standard_derivatives';
-        var extOes = g.getExtension(oes);
+        let oes = 'OES_standard_derivatives';
+        let extOes = g.getExtension(oes);
         if(extOes === null) {
             console.warn('Could not load extension: ' + oes + '.');
         }
 
-        var wdb = 'WEBGL_draw_buffers';
-        var extWdb = g.getExtension(wdb);
+        let wdb = 'WEBGL_draw_buffers';
+        let extWdb = g.getExtension(wdb);
         if(extWdb === null) {
             console.warn('Could not load extension: ' + wdb + '.');
         }
 
-        var wdt = 'WEBGL_depth_texture';
-        var extWdt = g.getExtension(wdt);
+        let wdt = 'WEBGL_depth_texture';
+        let extWdt = g.getExtension(wdt);
         if(extWdt === null) {
             console.warn('Could not load extension: ' + wdt + '.');
         }
@@ -109,8 +109,8 @@ Lore.Renderer.prototype = {
 
 
         window.addEventListener('resize', function(event) {
-            var width = _this.getWidth();
-            var height = _this.getHeight();
+            let width = _this.getWidth();
+            let height = _this.getHeight();
             _this.updateViewport(0, 0, width, height);
         });
 
@@ -123,7 +123,7 @@ Lore.Renderer.prototype = {
 
     setClearColor: function(color) {
         this.clearColor = color;
-        var cc = this.clearColor.components;
+        let cc = this.clearColor.components;
         this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
     },
 
@@ -155,7 +155,7 @@ Lore.Renderer.prototype = {
     },
 
     animate: function() {
-        var that = this;
+        let that = this;
 
         setTimeout( function() {
             requestAnimationFrame(function() {
@@ -164,8 +164,8 @@ Lore.Renderer.prototype = {
         }, this.maxFps);
 
         if(this.fpsElement) {
-            var now = performance.now();
-            var delta = now - this.lastTiming;
+            let now = performance.now();
+            let delta = now - this.lastTiming;
             
             this.lastTiming = now;
             if(this.fpsCount < 10) {
@@ -189,9 +189,9 @@ Lore.Renderer.prototype = {
     },
 
     createGeometry: function(name, shaderName) {
-        var shader = Lore.getShader(shaderName);
+        let shader = Lore.getShader(shaderName);
         shader.init(this.gl);
-        var geometry = new Lore.Geometry(name, this.gl, shader);
+        let geometry = new Lore.Geometry(name, this.gl, shader);
         
         this.geometries[name] = geometry;
         

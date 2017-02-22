@@ -32,9 +32,9 @@ Lore.Shader.prototype = {
     },
 
     getVertexShader: function(gl) {
-        var shader = gl.createShader(gl.VERTEX_SHADER);
+        let shader = gl.createShader(gl.VERTEX_SHADER);
 
-        var vertexShaderCode = 'uniform mat4 modelViewMatrix;\n' +
+        let vertexShaderCode = 'uniform mat4 modelViewMatrix;\n' +
             'uniform mat4 projectionMatrix;\n\n' +
             this.getVertexShaderCode();
 
@@ -46,12 +46,12 @@ Lore.Shader.prototype = {
     },
 
     getFragmentShader: function(gl) {
-        var shader = gl.createShader(gl.FRAGMENT_SHADER);
+        let shader = gl.createShader(gl.FRAGMENT_SHADER);
         // Adding precision, see:
         // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
         // and:
         // http://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
-        var fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' +
+        let fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' +
             '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' +
             this.getFragmentShaderCode();
 
@@ -65,8 +65,8 @@ Lore.Shader.prototype = {
     init: function(gl) {
         this.gl = gl;
         this.program = this.gl.createProgram();
-        var vertexShader = this.getVertexShader(this.gl);
-        var fragmentShader = this.getFragmentShader(this.gl);
+        let vertexShader = this.getVertexShader(this.gl);
+        let fragmentShader = this.getFragmentShader(this.gl);
 
         if (!vertexShader || !fragmentShader) {
             console.error('Failed to create the fragment or the vertex shader.');
@@ -91,9 +91,9 @@ Lore.Shader.prototype = {
     updateUniforms: function(renderer) {
         // Always update time uniform if it exists
         if (this.uniforms['time']) {
-            var unif = this.uniforms['time'];
+            let unif = this.uniforms['time'];
             
-            var currentTime = new Date().getTime();
+            let currentTime = new Date().getTime();
             unif.value += currentTime - this.lastTime;
             this.lastTime = currentTime;
 
@@ -101,8 +101,8 @@ Lore.Shader.prototype = {
             
             unif.stale = false;
         }
-        for (var uniform in this.uniforms) {
-            var unif = this.uniforms[uniform];
+        for (let uniform in this.uniforms) {
+            let unif = this.uniforms[uniform];
             if (unif.stale) {
                 Lore.Uniform.Set(this.gl, this.program, unif);
             }

@@ -1,19 +1,24 @@
-Lore.ProjectionMatrix = function() {
-    Lore.Matrix4f.call(this);
+/** A class representing a projection matrix */
+Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
+    /**
+     * Set the projection matrix to an orthographic projection.
+     *
+     * @param {number} left The left edge.
+     * @param {number} right The right edge.
+     * @param {number} top The top edge.
+     * @param {number} bottom The bottom edge.
+     * @param {number} near The near-cutoff value.
+     * @param {number} far The far-cutoff value.
+     * @returns {ProjectionMatrix} Returns this projection matrix.
+     */
+    setOrthographic(left, right, top, bottom, near, far) {
+        let w = 1.0 / (right - left);
+        let h = 1.0 / (top - bottom);
+        let d = 1.0 / (far - near);
 
-}
-
-Lore.ProjectionMatrix.prototype = Object.assign(Object.create(Lore.Matrix4f.prototype), {
-    constructor: Lore.ProjectionMatrix,
-
-    setOrthographic: function(left, right, top, bottom, near, far) {
-        var w = 1.0 / (right - left);
-        var h = 1.0 / (top - bottom);
-        var d = 1.0 / (far - near);
-
-        var x = (right + left) * w;
-        var y = (top + bottom) * h;
-        var z = (far + near) * d;
+        let x = (right + left) * w;
+        let y = (top + bottom) * h;
+        let z = (far + near) * d;
 
         this.set()
 
@@ -36,4 +41,4 @@ Lore.ProjectionMatrix.prototype = Object.assign(Object.create(Lore.Matrix4f.prot
 
         return this;
     }
-});
+}

@@ -25,15 +25,15 @@ Lore.Color.fromHex = function(hex) {
     // Thanks to Tim Down
     // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    let shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     hex = hex.replace(shorthandRegex, function(m, r, g, b) {
         return r + r + g + g + b + b;
     });
 
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    var r = parseInt(result[1], 16);
-    var g = parseInt(result[2], 16);
-    var b = parseInt(result[3], 16);
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    let r = parseInt(result[1], 16);
+    let g = parseInt(result[2], 16);
+    let b = parseInt(result[3], 16);
 
     return result ? new Lore.Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
 }
@@ -48,14 +48,14 @@ Lore.Color.hueToRgb = function(p, q, t) {
 }
 
 Lore.Color.hslToRgb = function(h, s, l) {
-    var r, g, b;
+    let r, g, b;
 
     if(s == 0) {
         r = g = b = l;
     }
     else {
-        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        var p = 2 * l - q;
+        let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        let p = 2 * l - q;
         r = Lore.Color.hueToRgb(p, q, h + 0.3333);
         g = Lore.Color.hueToRgb(p, q, h);
         b = Lore.Color.hueToRgb(p, q, h - 0.3333);
@@ -66,13 +66,13 @@ Lore.Color.hslToRgb = function(h, s, l) {
 
 Lore.Color.rgbToHsl = function(r, g, b){
     r /= 255, g /= 255, b /= 255;
-    var max = Math.max(r, g, b), min = Math.min(r, g, b);
-    var h, s, l = (max + min) / 2;
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
 
     if(max == min){
         h = s = 0; // achromatic
     }else{
-        var d = max - min;
+        let d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch(max){
             case r: h = (g - b) / d + (g < b ? 6 : 0); break;
@@ -86,7 +86,7 @@ Lore.Color.rgbToHsl = function(r, g, b){
 }
 
 Lore.Color.gdbHueShift = function(hue) {
-    var hue = 0.85 * hue + 0.66;
+    hue = 0.85 * hue + 0.66;
     if (hue > 1.0) hue = hue - 1.0
     hue = (1 - hue) + 0.33
     if (hue > 1.0) hue = hue - 1.0

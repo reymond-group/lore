@@ -22,7 +22,7 @@ Lore.Attribute.prototype = {
         if (this.attributeLength !== arr[0].components.length)
             throw 'The attribute has a length of ' + this.attributeLength + '. But the vectors have ' + arr[0].components.length + ' components.';
 
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             this.data.set(arr[i].components, i * this.attributeLength, arr[i].components.length);
         }
     },

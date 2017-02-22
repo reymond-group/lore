@@ -15,7 +15,7 @@ Lore.Uniform.prototype = {
 }
 
 Lore.Uniform.Set = function(gl, program, uniform) {
-    var location = gl.getUniformLocation(program, uniform.name);
+    let location = gl.getUniformLocation(program, uniform.name);
 
     if (uniform.type === 'int') {
         gl.uniform1i(location, uniform.value);

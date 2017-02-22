@@ -74,7 +74,7 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
     draw: function(renderer) {
         if (!this.isVisible) return;
 
-        for (var prop in this.attributes)
+        for (let prop in this.attributes)
             if (this.attributes[prop].stale) this.attributes[prop].update(this.gl);
 
         this.shader.use();
@@ -85,7 +85,7 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         }
 
         if (renderer.camera.isViewMatrixStale) {
-            var modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
+            let modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
             this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
         }
 
@@ -93,7 +93,7 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
 
         // How exactly does the binding work??
         // What will happen if I want to draw a second geometry?
-        for (prop in this.attributes) {
+        for (let prop in this.attributes) {
             this.attributes[prop].bind(this.gl);
         }
 

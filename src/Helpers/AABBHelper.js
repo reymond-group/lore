@@ -4,26 +4,26 @@ Lore.AABBHelper = function(renderer, aabbs, shaderName, options) {
     // Create lines
     // Replaced with indexed?
 
-    var p = new Float32Array(aabbs.length * 24 * 3);
-    var c = new Float32Array(aabbs.length * 24 * 3);
+    let p = new Float32Array(aabbs.length * 24 * 3);
+    let c = new Float32Array(aabbs.length * 24 * 3);
 
-    var index = 0;
+    let index = 0;
 
-    for(var i = 0; i < aabbs.length; i++) {
-        var aabb = aabbs[0];
-        var cx = aabb.center.components[0];
-        var cy = aabb.center.components[1];
-        var cz = aabb.center.components[2];
-        var r = aabb.radius;
+    for(let i = 0; i < aabbs.length; i++) {
+        let aabb = aabbs[0];
+        let cx = aabb.center.components[0];
+        let cy = aabb.center.components[1];
+        let cz = aabb.center.components[2];
+        let r = aabb.radius;
 
-        var p0 = [ cx - r, cy - r, cz - r ];
-        var p1 = [ cx - r, cy - r, cz + r ];
-        var p2 = [ cx - r, cy + r, cz - r ];
-        var p3 = [ cx - r, cy + r, cz + r ];
-        var p4 = [ cx + r, cy - r, cz - r ];
-        var p5 = [ cx + r, cy - r, cz + r ];
-        var p6 = [ cx + r, cy + r, cz - r ];
-        var p7 = [ cx + r, cy + r, cz + r ];
+        let p0 = [ cx - r, cy - r, cz - r ];
+        let p1 = [ cx - r, cy - r, cz + r ];
+        let p2 = [ cx - r, cy + r, cz - r ];
+        let p3 = [ cx - r, cy + r, cz + r ];
+        let p4 = [ cx + r, cy - r, cz - r ];
+        let p5 = [ cx + r, cy - r, cz + r ];
+        let p6 = [ cx + r, cy + r, cz - r ];
+        let p7 = [ cx + r, cy + r, cz + r ];
 
         p[index++] = p0[0]; p[index++] = p0[1]; p[index++] = p0[2];
         p[index++] = p1[0]; p[index++] = p1[1]; p[index++] = p1[2];

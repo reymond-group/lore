@@ -1,35 +1,42 @@
-Lore.FileReaderBase = function(elementId) {
-    this.elementId = elementId;
-    this.element = document.getElementById(this.elementId);
-    this.eventListeners = {};
-    var that = this;
-    this.element.addEventListener('change', function() {
-        var fileReader = new FileReader();
+Lore.FileReaderBase = class FileReaderBase {
 
-        fileReader.onload = function() {
-            that.loaded(fileReader.result);
+    constructor(elementId) {
+        this.elementId = elementId;
+        this.element = document.getElementById(this.elementId);
+        this.eventListeners = {};
+        
+        let that = this;
+        
+        this.element.addEventListener('change', function() {
+            let fileReader = new FileReader();
+
+            fileReader.onload = function() {
+                that.loaded(fileReader.result);
+            }
+
+            fileReader.readAsBinaryString(this.files[0]);
+        });
+    }
+
+    addEventListener(eventName, callback) {
+        if(!this.eventListeners[eventName]) {
+            this.eventListeners[eventName] = [];
         }
 
-        fileReader.readAsBinaryString(this.files[0]);
-    });
-}
-
-Lore.FileReaderBase.prototype = {
-    constructor: Lore.FileReaderBase,
-
-    addEventListener: function(eventName, callback) {
-        if(!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
         this.eventListeners[eventName].push(callback);
-    },
+    }
 
-    raiseEvent: function(eventName, data) {
-        if(!this.eventListeners[eventName]) return;
+    raiseEvent(eventName, data) {
+        if(!this.eventListeners[eventName]) {
+            return;
+        }
 
-        for(var i = 0; i < this.eventListeners[eventName].length; i++)
+        for(let i = 0; i < this.eventListeners[eventName].length; i++) {
             this.eventListeners[eventName][i](data);
-    },
+        }
+    }
 
-    loaded: function(data) {
+    loaded(data) {
 
     }
 }

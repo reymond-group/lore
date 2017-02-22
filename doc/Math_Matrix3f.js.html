@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Home - Documentation</title>
+    <title>Math/Matrix3f.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,25 +27,55 @@
 
 <div id="main">
     
+    <h1 class="page-title">Math/Matrix3f.js</h1>
+    
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** A class representing a 3x3 float matrix */
+Lore.Matrix3f = class Matrix3f {
+    /**
+     * The constructor for the class Matrix3f.
+     *
+     * @param {Float32Array} [entries=new Float32Array(...)] The Float32Array to which the entries will be set. If no value is provided, the matrix will be initialized to the identity matrix.
+     */
+    constructor(entries = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1])) {
+        this.entries = entries;
+    }
 
+    /**
+     * Clones the matrix and returns the clone as a new Matrix3f object.
+     *
+     * @returns {Matrix3f} The clone.
+     */
+    clone() {
+        return new Lore.Matrix3f(new Float32Array(this.entries));
+    }
 
+    /**
+     * Compares this matrix to another matrix.
+     *
+     * @param {Matrix3f} mat A matrix to be compared to this matrix.
+     * @returns {boolean} A boolean indicating whether or not the two matrices are identical.
+     */
+    equals(mat) {
+        for (let i = 0; i &lt; this.entries.length; i++) {
+            if (this.entries[i] !== mat.entries[i]) {
+                return false;
+            }
+        }
 
-
-
-
-
-
-
-    
-
-
-
+        return true;
+    }
+}
+</code></pre>
+        </article>
+    </section>
 
 
 

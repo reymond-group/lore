@@ -20,18 +20,18 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     },
 
     setPositionsXYZ: function (x, y, z, length) {
-        var positions = new Float32Array(length * 3);
-        for (var i = 0; i < length; i++) {
-            var j = 3 * i;
+        let positions = new Float32Array(length * 3);
+        for (let i = 0; i < length; i++) {
+            let j = 3 * i;
             positions[j] = x[i] || 0;
             positions[j + 1] = y[i] || 0;
             positions[j + 2] = z[i] || 0;
         }
 
         if (this.opts.octree) {
-            var initialBounds = Lore.AABB.fromPoints(positions);
-            var indices = new Uint32Array(length);
-            for (var i = 0; i < length; i++) indices[i] = i;
+            let initialBounds = Lore.AABB.fromPoints(positions);
+            let indices = new Uint32Array(length);
+            for (let i = 0; i < length; i++) indices[i] = i;
 
             this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
             this.octree.build(indices, positions, initialBounds);
@@ -43,27 +43,27 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     },
 
     setPositionsXYZHSS: function (x, y, z, hue, saturation, size) {
-        var length = this.getMaxLength(x, y, z);
+        let length = this.getMaxLength(x, y, z);
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
     },
 
     setRGB: function (r, g, b) {
-        var c = new Float32Array(r.length * 3);
-        var colors = this.getAttribute('color');
+        let c = new Float32Array(r.length * 3);
+        let colors = this.getAttribute('color');
 
-        for (var i = 0; i < r.length; i++) {
-            var j = 3 * i;
+        for (let i = 0; i < r.length; i++) {
+            let j = 3 * i;
             c[j] = r[i];
             c[j + 1] = g[i];
             c[j + 2] = b[i];
         }
 
         // Convert to HOS (Hue, Opacity, Size)
-        for(var i = 0; i < c.length; i += 3) {
-            var r = c[i];
-            var g = c[i + 1];
-            var b = c[i + 2];
+        for(let i = 0; i < c.length; i += 3) {
+            let r = c[i];
+            let g = c[i + 1];
+            let b = c[i + 2];
 
             c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
             c[i + 1] = colors[1];
@@ -115,14 +115,14 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
     },
 
     getHue: function (index) {
-        var colors = this.getAttribute('color');
+        let colors = this.getAttribute('color');
         return colors[index * 3];
     },
 
     setHSS: function (hue, saturation, size, length) {
-        var c = new Float32Array(length * 3);
+        let c = new Float32Array(length * 3);
 
-        for (var i = 0; i < length * 3; i += 3) {
+        for (let i = 0; i < length * 3; i += 3) {
             c[i] = hue;
             c[i + 1] = saturation;
             c[i + 2] = size;

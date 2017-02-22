@@ -24,11 +24,11 @@ Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.proto
     },
 
     filter: function() {
-        var attribute = this.geometry.attributes[this.attribute];
+        let attribute = this.geometry.attributes[this.attribute];
 
-        for(var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            var value = attribute.data[i + this.attributeIndex];
-            var size = this.geometry.attributes['color'].data[i + 2];
+        for(let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+            let value = attribute.data[i + this.attributeIndex];
+            let size = this.geometry.attributes['color'].data[i + 2];
             if(value > this.max || value < this.min)
                 this.geometry.attributes['color'].data[i + 2] = -Math.abs(size);
             else
@@ -39,10 +39,10 @@ Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.proto
     },
 
     reset: function() {
-        var attribute = this.geometry.attributes[this.attribute];
+        let attribute = this.geometry.attributes[this.attribute];
 
-        for(var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            var size = this.geometry.attributes['color'].data[i + 2];
+        for(let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+            let size = this.geometry.attributes['color'].data[i + 2];
             this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
         }
 

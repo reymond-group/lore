@@ -8,13 +8,26 @@ if (typeof define === 'function' && define.amd) {
     module.exports = Lore;
 }
 
-Lore.Mouse = {
+// By Shmiddty from stackoverflow
+function Enum(a){
+  let i = Object
+    .keys(a)
+    .reduce((o,k)=>(o[a[k]]=k,o),{});
+
+  return Object.freeze(
+    Object.keys(a).reduce(
+      (o,k)=>(o[k]=a[k],o), v=>i[v]
+    )
+  );
+}
+
+Lore.Mouse = Enum({
     Left: 0,
     Middle: 1,
     Right: 2
-}
+});
 
-Lore.Keyboard = {
+Lore.Keyboard = Enum({
     Backspace: 8,
     Tab: 9,
     Enter: 13,
@@ -22,7 +35,7 @@ Lore.Keyboard = {
     Ctrl: 17,
     Alt: 18,
     Esc: 27
-}
+});
 
 Lore.Shaders = {};
 
