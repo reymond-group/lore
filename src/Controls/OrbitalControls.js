@@ -8,6 +8,8 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
         this.renderer = renderer;
         this.camera = renderer.camera;
         this.canvas = renderer.canvas;
+        
+        this.yRotationLimit = Math.PI;
 
         this.dPhi = 0.0;
         this.dTheta = 0.0;
@@ -42,6 +44,16 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
             x: 0,
             y: 0
         }, 'left');
+    }
+
+    limitRotationToHorizon(limit) {
+        if (limit) {
+            this.yRotationLimit = 0.5 * Math.PI;
+        } else {
+            this.yRotationLimit = Math.PI;
+        }
+
+        return this;
     }
 
     setRadius(radius) {
@@ -101,7 +113,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
         this.spherical.setFromVector(offset);
         this.spherical.components[1] += this.dPhi;
         this.spherical.components[2] += this.dTheta;
-        this.spherical.limit(0.0, 0.5 * Math.PI, -Infinity, Infinity);
+        this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
         this.spherical.secure();
 
         // Limit radius here

@@ -60,6 +60,8 @@ Lore.init = function(canvas, options) {
         antialiasing: false,
         center: new Lore.Vector3f(125, 125, 125)
     });
+   
+    renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);
     
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
@@ -104,5 +106,6 @@ Lore.init = function(canvas, options) {
 }
 
 Lore.defaults = {
-    clearColor: '#001821'
+    clearColor: '#001821',
+    limitRotationToHorizon: false
 };

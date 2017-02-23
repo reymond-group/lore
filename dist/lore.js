@@ -70,6 +70,8 @@ Lore.init = function (canvas, options) {
         center: new Lore.Vector3f(125, 125, 125)
     });
 
+    renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);
+
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
@@ -113,7 +115,8 @@ Lore.init = function (canvas, options) {
 };
 
 Lore.defaults = {
-    clearColor: '#001821'
+    clearColor: '#001821',
+    limitRotationToHorizon: false
 };
 
 Lore.DrawModes = {
@@ -1374,6 +1377,8 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         _this2.camera = renderer.camera;
         _this2.canvas = renderer.canvas;
 
+        _this2.yRotationLimit = Math.PI;
+
         _this2.dPhi = 0.0;
         _this2.dTheta = 0.0;
         _this2.dPan = new Lore.Vector3f();
@@ -1411,6 +1416,17 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
     }
 
     _createClass(OrbitalControls, [{
+        key: 'limitRotationToHorizon',
+        value: function limitRotationToHorizon(limit) {
+            if (limit) {
+                this.yRotationLimit = 0.5 * Math.PI;
+            } else {
+                this.yRotationLimit = Math.PI;
+            }
+
+            return this;
+        }
+    }, {
         key: 'setRadius',
         value: function setRadius(radius) {
             this.radius = radius;
@@ -1469,7 +1485,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
             this.spherical.setFromVector(offset);
             this.spherical.components[1] += this.dPhi;
             this.spherical.components[2] += this.dTheta;
-            this.spherical.limit(0.0, 0.5 * Math.PI, -Infinity, Infinity);
+            this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
             this.spherical.secure();
 
             // Limit radius here
@@ -3483,158 +3499,226 @@ Lore.HelperBase = function (_Lore$Node2) {
     return HelperBase;
 }(Lore.Node);
 
-Lore.PointHelper = function (renderer, geometryName, shaderName, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.PointHelper.defaults, options);
-    this.indices = null;
-    this.octree = null;
-    this.geometry.setMode(Lore.DrawModes.points);
-    this.initPointSize();
-    this.filters = {};
-};
+Lore.PointHelper = function (_Lore$HelperBase) {
+    _inherits(PointHelper, _Lore$HelperBase);
 
-Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.PointHelper,
+    function PointHelper(renderer, geometryName, shaderName, options) {
+        _classCallCheck(this, PointHelper);
 
-    getMaxLength: function getMaxLength(x, y, z) {
-        return Math.max(x.length, Math.max(y.length, z.length));
-    },
+        var _this7 = _possibleConstructorReturn(this, (PointHelper.__proto__ || Object.getPrototypeOf(PointHelper)).call(this, renderer, geometryName, shaderName));
 
-    setPositions: function setPositions(positions) {
-        this.setAttribute('position', positions);
-    },
+        var defaults = {
+            octree: true,
+            octreeThreshold: 500.0,
+            octreeMaxDepth: 8,
+            pointScale: 1.0,
+            maxPointSize: 100.0
+        };
 
-    setPositionsXYZ: function setPositionsXYZ(x, y, z, length) {
-        var positions = new Float32Array(length * 3);
-        for (var i = 0; i < length; i++) {
-            var _j3 = 3 * i;
-            positions[_j3] = x[i] || 0;
-            positions[_j3 + 1] = y[i] || 0;
-            positions[_j3 + 2] = z[i] || 0;
-        }
-
-        if (this.opts.octree) {
-            var initialBounds = Lore.AABB.fromPoints(positions);
-            var indices = new Uint32Array(length);
-            for (var _i2 = 0; _i2 < length; _i2++) {
-                indices[_i2] = _i2;
-            }this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
-            this.octree.build(indices, positions, initialBounds);
-        }
-
-        this.setAttribute('position', positions);
-    },
-
-    setPositionsXYZHSS: function setPositionsXYZHSS(x, y, z, hue, saturation, size) {
-        var length = this.getMaxLength(x, y, z);
-        this.setPositionsXYZ(x, y, z, length);
-        this.setHSS(hue, saturation, size, length);
-    },
-
-    setRGB: function setRGB(r, g, b) {
-        var c = new Float32Array(r.length * 3);
-        var colors = this.getAttribute('color');
-
-        for (var i = 0; i < r.length; i++) {
-            var _j4 = 3 * i;
-            c[_j4] = r[i];
-            c[_j4 + 1] = g[i];
-            c[_j4 + 2] = b[i];
-        }
-
-        // Convert to HOS (Hue, Opacity, Size)
-        for (var _i3 = 0; _i3 < c.length; _i3 += 3) {
-            var _r = c[_i3];
-            var _g = c[_i3 + 1];
-            var _b = c[_i3 + 2];
-
-            c[_i3] = Lore.Color.rgbToHsl(_r, _g, _b)[0];
-            c[_i3 + 1] = colors[1];
-            c[_i3 + 2] = colors[2];
-        }
-
-        this.updateColors(c);
-    },
-
-    setColors: function setColors(colors) {
-        this.setAttribute('color', colors);
-    },
-
-    updateColors: function updateColors(colors) {
-        this.updateAttributeAll('color', colors);
-    },
-
-    updateColor: function updateColor(index, color) {
-        this.updateAttribute('color', index, color.components);
-    },
-
-    setPointSize: function setPointSize(size) {
-        if (size * this.opts.pointScale > this.opts.maxPointSize) return;
-        this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
-    },
-
-    getPointSize: function getPointSize() {
-        return this.geometry.shader.uniforms.size.value;
-    },
-
-    getPointScale: function getPointScale() {
-        return this.opts.pointScale;
-    },
-
-    setFogDistance: function setFogDistance(fogDistance) {
-        this.geometry.shader.uniforms.fogDistance.value = fogDistance;
-    },
-
-    initPointSize: function initPointSize() {
-        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
-    },
-
-    getCutoff: function getCutoff() {
-        return this.geometry.shader.uniforms.cutoff.value;
-    },
-
-    setCutoff: function setCutoff(cutoff) {
-        this.geometry.shader.uniforms.cutoff.value = cutoff;
-    },
-
-    getHue: function getHue(index) {
-        var colors = this.getAttribute('color');
-        return colors[index * 3];
-    },
-
-    setHSS: function setHSS(hue, saturation, size, length) {
-        var c = new Float32Array(length * 3);
-
-        for (var i = 0; i < length * 3; i += 3) {
-            c[i] = hue;
-            c[i + 1] = saturation;
-            c[i + 2] = size;
-        }
-
-        this.setColors(c);
-    },
-
-    addFilter: function addFilter(name, filter) {
-        filter.setGeometry(this.geometry);
-        this.filters[name] = filter;
-    },
-
-    removeFilter: function removeFilter(name) {
-        delete this.filters[name];
-    },
-
-    getFilter: function getFilter(name) {
-        return this.filters[name];
+        _this7.opts = Lore.Utils.extend(true, defaults, options);
+        _this7.indices = null;
+        _this7.octree = null;
+        _this7.geometry.setMode(Lore.DrawModes.points);
+        _this7.initPointSize();
+        _this7.filters = {};
+        return _this7;
     }
-});
 
-Lore.PointHelper.defaults = {
-    octree: true,
-    octreeThreshold: 500.0,
-    octreeMaxDepth: 8,
-    pointScale: 1.0,
-    maxPointSize: 100.0
-};
+    _createClass(PointHelper, [{
+        key: 'getMaxLength',
+        value: function getMaxLength(x, y, z) {
+            return Math.max(x.length, Math.max(y.length, z.length));
+
+            return this;
+        }
+    }, {
+        key: 'setPositions',
+        value: function setPositions(positions) {
+            this.setAttribute('position', positions);
+
+            return this;
+        }
+    }, {
+        key: 'setPositionsXYZ',
+        value: function setPositionsXYZ(x, y, z, length) {
+            var positions = new Float32Array(length * 3);
+            for (var i = 0; i < length; i++) {
+                var _j3 = 3 * i;
+                positions[_j3] = x[i] || 0;
+                positions[_j3 + 1] = y[i] || 0;
+                positions[_j3 + 2] = z[i] || 0;
+            }
+
+            if (this.opts.octree) {
+                var initialBounds = Lore.AABB.fromPoints(positions);
+                var indices = new Uint32Array(length);
+                for (var _i2 = 0; _i2 < length; _i2++) {
+                    indices[_i2] = _i2;
+                }this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
+                this.octree.build(indices, positions, initialBounds);
+            }
+
+            this.setAttribute('position', positions);
+
+            return this;
+        }
+    }, {
+        key: 'setPositionsXYZHSS',
+        value: function setPositionsXYZHSS(x, y, z, hue, saturation, size) {
+            var length = this.getMaxLength(x, y, z);
+
+            this.setPositionsXYZ(x, y, z, length);
+            this.setHSS(hue, saturation, size, length);
+
+            return this;
+        }
+    }, {
+        key: 'setRGB',
+        value: function setRGB(r, g, b) {
+            var c = new Float32Array(r.length * 3);
+            var colors = this.getAttribute('color');
+
+            for (var i = 0; i < r.length; i++) {
+                var _j4 = 3 * i;
+                c[_j4] = r[i];
+                c[_j4 + 1] = g[i];
+                c[_j4 + 2] = b[i];
+            }
+
+            // Convert to HOS (Hue, Opacity, Size)
+            for (var _i3 = 0; _i3 < c.length; _i3 += 3) {
+                var _r = c[_i3];
+                var _g = c[_i3 + 1];
+                var _b = c[_i3 + 2];
+
+                c[_i3] = Lore.Color.rgbToHsl(_r, _g, _b)[0];
+                c[_i3 + 1] = colors[1];
+                c[_i3 + 2] = colors[2];
+            }
+
+            this.updateColors(c);
+
+            return this;
+        }
+    }, {
+        key: 'setColors',
+        value: function setColors(colors) {
+            this.setAttribute('color', colors);
+
+            return this;
+        }
+    }, {
+        key: 'updateColors',
+        value: function updateColors(colors) {
+            this.updateAttributeAll('color', colors);
+
+            return this;
+        }
+    }, {
+        key: 'updateColor',
+        value: function updateColor(index, color) {
+            this.updateAttribute('color', index, color.components);
+
+            return this;
+        }
+    }, {
+        key: 'setPointSize',
+        value: function setPointSize(size) {
+            if (size * this.opts.pointScale > this.opts.maxPointSize) {
+                return;
+            }
+
+            this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
+
+            return this;
+        }
+    }, {
+        key: 'getPointSize',
+        value: function getPointSize() {
+            return this.geometry.shader.uniforms.size.value;
+        }
+    }, {
+        key: 'getPointScale',
+        value: function getPointScale() {
+            return this.opts.pointScale;
+        }
+    }, {
+        key: 'setFogDistance',
+        value: function setFogDistance(fogDistance) {
+            this.geometry.shader.uniforms.fogDistance.value = fogDistance;
+
+            return this;
+        }
+    }, {
+        key: 'initPointSize',
+        value: function initPointSize() {
+            this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
+
+            return this;
+        }
+    }, {
+        key: 'getCutoff',
+        value: function getCutoff() {
+            return this.geometry.shader.uniforms.cutoff.value;
+        }
+    }, {
+        key: 'setCutoff',
+        value: function setCutoff(cutoff) {
+            this.geometry.shader.uniforms.cutoff.value = cutoff;
+
+            return this;
+        }
+    }, {
+        key: 'getHue',
+        value: function getHue(index) {
+            var colors = this.getAttribute('color');
+
+            return colors[index * 3];
+        }
+    }, {
+        key: 'getPosition',
+        value: function getPosition(index) {
+            var positions = this.getAttribute('position');
+
+            return new Lore.Vector3f(positions[index * 3], positions[index * 3 + 1], positions[index * 3 + 2]);
+        }
+    }, {
+        key: 'setHSS',
+        value: function setHSS(hue, saturation, size, length) {
+            var c = new Float32Array(length * 3);
+
+            for (var i = 0; i < length * 3; i += 3) {
+                c[i] = hue;
+                c[i + 1] = saturation;
+                c[i + 2] = size;
+            }
+
+            this.setColors(c);
+        }
+    }, {
+        key: 'addFilter',
+        value: function addFilter(name, filter) {
+            filter.setGeometry(this.geometry);
+            this.filters[name] = filter;
+
+            return this;
+        }
+    }, {
+        key: 'removeFilter',
+        value: function removeFilter(name) {
+            delete this.filters[name];
+
+            return this;
+        }
+    }, {
+        key: 'getFilter',
+        value: function getFilter(name) {
+            return this.filters[name];
+        }
+    }]);
+
+    return PointHelper;
+}(Lore.HelperBase);
 
 Lore.TreeHelper = function (renderer, geometryName, shaderName, options) {
     Lore.HelperBase.call(this, renderer, geometryName, shaderName);
@@ -4339,18 +4423,18 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     function CsvFileReader(elementId, options) {
         _classCallCheck(this, CsvFileReader);
 
-        var _this7 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+        var _this8 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
 
-        _this7.defaults = {
+        _this8.defaults = {
             separator: ',',
             cols: [],
             types: [],
             header: true
         };
 
-        _this7.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
-        _this7.columns = [];
-        return _this7;
+        _this8.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
+        _this8.columns = [];
+        return _this8;
     }
 
     _createClass(CsvFileReader, [{
@@ -4630,47 +4714,47 @@ Lore.Octree = function () {
             var childPointCounts = new Uint32Array(8);
             var codes = new Float32Array(pointIndices.length);
 
-            for (var i = 0; i < pointIndices.length; i++) {
+            for (var _i9 = 0; _i9 < pointIndices.length; _i9++) {
                 // Points are indices to the vertices array
                 // which stores x,y,z coordinates linear
-                var k = pointIndices[i] * 3;
+                var _k5 = pointIndices[_i9] * 3;
 
                 // Assign point to subtree, this gives a code
                 // 000, 001, 010, 011, 100, 101, 110, 111
                 // (-> 8 possible subtrees)
-                if (vertices[k + 0] >= aabb.center.components[0]) codes[i] |= 4;
-                if (vertices[k + 1] >= aabb.center.components[1]) codes[i] |= 2;
-                if (vertices[k + 2] >= aabb.center.components[2]) codes[i] |= 1;
+                if (vertices[_k5 + 0] >= aabb.center.components[0]) codes[_i9] |= 4;
+                if (vertices[_k5 + 1] >= aabb.center.components[1]) codes[_i9] |= 2;
+                if (vertices[_k5 + 2] >= aabb.center.components[2]) codes[_i9] |= 1;
 
-                childPointCounts[codes[i]]++;
+                childPointCounts[codes[_i9]]++;
             }
 
             var nextPoints = new Array(8);
             var nextAabb = new Array(8);
 
-            for (var i = 0; i < 8; i++) {
-                if (childPointCounts[i] == 0) continue;
-                nextPoints[i] = new Uint32Array(childPointCounts[i]);
+            for (var _i10 = 0; _i10 < 8; _i10++) {
+                if (childPointCounts[_i10] == 0) continue;
+                nextPoints[_i10] = new Uint32Array(childPointCounts[_i10]);
 
-                for (var j = 0, k = 0; j < pointIndices.length; j++) {
-                    if (codes[j] == i) {
-                        nextPoints[i][k++] = pointIndices[j];
+                for (var _j9 = 0, _k6 = 0; _j9 < pointIndices.length; _j9++) {
+                    if (codes[_j9] == _i10) {
+                        nextPoints[_i10][_k6++] = pointIndices[_j9];
                     }
                 }
 
-                var o = this.offsets[i];
+                var o = this.offsets[_i10];
                 var offset = new Lore.Vector3f(o[0], o[1], o[2]);
                 offset.multiplyScalar(aabb.radius);
-                nextAabb[i] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
+                nextAabb[_i10] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
             }
 
-            for (var i = 0; i < 8; i++) {
-                if (childPointCounts[i] == 0) {
+            for (var _i11 = 0; _i11 < 8; _i11++) {
+                if (childPointCounts[_i11] == 0) {
                     continue;
                 }
 
-                var nextLocCode = this.generateLocCode(locCode, i);
-                this.build(nextPoints[i], vertices, nextAabb[i], nextLocCode);
+                var nextLocCode = this.generateLocCode(locCode, _i11);
+                this.build(nextPoints[_i11], vertices, nextAabb[_i11], nextLocCode);
             }
 
             return this;
@@ -4833,9 +4917,9 @@ Lore.Octree = function () {
                     return;
                 }
 
-                for (var i = 0; i < points.length; i++) {
+                for (var _i12 = 0; _i12 < points.length; _i12++) {
                     result.push({
-                        index: points[i],
+                        index: points[_i12],
                         locCode: locCode
                     });
                 }
@@ -5165,10 +5249,10 @@ Lore.Octree = function () {
             var p = point;
 
             if (!isNaN(parseFloat(point))) {
-                var p = {
-                    x: positions[p * 3],
-                    y: positions[p * 3 + 1],
-                    z: positions[p * 3 + 2]
+                var _p = {
+                    x: positions[_p * 3],
+                    y: positions[_p * 3 + 1],
+                    z: positions[_p * 3 + 2]
                 };
             }
 
@@ -5215,23 +5299,23 @@ Lore.Octree = function () {
                 return indices;
             }
 
-            for (var i = 0; i < sortedCellDistances.array.length; i++) {
+            for (var _i13 = 0; _i13 < sortedCellDistances.array.length; _i13++) {
                 // Get the points from the cell and merge them with the already found ones
-                var locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
-                var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+                var _locCode = cellDistances.locCodes[sortedCellDistances.indices[_i13]];
+                var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, _locCode, positions);
 
                 pointDistances = Lore.Octree.mergePointDistances(pointDistances, newPointDistances);
 
                 // Sort the merged points
                 var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
-                for (var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
-                    if (sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
-                        pointOffset = j;
+                for (var _j10 = pointOffset; indexCount < k && _j10 < sortedNewPointDistances.array.length; _j10++) {
+                    if (sortedNewPointDistances.array[_j10] > sortedCellDistances.array[_i13 + 1]) {
+                        pointOffset = _j10;
                         break;
                     }
 
-                    indices[j] = pointDistances.indices[sortedNewPointDistances.indices[j]];
+                    indices[_j10] = pointDistances.indices[sortedNewPointDistances.indices[_j10]];
                     indexCount++;
                 }
 
@@ -5296,13 +5380,13 @@ Lore.Octree = function () {
             for (var i = length - 1; i >= 0; i--) {
                 var neighbours = this.getNeighbours(locCodes[i]);
 
-                for (var j = 0; j < neighbours.length; j++) {
-                    if (neighbours[j] == locCode) {
+                for (var _j11 = 0; _j11 < neighbours.length; _j11++) {
+                    if (neighbours[_j11] == locCode) {
                         // console.log(locCode);
                     }
 
-                    if (neighbours[j] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
-                        locCodes.push(neighbours[j]);
+                    if (neighbours[_j11] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[_j11])) {
+                        locCodes.push(neighbours[_j11]);
                     }
                 }
             }
@@ -5317,8 +5401,8 @@ Lore.Octree = function () {
 
             var dists = new Float32Array(l1 - l2);
 
-            for (var i = l2, c = 0; i < l1; i++, c++) {
-                dists[c] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
+            for (var _i14 = l2, c = 0; _i14 < l1; _i14++, c++) {
+                dists[c] = this.aabbs[locCodes[_i14]].distanceToPointSq(x, y, z);
             }
 
             cellDistances.distancesSq = Lore.Utils.concatTypedArrays(distancesSq, dists);

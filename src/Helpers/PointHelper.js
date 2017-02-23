@@ -1,25 +1,37 @@
-Lore.PointHelper = function (renderer, geometryName, shaderName, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.PointHelper.defaults, options);
-    this.indices = null;
-    this.octree = null;
-    this.geometry.setMode(Lore.DrawModes.points);
-    this.initPointSize();
-    this.filters = {};
-}
+Lore.PointHelper = class PointHelper extends Lore.HelperBase {
 
-Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.PointHelper,
+    constructor(renderer, geometryName, shaderName, options) {
+        super(renderer, geometryName, shaderName);
 
-    getMaxLength: function (x, y, z) {
+        let defaults = {
+            octree: true,
+            octreeThreshold: 500.0,
+            octreeMaxDepth: 8,
+            pointScale: 1.0,
+            maxPointSize: 100.0
+        };
+
+        this.opts = Lore.Utils.extend(true, defaults, options);
+        this.indices = null;
+        this.octree = null;
+        this.geometry.setMode(Lore.DrawModes.points);
+        this.initPointSize();
+        this.filters = {};
+    }
+
+    getMaxLength(x, y, z) {
         return Math.max(x.length, Math.max(y.length, z.length));
-    },
 
-    setPositions: function (positions) {
+        return this;
+    }
+
+    setPositions(positions) {
         this.setAttribute('position', positions);
-    },
 
-    setPositionsXYZ: function (x, y, z, length) {
+        return this;
+    }
+
+    setPositionsXYZ(x, y, z, length) {
         let positions = new Float32Array(length * 3);
         for (let i = 0; i < length; i++) {
             let j = 3 * i;
@@ -37,18 +49,21 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
             this.octree.build(indices, positions, initialBounds);
         }
 
-
-
         this.setAttribute('position', positions);
-    },
 
-    setPositionsXYZHSS: function (x, y, z, hue, saturation, size) {
+        return this;
+    }
+
+    setPositionsXYZHSS(x, y, z, hue, saturation, size) {
         let length = this.getMaxLength(x, y, z);
+
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
-    },
 
-    setRGB: function (r, g, b) {
+        return this;
+    }
+
+    setRGB(r, g, b) {
         let c = new Float32Array(r.length * 3);
         let colors = this.getAttribute('color');
 
@@ -60,7 +75,7 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         }
 
         // Convert to HOS (Hue, Opacity, Size)
-        for(let i = 0; i < c.length; i += 3) {
+        for (let i = 0; i < c.length; i += 3) {
             let r = c[i];
             let g = c[i + 1];
             let b = c[i + 2];
@@ -71,55 +86,82 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         }
 
         this.updateColors(c);
-    },
-    
-    setColors: function (colors) {
+
+        return this;
+    }
+
+    setColors(colors) {
         this.setAttribute('color', colors);
-    },
 
-    updateColors: function (colors) {
+        return this;
+    }
+
+    updateColors(colors) {
         this.updateAttributeAll('color', colors);
-    },
 
-    updateColor: function (index, color) {
+        return this;
+    }
+
+    updateColor(index, color) {
         this.updateAttribute('color', index, color.components);
-    },
 
-    setPointSize: function (size) {
-        if(size * this.opts.pointScale > this.opts.maxPointSize) return;
+        return this;
+    }
+
+    setPointSize(size) {
+        if (size * this.opts.pointScale > this.opts.maxPointSize) {
+            return;
+        }
+
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
-    },
 
-    getPointSize: function () {
+        return this;
+    }
+
+    getPointSize() {
         return this.geometry.shader.uniforms.size.value;
-    },
+    }
 
-    getPointScale: function() {
+    getPointScale() {
         return this.opts.pointScale;
-    },
+    }
 
-    setFogDistance: function (fogDistance) {
+    setFogDistance(fogDistance) {
         this.geometry.shader.uniforms.fogDistance.value = fogDistance;
-    },
 
-    initPointSize: function () {
+        return this;
+    }
+
+    initPointSize() {
         this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
-    },
-    
-    getCutoff: function() {
+
+        return this;
+    }
+
+    getCutoff() {
         return this.geometry.shader.uniforms.cutoff.value;
-    },
+    }
 
-    setCutoff: function (cutoff) {
+    setCutoff(cutoff) {
         this.geometry.shader.uniforms.cutoff.value = cutoff;
-    },
 
-    getHue: function (index) {
+        return this;
+    }
+
+    getHue(index) {
         let colors = this.getAttribute('color');
-        return colors[index * 3];
-    },
 
-    setHSS: function (hue, saturation, size, length) {
+        return colors[index * 3];
+    }
+
+    getPosition(index) {
+        let positions = this.getAttribute('position');
+
+        return new Lore.Vector3f(positions[index * 3], positions[index * 3 + 1],
+            positions[index * 3 + 2]);
+    }
+
+    setHSS(hue, saturation, size, length) {
         let c = new Float32Array(length * 3);
 
         for (let i = 0; i < length * 3; i += 3) {
@@ -129,26 +171,22 @@ Lore.PointHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototy
         }
 
         this.setColors(c);
-    },
+    }
 
-    addFilter: function (name, filter) {
+    addFilter(name, filter) {
         filter.setGeometry(this.geometry);
         this.filters[name] = filter;
-    },
 
-    removeFilter: function (name) {
+        return this;
+    }
+
+    removeFilter(name) {
         delete this.filters[name];
-    },
 
-    getFilter: function (name) {
+        return this;
+    }
+
+    getFilter(name) {
         return this.filters[name];
     }
-});
-
-Lore.PointHelper.defaults = {
-    octree: true,
-    octreeThreshold: 500.0,
-    octreeMaxDepth: 8,
-    pointScale: 1.0,
-    maxPointSize: 100.0
 }
