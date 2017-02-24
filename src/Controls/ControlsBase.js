@@ -273,6 +273,22 @@ Lore.ControlsBase = class ControlsBase {
                 source: source
             });
         });
+
+        this.canvas.addEventListener('mouseleave', function(e) {
+            that.mouse.state.left = false;
+            that.mouse.state.middle = false;
+            that.mouse.state.right = false;
+
+            that.mouse.previousPosition.x = null;
+            that.mouse.previousPosition.y = null;
+
+            that.renderer.setMaxFps(that.lowFps);
+
+            that.raiseEvent('mouseleave', {
+                e: that,
+                source: that.canvas
+            });
+        });
     }
 
     addEventListener(eventName, callback) {

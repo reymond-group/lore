@@ -3,7 +3,7 @@ Lore.Raycaster = class Raycaster {
         this.ray = new Lore.Ray();
         this.near = 0;
         this.far = 1000;
-        this.threshold = 0.5;
+        this.threshold = 0.1;
     }
 
     set(camera, mouseX, mouseY) {

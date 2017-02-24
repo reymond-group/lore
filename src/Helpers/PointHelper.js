@@ -1,5 +1,4 @@
 Lore.PointHelper = class PointHelper extends Lore.HelperBase {
-
     constructor(renderer, geometryName, shaderName, options) {
         super(renderer, geometryName, shaderName);
 
@@ -17,6 +16,7 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         this.geometry.setMode(Lore.DrawModes.points);
         this.initPointSize();
         this.filters = {};
+        this.pointSize = 1.0 * this.opts.pointScale;
     }
 
     getMaxLength(x, y, z) {
@@ -33,8 +33,10 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
 
     setPositionsXYZ(x, y, z, length) {
         let positions = new Float32Array(length * 3);
+        
         for (let i = 0; i < length; i++) {
             let j = 3 * i;
+            
             positions[j] = x[i] || 0;
             positions[j + 1] = y[i] || 0;
             positions[j + 2] = z[i] || 0;
@@ -43,7 +45,10 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         if (this.opts.octree) {
             let initialBounds = Lore.AABB.fromPoints(positions);
             let indices = new Uint32Array(length);
-            for (let i = 0; i < length; i++) indices[i] = i;
+            
+            for (let i = 0; i < length; i++) {
+                indices[i] = i;
+            }
 
             this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
             this.octree.build(indices, positions, initialBounds);
@@ -69,6 +74,7 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
 
         for (let i = 0; i < r.length; i++) {
             let j = 3 * i;
+            
             c[j] = r[i];
             c[j + 1] = g[i];
             c[j + 2] = b[i];
@@ -108,14 +114,23 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
+    // Returns the threshold for the raycaster
     setPointSize(size) {
-        if (size * this.opts.pointScale > this.opts.maxPointSize) {
-            return;
+        let pointSize = size * this.opts.pointScale;
+        
+        if (pointSize > this.opts.maxPointSize) {
+            this.pointSize = this.opts.maxPointSize;
+        } else {
+            this.pointSize = pointSize;
         }
 
-        this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
-
-        return this;
+        this.geometry.shader.uniforms.size.value = this.pointSize;
+        
+        if (pointSize > this.opts.maxPointSize) {
+            return 0.5 * (this.opts.maxPointSize / pointSize);
+        } else {
+            return 0.5;
+        }
     }
 
     getPointSize() {

@@ -52,7 +52,11 @@ Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('siz
         'float mag = dot(N.xy, N.xy);',
         'if (mag > 1.0) discard;   // discard fragments outside circle',
         'N.z = sqrt(1.0 - mag);',
-        'float diffuse = max(0.5, dot(vec3(0.25, -0.25, 1.0), N));',
-        'gl_FragColor = vec4(vColor * diffuse, 1.0);',
+        'vec3 light_dir = vec3(0.25, -0.25, 1.0);',
+        'float diffuse = max(0.25, dot(light_dir, N));',
+        'vec3 v = normalize(vec3(0.1, -0.2, 1.0));',
+        'vec3 h = normalize(light_dir + v);',
+        'float specular = pow(max(0.0, dot(N, h)), 100.0);',
+        'gl_FragColor = vec4(vColor * diffuse + specular * 0.5, 1.0);',
     '}'
 ]);

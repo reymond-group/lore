@@ -1336,6 +1336,22 @@ Lore.ControlsBase = function () {
                 source: source
             });
         });
+
+        this.canvas.addEventListener('mouseleave', function (e) {
+            that.mouse.state.left = false;
+            that.mouse.state.middle = false;
+            that.mouse.state.right = false;
+
+            that.mouse.previousPosition.x = null;
+            that.mouse.previousPosition.y = null;
+
+            that.renderer.setMaxFps(that.lowFps);
+
+            that.raiseEvent('mouseleave', {
+                e: that,
+                source: that.canvas
+            });
+        });
     }
 
     _createClass(ControlsBase, [{
@@ -1557,6 +1573,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
     }, {
         key: 'setBottomView',
         value: function setBottomView() {
+            this.setView(0.0, 0.0);
             this.rotationLocked = true;
 
             return this;
@@ -3521,6 +3538,7 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         _this7.geometry.setMode(Lore.DrawModes.points);
         _this7.initPointSize();
         _this7.filters = {};
+        _this7.pointSize = 1.0 * _this7.opts.pointScale;
         return _this7;
     }
 
@@ -3542,8 +3560,10 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         key: 'setPositionsXYZ',
         value: function setPositionsXYZ(x, y, z, length) {
             var positions = new Float32Array(length * 3);
+
             for (var i = 0; i < length; i++) {
                 var _j3 = 3 * i;
+
                 positions[_j3] = x[i] || 0;
                 positions[_j3 + 1] = y[i] || 0;
                 positions[_j3 + 2] = z[i] || 0;
@@ -3552,9 +3572,12 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             if (this.opts.octree) {
                 var initialBounds = Lore.AABB.fromPoints(positions);
                 var indices = new Uint32Array(length);
+
                 for (var _i2 = 0; _i2 < length; _i2++) {
                     indices[_i2] = _i2;
-                }this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
+                }
+
+                this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
                 this.octree.build(indices, positions, initialBounds);
             }
 
@@ -3580,6 +3603,7 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             for (var i = 0; i < r.length; i++) {
                 var _j4 = 3 * i;
+
                 c[_j4] = r[i];
                 c[_j4 + 1] = g[i];
                 c[_j4 + 2] = b[i];
@@ -3621,16 +3645,27 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             return this;
         }
+
+        // Returns the threshold for the raycaster
+
     }, {
         key: 'setPointSize',
         value: function setPointSize(size) {
-            if (size * this.opts.pointScale > this.opts.maxPointSize) {
-                return;
+            var pointSize = size * this.opts.pointScale;
+
+            if (pointSize > this.opts.maxPointSize) {
+                this.pointSize = this.opts.maxPointSize;
+            } else {
+                this.pointSize = pointSize;
             }
 
-            this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
+            this.geometry.shader.uniforms.size.value = this.pointSize;
 
-            return this;
+            if (pointSize > this.opts.maxPointSize) {
+                return 0.5 * (this.opts.maxPointSize / pointSize);
+            } else {
+                return 0.5;
+            }
         }
     }, {
         key: 'getPointSize',
@@ -3984,314 +4019,460 @@ Lore.CoordinatesHelper.defaults = {
     }
 };
 
-Lore.OctreeHelper = function (renderer, geometryName, shaderName, target, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.OctreeHelper.defaults, options);
-    this.eventListeners = {};
-    this.target = target;
-    this.renderer = renderer;
-    this.octree = this.target.octree;
-    this.raycaster = new Lore.Raycaster();
-    this.hovered = null;
-    this.selected = [];
+Lore.OctreeHelper = function (_Lore$HelperBase2) {
+    _inherits(OctreeHelper, _Lore$HelperBase2);
 
-    var that = this;
+    function OctreeHelper(renderer, geometryName, shaderName, target, options) {
+        _classCallCheck(this, OctreeHelper);
 
-    renderer.controls.addEventListener('dblclick', function (e) {
-        if (e.e.mouse.state.middle || e.e.mouse.state.right) return;
-        var mouse = e.e.mouse.normalizedPosition;
+        var _this8 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
 
-        var result = that.getIntersections(mouse);
-
-        if (result.length > 0) {
-            if (that.selectedContains(result[0].index)) return;
-            that.addSelected(result[0]);
-        }
-    });
-
-    renderer.controls.addEventListener('mousemove', function (e) {
-        if (e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
-        var mouse = e.e.mouse.normalizedPosition;
-
-        var result = that.getIntersections(mouse);
-
-        if (result.length > 0) {
-            if (that.hovered && that.hovered.index === result[0].index) return;
-            that.hovered = result[0];
-            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
-            that.raiseEvent('hoveredchanged', { e: that.hovered });
-        } else {
-            that.hovered = null;
-            that.raiseEvent('hoveredchanged', { e: null });
-        }
-    });
-
-    renderer.controls.addEventListener('zoomchanged', function (zoom) {
-        that.target.setPointSize(zoom * window.devicePixelRatio + 0.1);
-    });
-
-    renderer.controls.addEventListener('updated', function () {
-        for (var i = 0; i < that.selected.length; i++) {
-            that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
-        }if (that.hovered) that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
-
-        that.raiseEvent('updated');
-    });
-
-    this.init();
-};
-
-Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.OctreeHelper,
-
-    init: function init() {
-        if (this.opts.visualize === 'centers') this.drawCenters();else if (this.opts.visualize === 'cubes') this.drawBoxes();else this.geometry.isVisible = false;
-    },
-
-    addSelected: function addSelected(item) {
-        // If item is only the index, create a dummy item
-        if (!isNaN(parseFloat(item))) {
-            var positions = this.target.geometry.attributes['position'].data;
-            var colors = this.target.geometry.attributes['color'].data;
-            var _k2 = item * 3;
-            item = {
-                distance: -1,
-                index: item,
-                locCode: -1,
-                position: new Lore.Vector3f(positions[_k2], positions[_k2 + 1], positions[_k2 + 2]),
-                color: colors ? [colors[_k2], colors[_k2 + 1], colors[_k2 + 2]] : null
-            };
-        }
-
-        var index = this.selected.length;
-        this.selected.push(item);
-        this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
-        this.raiseEvent('selectedchanged', { e: this.selected });
-    },
-
-    removeSelected: function removeSelected(index) {
-        this.selected.splice(index, 1);
-        this.raiseEvent('selectedchanged', { e: this.selected });
-    },
-
-    clearSelected: function clearSelected() {
-        this.selected = [];
-        this.raiseEvent('selectedchanged', { e: this.selected });
-    },
-
-    selectedContains: function selectedContains(index) {
-        for (var i = 0; i < this.selected.length; i++) {
-            if (this.selected[i].index === index) return true;
-        }
-
-        return false;
-    },
-
-    setHovered: function setHovered(index) {
-        if (that.hovered && that.hovered.index === result[0].index) return;
-
-        var k = index * 3;
-        var positions = this.target.geometry.attributes['position'].data;
-        var colors = null;
-
-        if ('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
-
-        that.hovered = {
-            index: index,
-            position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-            color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+        _this8.defaults = {
+            visualize: false
         };
 
-        that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
-        that.raiseEvent('hoveredchanged', { e: that.hovered });
-    },
+        _this8.opts = Lore.Utils.extend(true, _this8.defaults, options);
+        _this8.eventListeners = {};
+        _this8.target = target;
+        _this8.renderer = renderer;
+        _this8.octree = _this8.target.octree;
+        _this8.raycaster = new Lore.Raycaster();
+        _this8.hovered = null;
+        _this8.selected = [];
 
-    selectHovered: function selectHovered() {
-        if (!this.hovered || this.selectedContains(this.hovered.index)) return;
+        var that = _this8;
 
-        this.addSelected({
-            distance: this.hovered.distance,
-            index: this.hovered.index,
-            locCode: this.hovered.locCode,
-            position: this.hovered.position,
-            color: this.hovered.color
-        });
-    },
+        renderer.controls.addEventListener('dblclick', function (e) {
+            if (e.e.mouse.state.middle || e.e.mouse.state.right) {
+                return;
+            }
 
-    showCenters: function showCenters() {
-        this.opts.visualize = 'centers';
-        this.drawCenters();
-        this.geometry.isVisible = true;
-    },
+            var mouse = e.e.mouse.normalizedPosition;
+            var result = that.getIntersections(mouse);
 
-    showCubes: function showCubes() {
-        this.opts.visualize = 'cubes';
-        this.drawBoxes();
-        this.geometry.isVisible = true;
-    },
+            if (result.length > 0) {
+                if (that.selectedContains(result[0].index)) {
+                    return;
+                }
 
-    hide: function hide() {
-        this.opts.visualize = false;
-        this.geometry.isVisible = false;
-
-        this.setAttribute('position', new Float32Array([]));
-        this.setAttribute('color', new Float32Array([]));
-    },
-
-    getIntersections: function getIntersections(mouse) {
-        this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
-
-        var tmp = this.octree.raySearch(this.raycaster);
-        var result = this.rayIntersections(tmp);
-        result.sort(function (a, b) {
-            return a.distance - b.distance;
+                that.addSelected(result[0]);
+            }
         });
 
-        return result;
-    },
+        renderer.controls.addEventListener('mousemove', function (e) {
+            if (e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) {
+                return;
+            }
 
-    addEventListener: function addEventListener(eventName, callback) {
-        if (!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
-        this.eventListeners[eventName].push(callback);
-    },
+            var mouse = e.e.mouse.normalizedPosition;
+            var result = that.getIntersections(mouse);
 
-    raiseEvent: function raiseEvent(eventName, data) {
-        if (!this.eventListeners[eventName]) return;
+            if (result.length > 0) {
+                if (that.hovered && that.hovered.index === result[0].index) {
+                    return;
+                }
 
-        for (var i = 0; i < this.eventListeners[eventName].length; i++) {
-            this.eventListeners[eventName][i](data);
-        }
-    },
-
-    drawCenters: function drawCenters() {
-        this.geometry.setMode(Lore.DrawModes.points);
-
-        var aabbs = this.octree.aabbs;
-        var length = Object.keys(aabbs).length;
-        var colors = new Float32Array(length * 3);
-        var positions = new Float32Array(length * 3);
-
-        var i = 0;
-        for (key in aabbs) {
-            var c = aabbs[key].center.components;
-            var _k3 = i * 3;
-            colors[_k3] = 1;
-            colors[_k3 + 1] = 1;
-            colors[_k3 + 2] = 1;
-
-            positions[_k3] = c[0];
-            positions[_k3 + 1] = c[1];
-            positions[_k3 + 2] = c[2];
-
-            i++;
-        }
-
-        this.setAttribute('position', new Float32Array(positions));
-        this.setAttribute('color', new Float32Array(colors));
-    },
-
-    drawBoxes: function drawBoxes() {
-        this.geometry.setMode(Lore.DrawModes.lines);
-
-        var aabbs = this.octree.aabbs;
-        var length = Object.keys(aabbs).length;
-        var c = new Float32Array(length * 24 * 3);
-        var p = new Float32Array(length * 24 * 3);
-
-        for (var i = 0; i < c.length; i++) {
-            c[i] = 1;
-        }var index = 0;
-        for (key in aabbs) {
-            var corners = Lore.AABB.getCorners(aabbs[key]);
-
-            p[index++] = corners[0][0];p[index++] = corners[0][1];p[index++] = corners[0][2];
-            p[index++] = corners[1][0];p[index++] = corners[1][1];p[index++] = corners[1][2];
-            p[index++] = corners[0][0];p[index++] = corners[0][1];p[index++] = corners[0][2];
-            p[index++] = corners[2][0];p[index++] = corners[2][1];p[index++] = corners[2][2];
-            p[index++] = corners[0][0];p[index++] = corners[0][1];p[index++] = corners[0][2];
-            p[index++] = corners[4][0];p[index++] = corners[4][1];p[index++] = corners[4][2];
-
-            p[index++] = corners[1][0];p[index++] = corners[1][1];p[index++] = corners[1][2];
-            p[index++] = corners[3][0];p[index++] = corners[3][1];p[index++] = corners[3][2];
-            p[index++] = corners[1][0];p[index++] = corners[1][1];p[index++] = corners[1][2];
-            p[index++] = corners[5][0];p[index++] = corners[5][1];p[index++] = corners[5][2];
-
-            p[index++] = corners[2][0];p[index++] = corners[2][1];p[index++] = corners[2][2];
-            p[index++] = corners[3][0];p[index++] = corners[3][1];p[index++] = corners[3][2];
-            p[index++] = corners[2][0];p[index++] = corners[2][1];p[index++] = corners[2][2];
-            p[index++] = corners[6][0];p[index++] = corners[6][1];p[index++] = corners[6][2];
-
-            p[index++] = corners[3][0];p[index++] = corners[3][1];p[index++] = corners[3][2];
-            p[index++] = corners[7][0];p[index++] = corners[7][1];p[index++] = corners[7][2];
-
-            p[index++] = corners[4][0];p[index++] = corners[4][1];p[index++] = corners[4][2];
-            p[index++] = corners[5][0];p[index++] = corners[5][1];p[index++] = corners[5][2];
-            p[index++] = corners[4][0];p[index++] = corners[4][1];p[index++] = corners[4][2];
-            p[index++] = corners[6][0];p[index++] = corners[6][1];p[index++] = corners[6][2];
-
-            p[index++] = corners[5][0];p[index++] = corners[5][1];p[index++] = corners[5][2];
-            p[index++] = corners[7][0];p[index++] = corners[7][1];p[index++] = corners[7][2];
-
-            p[index++] = corners[6][0];p[index++] = corners[6][1];p[index++] = corners[6][2];
-            p[index++] = corners[7][0];p[index++] = corners[7][1];p[index++] = corners[7][2];
-        }
-
-        this.setAttribute('position', p);
-        this.setAttribute('color', c);
-    },
-
-    setThreshold: function setThreshold(threshold) {
-        this.raycaster.threshold = threshold;
-    },
-
-    rayIntersections: function rayIntersections(indices) {
-        var result = [];
-        var inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
-        var ray = new Lore.Ray();
-        var threshold = this.raycaster.threshold * this.target.getPointScale();
-        var positions = this.target.geometry.attributes['position'].data;
-        var colors = null;
-        if ('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
-
-        // Only get points further away than the cutoff set in the point HelperBase
-        var cutoff = this.target.getCutoff();
-
-        ray.copyFrom(this.raycaster.ray).applyProjection(inverseMatrix);
-
-        var localThreshold = threshold; // / ((pointCloud.scale.x + pointCloud.scale.y + pointCloud.scale.z) / 3);
-        var localThresholdSq = localThreshold * localThreshold;
-
-        for (var i = 0; i < indices.length; i++) {
-            var index = indices[i].index;
-            var locCode = indices[i].locCode;
-            var _k4 = index * 3;
-            var v = new Lore.Vector3f(positions[_k4], positions[_k4 + 1], positions[_k4 + 2]);
-
-            var rayPointDistanceSq = ray.distanceSqToPoint(v);
-            if (rayPointDistanceSq < localThresholdSq) {
-                var intersectedPoint = ray.closestPointToPoint(v);
-                intersectedPoint.applyProjection(this.target.modelMatrix);
-                var dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
-                var isVisible = Lore.FilterBase.isVisible(this.target.geometry, index);
-                if (dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
-
-                result.push({
-                    distance: dist,
-                    index: index,
-                    locCode: locCode,
-                    position: v,
-                    color: colors ? [colors[_k4], colors[_k4 + 1], colors[_k4 + 2]] : null
+                that.hovered = result[0];
+                that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+                that.raiseEvent('hoveredchanged', {
+                    e: that.hovered
+                });
+            } else {
+                that.hovered = null;
+                that.raiseEvent('hoveredchanged', {
+                    e: null
                 });
             }
-        }
+        });
 
-        return result;
+        renderer.controls.addEventListener('zoomchanged', function (zoom) {
+            that.setPointSizeFromZoom(zoom);
+        });
+
+        renderer.controls.addEventListener('updated', function () {
+            for (var i = 0; i < that.selected.length; i++) {
+                that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
+            }
+
+            if (that.hovered) {
+                that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+            }
+
+            that.raiseEvent('updated');
+        });
+
+        _this8.init();
+        return _this8;
     }
-});
 
-Lore.OctreeHelper.defaults = {
-    visualize: false
-};
+    _createClass(OctreeHelper, [{
+        key: 'init',
+        value: function init() {
+            if (this.opts.visualize === 'centers') {
+                this.drawCenters();
+            } else if (this.opts.visualize === 'cubes') {
+                this.drawBoxes();
+            } else {
+                this.geometry.isVisible = false;
+            }
+
+            this.setPointSizeFromZoom(1.0);
+        }
+    }, {
+        key: 'setPointSizeFromZoom',
+        value: function setPointSizeFromZoom(zoom) {
+            var threshold = this.target.setPointSize(zoom + 0.1);
+
+            this.setThreshold(threshold);
+        }
+    }, {
+        key: 'getScreenPosition',
+        value: function getScreenPosition(index) {
+            var positions = this.target.geometry.attributes['position'].data;
+            var k = index * 3;
+            var p = new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]);
+
+            return this.renderer.camera.sceneToScreen(p, this.renderer);
+        }
+    }, {
+        key: 'addSelected',
+        value: function addSelected(item) {
+            // If item is only the index, create a dummy item
+            if (!isNaN(parseFloat(item))) {
+                var positions = this.target.geometry.attributes['position'].data;
+                var colors = this.target.geometry.attributes['color'].data;
+                var _k2 = item * 3;
+
+                item = {
+                    distance: -1,
+                    index: item,
+                    locCode: -1,
+                    position: new Lore.Vector3f(positions[_k2], positions[_k2 + 1], positions[_k2 + 2]),
+                    color: colors ? [colors[_k2], colors[_k2 + 1], colors[_k2 + 2]] : null
+                };
+            }
+
+            var index = this.selected.length;
+            this.selected.push(item);
+            this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
+            this.raiseEvent('selectedchanged', {
+                e: this.selected
+            });
+        }
+    }, {
+        key: 'removeSelected',
+        value: function removeSelected(index) {
+            this.selected.splice(index, 1);
+            this.raiseEvent('selectedchanged', {
+                e: this.selected
+            });
+        }
+    }, {
+        key: 'clearSelected',
+        value: function clearSelected() {
+            this.selected = [];
+            this.raiseEvent('selectedchanged', {
+                e: this.selected
+            });
+        }
+    }, {
+        key: 'selectedContains',
+        value: function selectedContains(index) {
+            for (var i = 0; i < this.selected.length; i++) {
+                if (this.selected[i].index === index) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }, {
+        key: 'setHovered',
+        value: function setHovered(index) {
+            if (that.hovered && that.hovered.index === result[0].index) {
+                return;
+            }
+
+            var k = index * 3;
+            var positions = this.target.geometry.attributes['position'].data;
+            var colors = null;
+
+            if ('color' in this.target.geometry.attributes) {
+                colors = this.target.geometry.attributes['color'].data;
+            }
+
+            that.hovered = {
+                index: index,
+                position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
+                color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+            };
+
+            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+            that.raiseEvent('hoveredchanged', {
+                e: that.hovered
+            });
+        }
+    }, {
+        key: 'selectHovered',
+        value: function selectHovered() {
+            if (!this.hovered || this.selectedContains(this.hovered.index)) {
+                return;
+            }
+
+            this.addSelected({
+                distance: this.hovered.distance,
+                index: this.hovered.index,
+                locCode: this.hovered.locCode,
+                position: this.hovered.position,
+                color: this.hovered.color
+            });
+        }
+    }, {
+        key: 'showCenters',
+        value: function showCenters() {
+            this.opts.visualize = 'centers';
+            this.drawCenters();
+            this.geometry.isVisible = true;
+        }
+    }, {
+        key: 'showCubes',
+        value: function showCubes() {
+            this.opts.visualize = 'cubes';
+            this.drawBoxes();
+            this.geometry.isVisible = true;
+        }
+    }, {
+        key: 'hide',
+        value: function hide() {
+            this.opts.visualize = false;
+            this.geometry.isVisible = false;
+
+            this.setAttribute('position', new Float32Array([]));
+            this.setAttribute('color', new Float32Array([]));
+        }
+    }, {
+        key: 'getIntersections',
+        value: function getIntersections(mouse) {
+            this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
+
+            var tmp = this.octree.raySearch(this.raycaster);
+            var result = this.rayIntersections(tmp);
+
+            result.sort(function (a, b) {
+                return a.distance - b.distance;
+            });
+
+            return result;
+        }
+    }, {
+        key: 'addEventListener',
+        value: function addEventListener(eventName, callback) {
+            if (!this.eventListeners[eventName]) {
+                this.eventListeners[eventName] = [];
+            }
+
+            this.eventListeners[eventName].push(callback);
+        }
+    }, {
+        key: 'raiseEvent',
+        value: function raiseEvent(eventName, data) {
+            if (!this.eventListeners[eventName]) {
+                return;
+            }
+
+            for (var i = 0; i < this.eventListeners[eventName].length; i++) {
+                this.eventListeners[eventName][i](data);
+            }
+        }
+    }, {
+        key: 'drawCenters',
+        value: function drawCenters() {
+            this.geometry.setMode(Lore.DrawModes.points);
+
+            var aabbs = this.octree.aabbs;
+            var length = Object.keys(aabbs).length;
+            var colors = new Float32Array(length * 3);
+            var positions = new Float32Array(length * 3);
+
+            var i = 0;
+
+            for (key in aabbs) {
+                var c = aabbs[key].center.components;
+                var _k3 = i * 3;
+
+                colors[_k3] = 1;
+                colors[_k3 + 1] = 1;
+                colors[_k3 + 2] = 1;
+
+                positions[_k3] = c[0];
+                positions[_k3 + 1] = c[1];
+                positions[_k3 + 2] = c[2];
+
+                i++;
+            }
+
+            this.setAttribute('position', new Float32Array(positions));
+            this.setAttribute('color', new Float32Array(colors));
+        }
+    }, {
+        key: 'drawBoxes',
+        value: function drawBoxes() {
+            this.geometry.setMode(Lore.DrawModes.lines);
+
+            var aabbs = this.octree.aabbs;
+            var length = Object.keys(aabbs).length;
+            var c = new Float32Array(length * 24 * 3);
+            var p = new Float32Array(length * 24 * 3);
+
+            for (var i = 0; i < c.length; i++) {
+                c[i] = 1;
+            }
+
+            var index = 0;
+
+            for (key in aabbs) {
+                var corners = Lore.AABB.getCorners(aabbs[key]);
+
+                p[index++] = corners[0][0];
+                p[index++] = corners[0][1];
+                p[index++] = corners[0][2];
+                p[index++] = corners[1][0];
+                p[index++] = corners[1][1];
+                p[index++] = corners[1][2];
+                p[index++] = corners[0][0];
+                p[index++] = corners[0][1];
+                p[index++] = corners[0][2];
+                p[index++] = corners[2][0];
+                p[index++] = corners[2][1];
+                p[index++] = corners[2][2];
+                p[index++] = corners[0][0];
+                p[index++] = corners[0][1];
+                p[index++] = corners[0][2];
+                p[index++] = corners[4][0];
+                p[index++] = corners[4][1];
+                p[index++] = corners[4][2];
+
+                p[index++] = corners[1][0];
+                p[index++] = corners[1][1];
+                p[index++] = corners[1][2];
+                p[index++] = corners[3][0];
+                p[index++] = corners[3][1];
+                p[index++] = corners[3][2];
+                p[index++] = corners[1][0];
+                p[index++] = corners[1][1];
+                p[index++] = corners[1][2];
+                p[index++] = corners[5][0];
+                p[index++] = corners[5][1];
+                p[index++] = corners[5][2];
+
+                p[index++] = corners[2][0];
+                p[index++] = corners[2][1];
+                p[index++] = corners[2][2];
+                p[index++] = corners[3][0];
+                p[index++] = corners[3][1];
+                p[index++] = corners[3][2];
+                p[index++] = corners[2][0];
+                p[index++] = corners[2][1];
+                p[index++] = corners[2][2];
+                p[index++] = corners[6][0];
+                p[index++] = corners[6][1];
+                p[index++] = corners[6][2];
+
+                p[index++] = corners[3][0];
+                p[index++] = corners[3][1];
+                p[index++] = corners[3][2];
+                p[index++] = corners[7][0];
+                p[index++] = corners[7][1];
+                p[index++] = corners[7][2];
+
+                p[index++] = corners[4][0];
+                p[index++] = corners[4][1];
+                p[index++] = corners[4][2];
+                p[index++] = corners[5][0];
+                p[index++] = corners[5][1];
+                p[index++] = corners[5][2];
+                p[index++] = corners[4][0];
+                p[index++] = corners[4][1];
+                p[index++] = corners[4][2];
+                p[index++] = corners[6][0];
+                p[index++] = corners[6][1];
+                p[index++] = corners[6][2];
+
+                p[index++] = corners[5][0];
+                p[index++] = corners[5][1];
+                p[index++] = corners[5][2];
+                p[index++] = corners[7][0];
+                p[index++] = corners[7][1];
+                p[index++] = corners[7][2];
+
+                p[index++] = corners[6][0];
+                p[index++] = corners[6][1];
+                p[index++] = corners[6][2];
+                p[index++] = corners[7][0];
+                p[index++] = corners[7][1];
+                p[index++] = corners[7][2];
+            }
+
+            this.setAttribute('position', p);
+            this.setAttribute('color', c);
+        }
+    }, {
+        key: 'setThreshold',
+        value: function setThreshold(threshold) {
+            this.raycaster.threshold = threshold;
+        }
+    }, {
+        key: 'rayIntersections',
+        value: function rayIntersections(indices) {
+            var result = [];
+            var inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
+            var ray = new Lore.Ray();
+            var threshold = this.raycaster.threshold * this.target.getPointScale();
+            var positions = this.target.geometry.attributes['position'].data;
+            var colors = null;
+
+            if ('color' in this.target.geometry.attributes) {
+                colors = this.target.geometry.attributes['color'].data;
+            }
+
+            // Only get points further away than the cutoff set in the point HelperBase
+            var cutoff = this.target.getCutoff();
+
+            ray.copyFrom(this.raycaster.ray).applyProjection(inverseMatrix);
+
+            var localThreshold = threshold; // / ((pointCloud.scale.x + pointCloud.scale.y + pointCloud.scale.z) / 3);
+            var localThresholdSq = localThreshold * localThreshold;
+
+            for (var i = 0; i < indices.length; i++) {
+                var index = indices[i].index;
+                var locCode = indices[i].locCode;
+                var _k4 = index * 3;
+                var v = new Lore.Vector3f(positions[_k4], positions[_k4 + 1], positions[_k4 + 2]);
+
+                var rayPointDistanceSq = ray.distanceSqToPoint(v);
+                if (rayPointDistanceSq < localThresholdSq) {
+                    var intersectedPoint = ray.closestPointToPoint(v);
+                    intersectedPoint.applyProjection(this.target.modelMatrix);
+                    var dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
+                    var isVisible = Lore.FilterBase.isVisible(this.target.geometry, index);
+                    if (dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
+
+                    result.push({
+                        distance: dist,
+                        index: index,
+                        locCode: locCode,
+                        position: v,
+                        color: colors ? [colors[_k4], colors[_k4 + 1], colors[_k4 + 2]] : null
+                    });
+                }
+            }
+
+            return result;
+        }
+    }]);
+
+    return OctreeHelper;
+}(Lore.HelperBase);
 
 Lore.FilterBase = function (attribute, attributeIndex) {
     this.type = 'Lore.FilterBase';
@@ -4423,18 +4604,18 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     function CsvFileReader(elementId, options) {
         _classCallCheck(this, CsvFileReader);
 
-        var _this8 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+        var _this9 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
 
-        _this8.defaults = {
+        _this9.defaults = {
             separator: ',',
             cols: [],
             types: [],
             header: true
         };
 
-        _this8.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
-        _this8.columns = [];
-        return _this8;
+        _this9.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
+        _this9.columns = [];
+        return _this9;
     }
 
     _createClass(CsvFileReader, [{
@@ -4601,7 +4782,7 @@ Lore.Shaders['tree'] = new Lore.Shader('Tree', { size: new Lore.Uniform('size', 
 
 Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('size', 5.0, 'float'),
     fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'float diffuse = max(0.5, dot(vec3(0.25, -0.25, 1.0), N));', 'gl_FragColor = vec4(vColor * diffuse, 1.0);', '}']);
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', 'gl_FragColor = vec4(vColor * diffuse + specular * 0.5, 1.0);', '}']);
 
 Lore.Shaders['defaultEffect'] = new Lore.Shader('DefaultEffect', {}, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], ['uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main(void) {', 'vec4 color = texture2D(fbo_texture, f_texcoord);', 'gl_FragColor = color;', '}']);
 
@@ -5862,7 +6043,7 @@ Lore.Raycaster = function () {
         this.ray = new Lore.Ray();
         this.near = 0;
         this.far = 1000;
-        this.threshold = 0.5;
+        this.threshold = 0.1;
     }
 
     _createClass(Raycaster, [{

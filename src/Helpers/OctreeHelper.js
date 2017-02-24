@@ -1,135 +1,188 @@
-Lore.OctreeHelper = function(renderer, geometryName, shaderName, target, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.OctreeHelper.defaults, options);
-    this.eventListeners = {};
-    this.target = target;
-    this.renderer = renderer;
-    this.octree = this.target.octree;
-    this.raycaster = new Lore.Raycaster();
-    this.hovered = null;
-    this.selected = [];
+Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
-    let that = this;
+    constructor(renderer, geometryName, shaderName, target, options) {
+        super(renderer, geometryName, shaderName);
 
-    renderer.controls.addEventListener('dblclick', function(e) {
-        if(e.e.mouse.state.middle || e.e.mouse.state.right) return;
-        let mouse = e.e.mouse.normalizedPosition;
-
-        let result = that.getIntersections(mouse);
-        
-        if(result.length > 0) {
-            if(that.selectedContains(result[0].index)) return;
-            that.addSelected(result[0]);
+        this.defaults = {
+            visualize: false
         }
-    });
 
-    renderer.controls.addEventListener('mousemove', function(e) {
-        if(e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) return;
-        let mouse = e.e.mouse.normalizedPosition;
-        
-        let result = that.getIntersections(mouse);
-        
-        if(result.length > 0) {
-            if(that.hovered && that.hovered.index === result[0].index) return;
-            that.hovered = result[0];
-            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
-            that.raiseEvent('hoveredchanged', { e: that.hovered });
-        }
-        else {
-            that.hovered = null;
-            that.raiseEvent('hoveredchanged', { e: null });
-        }
-    });
+        this.opts = Lore.Utils.extend(true, this.defaults, options);
+        this.eventListeners = {};
+        this.target = target;
+        this.renderer = renderer;
+        this.octree = this.target.octree;
+        this.raycaster = new Lore.Raycaster();
+        this.hovered = null;
+        this.selected = [];
 
-    renderer.controls.addEventListener('zoomchanged', function(zoom) {
-        that.target.setPointSize(zoom * window.devicePixelRatio + 0.1);
-    });
+        let that = this;
 
-    renderer.controls.addEventListener('updated', function() {
-        for(let i = 0; i < that.selected.length; i++) 
-            that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
-        
-        if(that.hovered)
-            that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+        renderer.controls.addEventListener('dblclick', function (e) {
+            if (e.e.mouse.state.middle || e.e.mouse.state.right) {
+                return;
+            }
 
-        that.raiseEvent('updated');
-    });
+            let mouse = e.e.mouse.normalizedPosition;
+            let result = that.getIntersections(mouse);
 
-    this.init();
-}
+            if (result.length > 0) {
+                if (that.selectedContains(result[0].index)) {
+                    return;
+                }
 
-Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.OctreeHelper,
+                that.addSelected(result[0]);
+            }
+        });
 
-    init: function() {
-        if(this.opts.visualize === 'centers')
+        renderer.controls.addEventListener('mousemove', function (e) {
+            if (e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) {
+                return;
+            }
+
+            let mouse = e.e.mouse.normalizedPosition;
+            let result = that.getIntersections(mouse);
+
+            if (result.length > 0) {
+                if (that.hovered && that.hovered.index === result[0].index) {
+                    return;
+                }
+
+                that.hovered = result[0];
+                that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+                that.raiseEvent('hoveredchanged', {
+                    e: that.hovered
+                });
+            } else {
+                that.hovered = null;
+                that.raiseEvent('hoveredchanged', {
+                    e: null
+                });
+            }
+        });
+
+        renderer.controls.addEventListener('zoomchanged', function (zoom) {
+            that.setPointSizeFromZoom(zoom);
+        });
+
+        renderer.controls.addEventListener('updated', function () {
+            for (let i = 0; i < that.selected.length; i++) {
+                that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
+            }
+
+            if (that.hovered) {
+                that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+            }
+
+            that.raiseEvent('updated');
+        });
+
+        this.init();
+    }
+
+    init() {
+        if (this.opts.visualize === 'centers') {
             this.drawCenters();
-        else if(this.opts.visualize === 'cubes')
+        } else if (this.opts.visualize === 'cubes') {
             this.drawBoxes();
-        else
+        } else {
             this.geometry.isVisible = false;
-    },
+        }
 
-    addSelected: function(item) {
+        this.setPointSizeFromZoom(1.0);
+    }
+
+    setPointSizeFromZoom(zoom) {
+        let threshold = this.target.setPointSize(zoom + 0.1);
+
+        this.setThreshold(threshold);
+    }
+
+    getScreenPosition(index) {
+        let positions = this.target.geometry.attributes['position'].data;
+        let k = index * 3;
+        let p = new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]);
+
+        return this.renderer.camera.sceneToScreen(p, this.renderer);
+    }
+
+    addSelected(item) {
         // If item is only the index, create a dummy item
         if (!isNaN(parseFloat(item))) {
             let positions = this.target.geometry.attributes['position'].data;
             let colors = this.target.geometry.attributes['color'].data;
             let k = item * 3;
+
             item = {
                 distance: -1,
                 index: item,
                 locCode: -1,
                 position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-                color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
+                color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
             };
         }
 
         let index = this.selected.length;
         this.selected.push(item);
         this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
-        this.raiseEvent('selectedchanged', { e: this.selected });
-    },
+        this.raiseEvent('selectedchanged', {
+            e: this.selected
+        });
+    }
 
-    removeSelected: function(index) {
+    removeSelected(index) {
         this.selected.splice(index, 1);
-        this.raiseEvent('selectedchanged', { e: this.selected });
-    },
+        this.raiseEvent('selectedchanged', {
+            e: this.selected
+        });
+    }
 
-    clearSelected: function() {
+    clearSelected() {
         this.selected = [];
-        this.raiseEvent('selectedchanged', { e: this.selected });
-    },
+        this.raiseEvent('selectedchanged', {
+            e: this.selected
+        });
+    }
 
-    selectedContains: function(index) {
-        for(let i = 0; i < this.selected.length; i++) {
-            if(this.selected[i].index === index) return true;
+    selectedContains(index) {
+        for (let i = 0; i < this.selected.length; i++) {
+            if (this.selected[i].index === index) {
+                return true;
+            }
         }
 
         return false;
-    },
+    }
 
-    setHovered: function(index) {
-        if(that.hovered && that.hovered.index === result[0].index) return;
-    
-        let k = index * 3;        
+    setHovered(index) {
+        if (that.hovered && that.hovered.index === result[0].index) {
+            return;
+        }
+
+        let k = index * 3;
         let positions = this.target.geometry.attributes['position'].data;
         let colors = null;
-        
-        if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
-        
+
+        if ('color' in this.target.geometry.attributes) {
+            colors = this.target.geometry.attributes['color'].data;
+        }
+
         that.hovered = {
             index: index,
             position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-            color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
+            color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
         };
 
         that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
-        that.raiseEvent('hoveredchanged', { e: that.hovered });
-    },
+        that.raiseEvent('hoveredchanged', {
+            e: that.hovered
+        });
+    }
 
-    selectHovered: function() {
-        if(!this.hovered || this.selectedContains(this.hovered.index)) return;
+    selectHovered() {
+        if (!this.hovered || this.selectedContains(this.hovered.index)) {
+            return;
+        }
 
         this.addSelected({
             distance: this.hovered.distance,
@@ -138,51 +191,60 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
             position: this.hovered.position,
             color: this.hovered.color
         });
-    },
+    }
 
-    showCenters: function() {
+    showCenters() {
         this.opts.visualize = 'centers';
         this.drawCenters();
         this.geometry.isVisible = true;
-    },
+    }
 
-    showCubes: function() {
+    showCubes() {
         this.opts.visualize = 'cubes';
         this.drawBoxes();
         this.geometry.isVisible = true;
-    },
+    }
 
-    hide: function() {
+    hide() {
         this.opts.visualize = false;
         this.geometry.isVisible = false;
 
         this.setAttribute('position', new Float32Array([]));
         this.setAttribute('color', new Float32Array([]));
-    },
+    }
 
-    getIntersections: function(mouse) {
+    getIntersections(mouse) {
         this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
 
         let tmp = this.octree.raySearch(this.raycaster);
         let result = this.rayIntersections(tmp);
-        result.sort(function(a, b) { return a.distance - b.distance });
+
+        result.sort(function (a, b) {
+            return a.distance - b.distance
+        });
 
         return result;
-    },
+    }
 
-    addEventListener: function(eventName, callback) {
-        if(!this.eventListeners[eventName]) this.eventListeners[eventName] = [];
+    addEventListener(eventName, callback) {
+        if (!this.eventListeners[eventName]) {
+            this.eventListeners[eventName] = [];
+        }
+
         this.eventListeners[eventName].push(callback);
-    },
+    }
 
-    raiseEvent: function(eventName, data) {
-        if(!this.eventListeners[eventName]) return;
+    raiseEvent(eventName, data) {
+        if (!this.eventListeners[eventName]) {
+            return;
+        }
 
-        for(let i = 0; i < this.eventListeners[eventName].length; i++)
+        for (let i = 0; i < this.eventListeners[eventName].length; i++) {
             this.eventListeners[eventName][i](data);
-    },
+        }
+    }
 
-    drawCenters: function() {
+    drawCenters() {
         this.geometry.setMode(Lore.DrawModes.points);
 
         let aabbs = this.octree.aabbs;
@@ -191,9 +253,11 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         let positions = new Float32Array(length * 3);
 
         let i = 0;
-        for(key in aabbs) {
+
+        for (key in aabbs) {
             let c = aabbs[key].center.components;
             let k = i * 3;
+
             colors[k] = 1;
             colors[k + 1] = 1;
             colors[k + 2] = 1;
@@ -207,9 +271,9 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
 
         this.setAttribute('position', new Float32Array(positions));
         this.setAttribute('color', new Float32Array(colors));
-    },
+    }
 
-    drawBoxes: function() {
+    drawBoxes() {
         this.geometry.setMode(Lore.DrawModes.lines);
 
         let aabbs = this.octree.aabbs;
@@ -217,98 +281,147 @@ Lore.OctreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.protot
         let c = new Float32Array(length * 24 * 3);
         let p = new Float32Array(length * 24 * 3);
 
-        for(let i = 0; i < c.length; i++) c[i] = 1;
+        for (let i = 0; i < c.length; i++) {
+            c[i] = 1;
+        }
 
         let index = 0;
-        for(key in aabbs) {
+
+        for (key in aabbs) {
             let corners = Lore.AABB.getCorners(aabbs[key]);
-            
-            p[index++] = corners[0][0]; p[index++] = corners[0][1]; p[index++] = corners[0][2];
-            p[index++] = corners[1][0]; p[index++] = corners[1][1]; p[index++] = corners[1][2];
-            p[index++] = corners[0][0]; p[index++] = corners[0][1]; p[index++] = corners[0][2];
-            p[index++] = corners[2][0]; p[index++] = corners[2][1]; p[index++] = corners[2][2];
-            p[index++] = corners[0][0]; p[index++] = corners[0][1]; p[index++] = corners[0][2];
-            p[index++] = corners[4][0]; p[index++] = corners[4][1]; p[index++] = corners[4][2];
 
-            p[index++] = corners[1][0]; p[index++] = corners[1][1]; p[index++] = corners[1][2];
-            p[index++] = corners[3][0]; p[index++] = corners[3][1]; p[index++] = corners[3][2];
-            p[index++] = corners[1][0]; p[index++] = corners[1][1]; p[index++] = corners[1][2];
-            p[index++] = corners[5][0]; p[index++] = corners[5][1]; p[index++] = corners[5][2];
+            p[index++] = corners[0][0];
+            p[index++] = corners[0][1];
+            p[index++] = corners[0][2];
+            p[index++] = corners[1][0];
+            p[index++] = corners[1][1];
+            p[index++] = corners[1][2];
+            p[index++] = corners[0][0];
+            p[index++] = corners[0][1];
+            p[index++] = corners[0][2];
+            p[index++] = corners[2][0];
+            p[index++] = corners[2][1];
+            p[index++] = corners[2][2];
+            p[index++] = corners[0][0];
+            p[index++] = corners[0][1];
+            p[index++] = corners[0][2];
+            p[index++] = corners[4][0];
+            p[index++] = corners[4][1];
+            p[index++] = corners[4][2];
 
-            p[index++] = corners[2][0]; p[index++] = corners[2][1]; p[index++] = corners[2][2];
-            p[index++] = corners[3][0]; p[index++] = corners[3][1]; p[index++] = corners[3][2];
-            p[index++] = corners[2][0]; p[index++] = corners[2][1]; p[index++] = corners[2][2];
-            p[index++] = corners[6][0]; p[index++] = corners[6][1]; p[index++] = corners[6][2];
+            p[index++] = corners[1][0];
+            p[index++] = corners[1][1];
+            p[index++] = corners[1][2];
+            p[index++] = corners[3][0];
+            p[index++] = corners[3][1];
+            p[index++] = corners[3][2];
+            p[index++] = corners[1][0];
+            p[index++] = corners[1][1];
+            p[index++] = corners[1][2];
+            p[index++] = corners[5][0];
+            p[index++] = corners[5][1];
+            p[index++] = corners[5][2];
 
-            p[index++] = corners[3][0]; p[index++] = corners[3][1]; p[index++] = corners[3][2];
-            p[index++] = corners[7][0]; p[index++] = corners[7][1]; p[index++] = corners[7][2];
+            p[index++] = corners[2][0];
+            p[index++] = corners[2][1];
+            p[index++] = corners[2][2];
+            p[index++] = corners[3][0];
+            p[index++] = corners[3][1];
+            p[index++] = corners[3][2];
+            p[index++] = corners[2][0];
+            p[index++] = corners[2][1];
+            p[index++] = corners[2][2];
+            p[index++] = corners[6][0];
+            p[index++] = corners[6][1];
+            p[index++] = corners[6][2];
 
-            p[index++] = corners[4][0]; p[index++] = corners[4][1]; p[index++] = corners[4][2];
-            p[index++] = corners[5][0]; p[index++] = corners[5][1]; p[index++] = corners[5][2];
-            p[index++] = corners[4][0]; p[index++] = corners[4][1]; p[index++] = corners[4][2];
-            p[index++] = corners[6][0]; p[index++] = corners[6][1]; p[index++] = corners[6][2];
+            p[index++] = corners[3][0];
+            p[index++] = corners[3][1];
+            p[index++] = corners[3][2];
+            p[index++] = corners[7][0];
+            p[index++] = corners[7][1];
+            p[index++] = corners[7][2];
 
-            p[index++] = corners[5][0]; p[index++] = corners[5][1]; p[index++] = corners[5][2];
-            p[index++] = corners[7][0]; p[index++] = corners[7][1]; p[index++] = corners[7][2];
+            p[index++] = corners[4][0];
+            p[index++] = corners[4][1];
+            p[index++] = corners[4][2];
+            p[index++] = corners[5][0];
+            p[index++] = corners[5][1];
+            p[index++] = corners[5][2];
+            p[index++] = corners[4][0];
+            p[index++] = corners[4][1];
+            p[index++] = corners[4][2];
+            p[index++] = corners[6][0];
+            p[index++] = corners[6][1];
+            p[index++] = corners[6][2];
 
-            p[index++] = corners[6][0]; p[index++] = corners[6][1]; p[index++] = corners[6][2];
-            p[index++] = corners[7][0]; p[index++] = corners[7][1]; p[index++] = corners[7][2];
+            p[index++] = corners[5][0];
+            p[index++] = corners[5][1];
+            p[index++] = corners[5][2];
+            p[index++] = corners[7][0];
+            p[index++] = corners[7][1];
+            p[index++] = corners[7][2];
+
+            p[index++] = corners[6][0];
+            p[index++] = corners[6][1];
+            p[index++] = corners[6][2];
+            p[index++] = corners[7][0];
+            p[index++] = corners[7][1];
+            p[index++] = corners[7][2];
         }
-        
+
         this.setAttribute('position', p);
         this.setAttribute('color', c);
-    },
+    }
 
-    setThreshold: function(threshold) {
+    setThreshold(threshold) {
         this.raycaster.threshold = threshold;
-    },
+    }
 
-    rayIntersections: function(indices) {
+    rayIntersections(indices) {
         let result = [];
         let inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
         let ray = new Lore.Ray();
         let threshold = this.raycaster.threshold * this.target.getPointScale();
         let positions = this.target.geometry.attributes['position'].data;
         let colors = null;
-        if('color' in this.target.geometry.attributes) colors = this.target.geometry.attributes['color'].data;
-        
+
+        if ('color' in this.target.geometry.attributes) {
+            colors = this.target.geometry.attributes['color'].data;
+        }
+
         // Only get points further away than the cutoff set in the point HelperBase
         let cutoff = this.target.getCutoff();
 
         ray.copyFrom(this.raycaster.ray).applyProjection(inverseMatrix);
 
         let localThreshold = threshold; // / ((pointCloud.scale.x + pointCloud.scale.y + pointCloud.scale.z) / 3);
-	    let localThresholdSq = localThreshold * localThreshold;
+        let localThresholdSq = localThreshold * localThreshold;
 
-        for(let i = 0; i < indices.length; i++) {
+        for (let i = 0; i < indices.length; i++) {
             let index = indices[i].index;
             let locCode = indices[i].locCode;
             let k = index * 3;
             let v = new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]);
-            
+
             let rayPointDistanceSq = ray.distanceSqToPoint(v);
-            if(rayPointDistanceSq < localThresholdSq) {
+            if (rayPointDistanceSq < localThresholdSq) {
                 let intersectedPoint = ray.closestPointToPoint(v);
                 intersectedPoint.applyProjection(this.target.modelMatrix);
                 let dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
                 let isVisible = Lore.FilterBase.isVisible(this.target.geometry, index);
-                if(dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
+                if (dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
 
                 result.push({
                     distance: dist,
                     index: index,
                     locCode: locCode,
                     position: v,
-                    color: colors ? [ colors[k], colors[k + 1], colors[k + 2] ] : null
+                    color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
                 });
             }
         }
 
         return result;
     }
-});
-
-
-Lore.OctreeHelper.defaults = {
-    visualize: false
 }

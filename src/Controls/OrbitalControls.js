@@ -180,6 +180,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     }
 
     setBottomView() {
+        this.setView(0.0, 0.0);
         this.rotationLocked = true;
 
         return this;
