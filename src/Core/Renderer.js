@@ -1,18 +1,26 @@
 Lore.Renderer = function(targetId, options) {
     this.canvas = document.getElementById(targetId);
+    
+    this.defaults = {
+        antialiasing: true,
+        verbose: false,
+        fpsElement: document.getElementById('fps'),
+        clearColor: Lore.Color.fromHex('#000000'),
+        clearDepth: 1.0,
+        center: new Lore.Vector3f(),
+        enableDepthTest: true,
+        camera: new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2)
+    }
+
+    this.opts = Lore.Utils.extend(true, this.defaults, options);
+    
     this.parent = this.canvas.parentElement;
-    this.antialiasing = options.antialiasing === false ? false : true;
-    this.verbose = options.verbose === true ? true : false;
-    this.fpsElement = options.fps;
     this.fps = 0;
     this.fpsCount = 0;
     this.maxFps = 1000 / 30;
     this.devicePixelRatio = this.getDevicePixelRatio();
-    this.clearColor = options.clearColor || new Lore.Color();
-    this.clearDepth = 'clearDepth' in options ? options.clearDepth : 1.0;
-    this.enableDepthTest = 'enableDepthTest' in options ? options.enableDepthTest : true;
-    this.camera = options.camera || new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
     this.geometries = {};
+    
     this.render = function(camera, geometries) {};
 
     this.effect = null;
@@ -54,7 +62,7 @@ Lore.Renderer.prototype = {
         let g = this.gl;
         console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
 
-        if(this.verbose) {
+        if(this.opts.verbose) {
             let hasAA = g.getContextAttributes().antialias;
             let size = g.getParameter(g.SAMPLES);
             console.info('Antialiasing: ' + hasAA + ' (' + size + 'x)');
@@ -86,10 +94,10 @@ Lore.Renderer.prototype = {
         }
 
 
-        this.setClearColor(this.clearColor);
-        g.clearDepth(this.clearDepth);
+        this.setClearColor(this.opts.clearColor);
+        g.clearDepth(this.opts.clearDepth);
 
-        if (this.enableDepthTest) {
+        if (this.opts.enableDepthTest) {
             g.enable(g.DEPTH_TEST);
             g.depthFunc(g.LEQUAL);
             console.log('enable depth test');
@@ -122,8 +130,8 @@ Lore.Renderer.prototype = {
     },
 
     setClearColor: function(color) {
-        this.clearColor = color;
-        let cc = this.clearColor.components;
+        this.opts.clearColor = color;
+        let cc = this.opts.clearColor.components;
         this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
     },
 
@@ -136,18 +144,20 @@ Lore.Renderer.prototype = {
     },
 
     updateViewport: function(x, y, width, height) {
+        if (!this.opts.camera) return; 
+        
         // width *= this.devicePixelRatio;
         // height *= this.devicePixelRatio;
         this.canvas.width = width;
         this.canvas.height = height;
         this.gl.viewport(x, y, width, height);
 
-        this.camera.left = -width / 2;
-        this.camera.right = width / 2;
-        this.camera.top = height / 2;
-        this.camera.bottom = -height / 2;
+        this.opts.camera.left = -width / 2;
+        this.opts.camera.right = width / 2;
+        this.opts.camera.top = height / 2;
+        this.opts.camera.bottom = -height / 2;
 
-        this.camera.updateProjectionMatrix();
+        this.opts.camera.updateProjectionMatrix();
 
         // Also reinit the buffers and textures for the effect(s)
         this.effect = new Lore.Effect(this, 'fxaaEffect');
@@ -163,7 +173,7 @@ Lore.Renderer.prototype = {
             });
         }, this.maxFps);
 
-        if(this.fpsElement) {
+        if(this.opts.fpsElement) {
             let now = performance.now();
             let delta = now - this.lastTiming;
             
@@ -173,7 +183,7 @@ Lore.Renderer.prototype = {
                 this.fpsCount++;
             }
             else {
-                this.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
+                this.opts.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
                 this.fpsCount = 0;
                 this.fps = 0;
             }
@@ -184,8 +194,8 @@ Lore.Renderer.prototype = {
         this.render(this.camera, this.geometries);
         // this.effect.unbind();
 
-        this.camera.isProjectionMatrixStale = false;
-        this.camera.isViewMatrixStale = false;
+        this.opts.camera.isProjectionMatrixStale = false;
+        this.opts.camera.isViewMatrixStale = false;
     },
 
     createGeometry: function(name, shaderName) {
