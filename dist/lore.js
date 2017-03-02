@@ -66,7 +66,6 @@ Lore.init = function (canvas, options) {
         clearColor: cc,
         verbose: true,
         fps: document.getElementById('fps'),
-        antialiasing: false,
         center: new Lore.Vector3f(125, 125, 125)
     });
 
