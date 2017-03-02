@@ -138,8 +138,10 @@ class RadixSort {
             let sign = val >> 31;
 
             val ^= sign | 0x80000000;
-
-            for (let j = 0, k = 0; j < maxOffset; j += this.max, k += 11) {
+            
+            let j = 0;
+            
+            for (let k = 0; j < maxOffset; j += this.max, k += 11) {
                 this.histograms[j + (val >>> k & this.mask)]++;
             }
 

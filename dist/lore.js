@@ -3479,10 +3479,10 @@ var RadixSort = function () {
             for (var _i = 0; _i <= maxOffset; _i += this.max) {
                 var sum = 0;
 
-                for (var _j = _i; _j < _i + this.max; _j++) {
-                    var tmpSum = this.histograms[_j] + sum;
+                for (var j = _i; j < _i + this.max; j++) {
+                    var tmpSum = this.histograms[j] + sum;
 
-                    this.histograms[_j] = sum - 1;
+                    this.histograms[j] = sum - 1;
                     sum = tmpSum;
                 }
             }
@@ -3575,8 +3575,10 @@ var RadixSort = function () {
 
                 val ^= sign | 0x80000000;
 
-                for (var _j2 = 0, _k = 0; _j2 < maxOffset; _j2 += this.max, _k += 11) {
-                    this.histograms[_j2 + (val >>> _k & this.mask)]++;
+                var j = 0;
+
+                for (var _k = 0; j < maxOffset; j += this.max, _k += 11) {
+                    this.histograms[j + (val >>> _k & this.mask)]++;
                 }
 
                 this.histograms[j + (val >>> k & lastMask)]++;
@@ -3691,11 +3693,11 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             var positions = new Float32Array(length * 3);
 
             for (var i = 0; i < length; i++) {
-                var _j3 = 3 * i;
+                var j = 3 * i;
 
-                positions[_j3] = x[i] || 0;
-                positions[_j3 + 1] = y[i] || 0;
-                positions[_j3 + 2] = z[i] || 0;
+                positions[j] = x[i] || 0;
+                positions[j + 1] = y[i] || 0;
+                positions[j + 2] = z[i] || 0;
             }
 
             if (this.opts.octree) {
@@ -3731,11 +3733,11 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             var colors = this.getAttribute('color');
 
             for (var i = 0; i < r.length; i++) {
-                var _j4 = 3 * i;
+                var j = 3 * i;
 
-                c[_j4] = r[i];
-                c[_j4 + 1] = g[i];
-                c[_j4 + 2] = b[i];
+                c[j] = r[i];
+                c[j + 1] = g[i];
+                c[j + 2] = b[i];
             }
 
             // Convert to HOS (Hue, Opacity, Size)
@@ -3907,10 +3909,10 @@ Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototyp
     setPositionsXYZ: function setPositionsXYZ(x, y, z, length) {
         var positions = new Float32Array(length * 3);
         for (var i = 0; i < length; i++) {
-            var _j5 = 3 * i;
-            positions[_j5] = x[i] || 0;
-            positions[_j5 + 1] = y[i] || 0;
-            positions[_j5 + 2] = z[i] || 0;
+            var j = 3 * i;
+            positions[j] = x[i] || 0;
+            positions[j + 1] = y[i] || 0;
+            positions[j + 2] = z[i] || 0;
         }
 
         this.setAttribute('position', positions);
@@ -4762,20 +4764,20 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
             for (var i = h; i < length; i++) {
                 var values = lines[i].split(this.opts.separator);
 
-                if (loadCols.length == 0) for (var _j6 = 0; _j6 < values.length; _j6++) {
-                    loadCols.push[_j6];
+                if (loadCols.length == 0) for (var j = 0; j < values.length; j++) {
+                    loadCols.push[j];
                 }
 
                 if (init) {
-                    for (var _j7 = 0; _j7 < loadCols.length; _j7++) {
-                        this.createArray(_j7, this.opts.types[_j7], length - h);
+                    for (var _j = 0; _j < loadCols.length; _j++) {
+                        this.createArray(_j, this.opts.types[_j], length - h);
                     }
 
                     init = false;
                 }
 
-                for (var _j8 = 0; _j8 < loadCols.length; _j8++) {
-                    this.columns[_j8][i - h] = values[loadCols[_j8]];
+                for (var _j2 = 0; _j2 < loadCols.length; _j2++) {
+                    this.columns[_j2][i - h] = values[loadCols[_j2]];
                 }
             }
 
@@ -5046,9 +5048,9 @@ Lore.Octree = function () {
                 if (childPointCounts[_i10] == 0) continue;
                 nextPoints[_i10] = new Uint32Array(childPointCounts[_i10]);
 
-                for (var _j9 = 0, _k6 = 0; _j9 < pointIndices.length; _j9++) {
-                    if (codes[_j9] == _i10) {
-                        nextPoints[_i10][_k6++] = pointIndices[_j9];
+                for (var j = 0, _k6 = 0; j < pointIndices.length; j++) {
+                    if (codes[j] == _i10) {
+                        nextPoints[_i10][_k6++] = pointIndices[j];
                     }
                 }
 
@@ -5619,13 +5621,13 @@ Lore.Octree = function () {
                 // Sort the merged points
                 var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
-                for (var _j10 = pointOffset; indexCount < k && _j10 < sortedNewPointDistances.array.length; _j10++) {
-                    if (sortedNewPointDistances.array[_j10] > sortedCellDistances.array[_i13 + 1]) {
-                        pointOffset = _j10;
+                for (var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
+                    if (sortedNewPointDistances.array[j] > sortedCellDistances.array[_i13 + 1]) {
+                        pointOffset = j;
                         break;
                     }
 
-                    indices[_j10] = pointDistances.indices[sortedNewPointDistances.indices[_j10]];
+                    indices[j] = pointDistances.indices[sortedNewPointDistances.indices[j]];
                     indexCount++;
                 }
 
@@ -5690,13 +5692,13 @@ Lore.Octree = function () {
             for (var i = length - 1; i >= 0; i--) {
                 var neighbours = this.getNeighbours(locCodes[i]);
 
-                for (var _j11 = 0; _j11 < neighbours.length; _j11++) {
-                    if (neighbours[_j11] == locCode) {
+                for (var j = 0; j < neighbours.length; j++) {
+                    if (neighbours[j] == locCode) {
                         // console.log(locCode);
                     }
 
-                    if (neighbours[_j11] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[_j11])) {
-                        locCodes.push(neighbours[_j11]);
+                    if (neighbours[j] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
+                        locCodes.push(neighbours[j]);
                     }
                 }
             }
