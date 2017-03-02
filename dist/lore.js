@@ -3576,9 +3576,10 @@ var RadixSort = function () {
                 val ^= sign | 0x80000000;
 
                 var j = 0;
+                var k = 0;
 
-                for (var _k = 0; j < maxOffset; j += this.max, _k += 11) {
-                    this.histograms[j + (val >>> _k & this.mask)]++;
+                for (; j < maxOffset; j += this.max, k += 11) {
+                    this.histograms[j + (val >>> k & this.mask)]++;
                 }
 
                 this.histograms[j + (val >>> k & lastMask)]++;
@@ -4272,14 +4273,14 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
             if (!isNaN(parseFloat(item))) {
                 var positions = this.target.geometry.attributes['position'].data;
                 var colors = this.target.geometry.attributes['color'].data;
-                var _k2 = item * 3;
+                var k = item * 3;
 
                 item = {
                     distance: -1,
                     index: item,
                     locCode: -1,
-                    position: new Lore.Vector3f(positions[_k2], positions[_k2 + 1], positions[_k2 + 2]),
-                    color: colors ? [colors[_k2], colors[_k2 + 1], colors[_k2 + 2]] : null
+                    position: new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]),
+                    color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
                 };
             }
 
@@ -4429,15 +4430,15 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
 
             for (key in aabbs) {
                 var c = aabbs[key].center.components;
-                var _k3 = i * 3;
+                var k = i * 3;
 
-                colors[_k3] = 1;
-                colors[_k3 + 1] = 1;
-                colors[_k3 + 2] = 1;
+                colors[k] = 1;
+                colors[k + 1] = 1;
+                colors[k + 2] = 1;
 
-                positions[_k3] = c[0];
-                positions[_k3 + 1] = c[1];
-                positions[_k3 + 2] = c[2];
+                positions[k] = c[0];
+                positions[k + 1] = c[1];
+                positions[k + 2] = c[2];
 
                 i++;
             }
@@ -4577,8 +4578,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
             for (var i = 0; i < indices.length; i++) {
                 var index = indices[i].index;
                 var locCode = indices[i].locCode;
-                var _k4 = index * 3;
-                var v = new Lore.Vector3f(positions[_k4], positions[_k4 + 1], positions[_k4 + 2]);
+                var k = index * 3;
+                var v = new Lore.Vector3f(positions[k], positions[k + 1], positions[k + 2]);
 
                 var rayPointDistanceSq = ray.distanceSqToPoint(v);
                 if (rayPointDistanceSq < localThresholdSq) {
@@ -4593,7 +4594,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
                         index: index,
                         locCode: locCode,
                         position: v,
-                        color: colors ? [colors[_k4], colors[_k4 + 1], colors[_k4 + 2]] : null
+                        color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
                     });
                 }
             }
@@ -5029,14 +5030,14 @@ Lore.Octree = function () {
             for (var _i9 = 0; _i9 < pointIndices.length; _i9++) {
                 // Points are indices to the vertices array
                 // which stores x,y,z coordinates linear
-                var _k5 = pointIndices[_i9] * 3;
+                var k = pointIndices[_i9] * 3;
 
                 // Assign point to subtree, this gives a code
                 // 000, 001, 010, 011, 100, 101, 110, 111
                 // (-> 8 possible subtrees)
-                if (vertices[_k5 + 0] >= aabb.center.components[0]) codes[_i9] |= 4;
-                if (vertices[_k5 + 1] >= aabb.center.components[1]) codes[_i9] |= 2;
-                if (vertices[_k5 + 2] >= aabb.center.components[2]) codes[_i9] |= 1;
+                if (vertices[k + 0] >= aabb.center.components[0]) codes[_i9] |= 4;
+                if (vertices[k + 1] >= aabb.center.components[1]) codes[_i9] |= 2;
+                if (vertices[k + 2] >= aabb.center.components[2]) codes[_i9] |= 1;
 
                 childPointCounts[codes[_i9]]++;
             }
@@ -5048,9 +5049,9 @@ Lore.Octree = function () {
                 if (childPointCounts[_i10] == 0) continue;
                 nextPoints[_i10] = new Uint32Array(childPointCounts[_i10]);
 
-                for (var j = 0, _k6 = 0; j < pointIndices.length; j++) {
+                for (var j = 0, _k = 0; j < pointIndices.length; j++) {
                     if (codes[j] == _i10) {
-                        nextPoints[_i10][_k6++] = pointIndices[j];
+                        nextPoints[_i10][_k++] = pointIndices[j];
                     }
                 }
 
