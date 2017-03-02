@@ -129,500 +129,569 @@ Lore.DrawModes = {
     triangleFan: 6
 };
 
-Lore.Color = function (r, g, b, a) {
-    if (arguments.length === 1) {
-        this.components = new Float32Array(r);
-    } else {
-        this.components = new Float32Array(4);
-        this.components[0] = r || 0.0;
-        this.components[1] = g || 0.0;
-        this.components[2] = b || 0.0;
-        this.components[3] = a || 1.0;
-    }
-};
+Lore.Color = function () {
+    function Color(r, g, b, a) {
+        _classCallCheck(this, Color);
 
-Lore.Color.prototype = {
-    constructor: Lore.Color,
-    set: function set(r, g, b, a) {
-        this.components[0] = r;
-        this.components[1] = g;
-        this.components[2] = b;
-
-        if (arguments.length == 4) this.components[3] = a;
-    }
-};
-
-Lore.Color.fromHex = function (hex) {
-    // Thanks to Tim Down
-    // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-        return r + r + g + g + b + b;
-    });
-
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    var r = parseInt(result[1], 16);
-    var g = parseInt(result[2], 16);
-    var b = parseInt(result[3], 16);
-
-    return result ? new Lore.Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
-};
-
-Lore.Color.hueToRgb = function (p, q, t) {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 0.1667) return p + (q - p) * 6 * t;
-    if (t < 0.5) return q;
-    if (t < 0.6667) return p + (q - p) * (0.6667 - t) * 6;
-    return p;
-};
-
-Lore.Color.hslToRgb = function (h, s, l) {
-    var r = void 0,
-        g = void 0,
-        b = void 0;
-
-    if (s == 0) {
-        r = g = b = l;
-    } else {
-        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        var p = 2 * l - q;
-        r = Lore.Color.hueToRgb(p, q, h + 0.3333);
-        g = Lore.Color.hueToRgb(p, q, h);
-        b = Lore.Color.hueToRgb(p, q, h - 0.3333);
+        if (arguments.length === 1) {
+            this.components = new Float32Array(r);
+        } else {
+            this.components = new Float32Array(4);
+            this.components[0] = r || 0.0;
+            this.components[1] = g || 0.0;
+            this.components[2] = b || 0.0;
+            this.components[3] = a || 1.0;
+        }
     }
 
-    return [r, g, b];
-};
+    _createClass(Color, [{
+        key: 'set',
+        value: function set(r, g, b, a) {
+            this.components[0] = r;
+            this.components[1] = g;
+            this.components[2] = b;
 
-Lore.Color.rgbToHsl = function (r, g, b) {
-    r /= 255, g /= 255, b /= 255;
-    var max = Math.max(r, g, b),
-        min = Math.min(r, g, b);
-    var h = void 0,
-        s = void 0,
-        l = (max + min) / 2;
-
-    if (max == min) {
-        h = s = 0; // achromatic
-    } else {
-        var d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r:
-                h = (g - b) / d + (g < b ? 6 : 0);break;
-            case g:
-                h = (b - r) / d + 2;break;
-            case b:
-                h = (r - g) / d + 4;break;
+            if (arguments.length == 4) {
+                this.components[3] = a;
+            }
         }
-        h /= 6;
-    }
+    }], [{
+        key: 'fromHex',
+        value: function fromHex(hex) {
+            // Thanks to Tim Down
+            // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 
-    return [h, s, l];
-};
+            var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
 
-Lore.Color.gdbHueShift = function (hue) {
-    hue = 0.85 * hue + 0.66;
-    if (hue > 1.0) hue = hue - 1.0;
-    hue = 1 - hue + 0.33;
-    if (hue > 1.0) hue = hue - 1.0;
+            hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+                return r + r + g + g + b + b;
+            });
 
-    return hue;
-};
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            var r = parseInt(result[1], 16);
+            var g = parseInt(result[2], 16);
+            var b = parseInt(result[3], 16);
 
-Lore.Renderer = function (targetId, options) {
-    this.canvas = document.getElementById(targetId);
-
-    this.defaults = {
-        antialiasing: true,
-        verbose: false,
-        fpsElement: document.getElementById('fps'),
-        clearColor: Lore.Color.fromHex('#000000'),
-        clearDepth: 1.0,
-        center: new Lore.Vector3f(),
-        enableDepthTest: true,
-        camera: new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2)
-    };
-
-    this.opts = Lore.Utils.extend(true, this.defaults, options);
-
-    this.parent = this.canvas.parentElement;
-    this.fps = 0;
-    this.fpsCount = 0;
-    this.maxFps = 1000 / 30;
-    this.devicePixelRatio = this.getDevicePixelRatio();
-    this.geometries = {};
-
-    this.render = function (camera, geometries) {};
-
-    this.effect = null;
-
-    this.lastTiming = performance.now();
-
-    // Disable context menu on right click
-    this.canvas.addEventListener('contextmenu', function (e) {
-        if (e.button === 2) {
-            e.preventDefault();
-            return false;
+            return result ? new Lore.Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
         }
-    });
+    }, {
+        key: 'hueToRgb',
+        value: function hueToRgb(p, q, t) {
+            if (t < 0) {
+                t += 1;
+            } else if (t > 1) {
+                t -= 1;
+            } else if (t < 0.1667) {
+                return p + (q - p) * 6 * t;
+            } else if (t < 0.5) {
+                return q;
+            } else if (t < 0.6667) {
+                return p + (q - p) * (0.6667 - t) * 6;
+            }
 
-    var that = this;
-    that.init();
-
-    // Attach the controls last
-    var center = options.center ? options.center : new Lore.Vector3f();
-    that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
-};
-
-Lore.Renderer.prototype = {
-    constructor: Lore.Renderer,
-    ready: false,
-    gl: null,
-    init: function init() {
-        var _this = this;
-
-        var settings = { antialias: this.antialiasing };
-
-        this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
-
-        if (!this.gl) {
-            console.error('Could not initialize the WebGL context.');
-            return;
+            return p;
         }
+    }, {
+        key: 'hslToRgb',
+        value: function hslToRgb(h, s, l) {
+            var r = void 0,
+                g = void 0,
+                b = void 0;
 
-        var g = this.gl;
-        console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
+            if (s == 0) {
+                r = g = b = l;
+            } else {
+                var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                var p = 2 * l - q;
 
-        if (this.opts.verbose) {
-            var hasAA = g.getContextAttributes().antialias;
-            var size = g.getParameter(g.SAMPLES);
-            console.info('Antialiasing: ' + hasAA + ' (' + size + 'x)');
+                r = Lore.Color.hueToRgb(p, q, h + 0.3333);
+                g = Lore.Color.hueToRgb(p, q, h);
+                b = Lore.Color.hueToRgb(p, q, h - 0.3333);
+            }
 
-            var highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
-            var hasHighp = highp.precision != 0;
-            console.info('High precision support: ' + hasHighp);
+            return [r, g, b];
         }
+    }, {
+        key: 'rgbToHsl',
+        value: function rgbToHsl(r, g, b) {
+            r /= 255, g /= 255, b /= 255;
+            var max = Math.max(r, g, b),
+                min = Math.min(r, g, b);
+            var h = void 0,
+                s = void 0,
+                l = (max + min) / 2;
 
-        // Blending
-        //g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
-        // Extensions
-        var oes = 'OES_standard_derivatives';
-        var extOes = g.getExtension(oes);
-        if (extOes === null) {
-            console.warn('Could not load extension: ' + oes + '.');
+            if (max == min) {
+                h = s = 0; // achromatic
+            } else {
+                var d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r:
+                        h = (g - b) / d + (g < b ? 6 : 0);
+                        break;
+                    case g:
+                        h = (b - r) / d + 2;
+                        break;
+                    case b:
+                        h = (r - g) / d + 4;
+                        break;
+                }
+                h /= 6;
+            }
+
+            return [h, s, l];
         }
+    }, {
+        key: 'gdbHueShift',
+        value: function gdbHueShift(hue) {
+            hue = 0.85 * hue + 0.66;
 
-        var wdb = 'WEBGL_draw_buffers';
-        var extWdb = g.getExtension(wdb);
-        if (extWdb === null) {
-            console.warn('Could not load extension: ' + wdb + '.');
+            if (hue > 1.0) {
+                hue = hue - 1.0;
+            }
+
+            hue = 1 - hue + 0.33;
+
+            if (hue > 1.0) {
+                hue = hue - 1.0;
+            }
+
+            return hue;
         }
+    }]);
 
-        var wdt = 'WEBGL_depth_texture';
-        var extWdt = g.getExtension(wdt);
-        if (extWdt === null) {
-            console.warn('Could not load extension: ' + wdt + '.');
-        }
+    return Color;
+}();
 
-        this.setClearColor(this.opts.clearColor);
-        g.clearDepth(this.opts.clearDepth);
+Lore.Renderer = function () {
+    function Renderer(targetId, options) {
+        _classCallCheck(this, Renderer);
 
-        if (this.opts.enableDepthTest) {
-            g.enable(g.DEPTH_TEST);
-            g.depthFunc(g.LEQUAL);
-            console.log('enable depth test');
-        }
+        this.defaults = {
+            antialiasing: true,
+            verbose: false,
+            fpsElement: document.getElementById('fps'),
+            clearColor: Lore.Color.fromHex('#000000'),
+            clearDepth: 1.0,
+            center: new Lore.Vector3f(),
+            enableDepthTest: true
+        };
 
-        /*
-        g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
-        g.enable(g.BLEND);
-        */
+        this.opts = Lore.Utils.extend(true, this.defaults, options);
 
-        setTimeout(function () {
-            _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-        }, 1000);
+        this.canvas = document.getElementById(targetId);
+        this.parent = this.canvas.parentElement;
+        this.fps = 0;
+        this.fpsCount = 0;
+        this.maxFps = 1000 / 30;
+        this.devicePixelRatio = this.getDevicePixelRatio();
+        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
 
-        // Also do it immediately, in case the timeout is not needed
-        this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+        this.geometries = {};
+        this.ready = false;
+        this.gl = null;
+        this.render = function (camera, geometries) {};
+        this.effect = null;
+        this.lastTiming = performance.now();
 
-        window.addEventListener('resize', function (event) {
-            var width = _this.getWidth();
-            var height = _this.getHeight();
-            _this.updateViewport(0, 0, width, height);
+        // Disable context menu on right click
+        this.canvas.addEventListener('contextmenu', function (e) {
+            if (e.button === 2) {
+                e.preventDefault();
+                return false;
+            }
         });
 
-        // Init effect(s)
-        this.effect = new Lore.Effect(this, 'fxaaEffect');
-
-        this.ready = true;
-        this.animate();
-    },
-
-    setClearColor: function setClearColor(color) {
-        this.opts.clearColor = color;
-        var cc = this.opts.clearColor.components;
-        this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
-    },
-
-    getWidth: function getWidth() {
-        return this.canvas.offsetWidth;
-    },
-
-    getHeight: function getHeight() {
-        return this.canvas.offsetHeight;
-    },
-
-    updateViewport: function updateViewport(x, y, width, height) {
-        if (!this.opts.camera) return;
-
-        // width *= this.devicePixelRatio;
-        // height *= this.devicePixelRatio;
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.gl.viewport(x, y, width, height);
-
-        this.opts.camera.left = -width / 2;
-        this.opts.camera.right = width / 2;
-        this.opts.camera.top = height / 2;
-        this.opts.camera.bottom = -height / 2;
-
-        this.opts.camera.updateProjectionMatrix();
-
-        // Also reinit the buffers and textures for the effect(s)
-        this.effect = new Lore.Effect(this, 'fxaaEffect');
-        this.effect.shader.uniforms.resolution.setValue([width, height]);
-    },
-
-    animate: function animate() {
         var that = this;
+        that.init();
 
-        setTimeout(function () {
-            requestAnimationFrame(function () {
-                that.animate();
+        // Attach the controls last
+        var center = options.center ? options.center : new Lore.Vector3f();
+        that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
+    }
+
+    _createClass(Renderer, [{
+        key: 'init',
+        value: function init() {
+            var _this = this;
+
+            var settings = {
+                antialias: this.opts.antialiasing
+            };
+
+            this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
+
+            if (!this.gl) {
+                console.error('Could not initialize the WebGL context.');
+                return;
+            }
+
+            var g = this.gl;
+            console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
+
+            if (this.opts.verbose) {
+                var hasAA = g.getContextAttributes().antialias;
+                var size = g.getParameter(g.SAMPLES);
+                console.info('Antialiasing: ' + hasAA + ' (' + size + 'x)');
+
+                var highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
+                var hasHighp = highp.precision != 0;
+                console.info('High precision support: ' + hasHighp);
+            }
+
+            // Blending
+            //g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
+            // Extensions
+            var oes = 'OES_standard_derivatives';
+            var extOes = g.getExtension(oes);
+
+            if (extOes === null) {
+                console.warn('Could not load extension: ' + oes + '.');
+            }
+
+            var wdb = 'WEBGL_draw_buffers';
+            var extWdb = g.getExtension(wdb);
+
+            if (extWdb === null) {
+                console.warn('Could not load extension: ' + wdb + '.');
+            }
+
+            var wdt = 'WEBGL_depth_texture';
+            var extWdt = g.getExtension(wdt);
+
+            if (extWdt === null) {
+                console.warn('Could not load extension: ' + wdt + '.');
+            }
+
+            this.setClearColor(this.opts.clearColor);
+            g.clearDepth(this.opts.clearDepth);
+
+            if (this.opts.enableDepthTest) {
+                g.enable(g.DEPTH_TEST);
+                g.depthFunc(g.LEQUAL);
+
+                if (this.opts.verbose) {
+                    console.log('enable depth test');
+                }
+            }
+
+            /*
+            g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+            g.enable(g.BLEND);
+            */
+
+            setTimeout(function () {
+                _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+            }, 1000);
+
+            // Also do it immediately, in case the timeout is not needed
+            this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
+
+            window.addEventListener('resize', function (event) {
+                var width = _this.getWidth();
+                var height = _this.getHeight();
+                _this.updateViewport(0, 0, width, height);
             });
-        }, this.maxFps);
 
-        if (this.opts.fpsElement) {
-            var now = performance.now();
-            var delta = now - this.lastTiming;
+            // Init effect(s)
+            this.effect = new Lore.Effect(this, 'fxaaEffect');
+            this.ready = true;
+            this.animate();
+        }
+    }, {
+        key: 'setClearColor',
+        value: function setClearColor(color) {
+            this.opts.clearColor = color;
 
-            this.lastTiming = now;
-            if (this.fpsCount < 10) {
-                this.fps += Math.round(1000.0 / delta);
-                this.fpsCount++;
-            } else {
-                this.opts.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
-                this.fpsCount = 0;
-                this.fps = 0;
+            var cc = this.opts.clearColor.components;
+
+            this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
+        }
+    }, {
+        key: 'getWidth',
+        value: function getWidth() {
+            return this.canvas.offsetWidth;
+        }
+    }, {
+        key: 'getHeight',
+        value: function getHeight() {
+            return this.canvas.offsetHeight;
+        }
+    }, {
+        key: 'updateViewport',
+        value: function updateViewport(x, y, width, height) {
+            // width *= this.devicePixelRatio;
+            // height *= this.devicePixelRatio;
+            this.canvas.width = width;
+            this.canvas.height = height;
+            this.gl.viewport(x, y, width, height);
+
+            this.camera.left = -width / 2;
+            this.camera.right = width / 2;
+            this.camera.top = height / 2;
+            this.camera.bottom = -height / 2;
+
+            this.camera.updateProjectionMatrix();
+
+            // Also reinit the buffers and textures for the effect(s)
+            this.effect = new Lore.Effect(this, 'fxaaEffect');
+            this.effect.shader.uniforms.resolution.setValue([width, height]);
+        }
+    }, {
+        key: 'animate',
+        value: function animate() {
+            var that = this;
+
+            setTimeout(function () {
+                requestAnimationFrame(function () {
+                    that.animate();
+                });
+            }, this.maxFps);
+
+            if (this.opts.fpsElement) {
+                var now = performance.now();
+                var delta = now - this.lastTiming;
+
+                this.lastTiming = now;
+                if (this.fpsCount < 10) {
+                    this.fps += Math.round(1000.0 / delta);
+                    this.fpsCount++;
+                } else {
+                    this.opts.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
+                    this.fpsCount = 0;
+                    this.fps = 0;
+                }
+            }
+
+            // this.effect.bind();
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+            this.render(this.camera, this.geometries);
+            // this.effect.unbind();
+
+            this.camera.isProjectionMatrixStale = false;
+            this.camera.isViewMatrixStale = false;
+        }
+    }, {
+        key: 'createGeometry',
+        value: function createGeometry(name, shaderName) {
+            var shader = Lore.getShader(shaderName);
+            shader.init(this.gl);
+            var geometry = new Lore.Geometry(name, this.gl, shader);
+
+            this.geometries[name] = geometry;
+
+            return geometry;
+        }
+    }, {
+        key: 'setMaxFps',
+        value: function setMaxFps(fps) {
+            this.maxFps = 1000 / fps;
+        }
+    }, {
+        key: 'getDevicePixelRatio',
+        value: function getDevicePixelRatio() {
+            return window.devicePixelRatio || 1;
+        }
+    }]);
+
+    return Renderer;
+}();
+
+Lore.Shader = function () {
+    function Shader(name, uniforms, vertexShader, fragmentShader) {
+        _classCallCheck(this, Shader);
+
+        this.name = name;
+        this.uniforms = uniforms || {};
+        this.vertexShader = vertexShader || [];
+        this.fragmentShader = fragmentShader || [];
+        this.gl = null;
+        this.program = null;
+        this.initialized = false;
+        this.lastTime = new Date().getTime();
+
+        // Add the two default shaders (the same shaders as in getVertexShader)
+        this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix', new Lore.Matrix4f().entries, 'float_mat4');
+
+        this.uniforms['projectionMatrix'] = new Lore.Uniform('projectionMatrix', new Lore.Matrix4f().entries, 'float_mat4');
+    }
+
+    _createClass(Shader, [{
+        key: 'clone',
+        value: function clone() {
+            return new Lore.Shader(this.name, this.uniforms, this.vertexShader, this.fragmentShader);
+        }
+    }, {
+        key: 'getVertexShaderCode',
+        value: function getVertexShaderCode() {
+            return this.vertexShader.join('\n');
+        }
+    }, {
+        key: 'getFragmentShaderCode',
+        value: function getFragmentShaderCode() {
+            return this.fragmentShader.join('\n');
+        }
+    }, {
+        key: 'getVertexShader',
+        value: function getVertexShader(gl) {
+            var shader = gl.createShader(gl.VERTEX_SHADER);
+
+            var vertexShaderCode = 'uniform mat4 modelViewMatrix;\n' + 'uniform mat4 projectionMatrix;\n\n' + this.getVertexShaderCode();
+
+            gl.shaderSource(shader, vertexShaderCode);
+            gl.compileShader(shader);
+
+            Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Vertex Shader');
+            return shader;
+        }
+    }, {
+        key: 'getFragmentShader',
+        value: function getFragmentShader(gl) {
+            var shader = gl.createShader(gl.FRAGMENT_SHADER);
+            // Adding precision, see:
+            // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
+            // and:
+            // http://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
+            var fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' + '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' + this.getFragmentShaderCode();
+
+            gl.shaderSource(shader, fragmentShaderCode);
+            gl.compileShader(shader);
+
+            Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Fragment Shader');
+            return shader;
+        }
+    }, {
+        key: 'init',
+        value: function init(gl) {
+            this.gl = gl;
+            this.program = this.gl.createProgram();
+            var vertexShader = this.getVertexShader(this.gl);
+            var fragmentShader = this.getFragmentShader(this.gl);
+
+            if (!vertexShader || !fragmentShader) {
+                console.error('Failed to create the fragment or the vertex shader.');
+                return null;
+            }
+
+            this.gl.attachShader(this.program, vertexShader);
+            this.gl.attachShader(this.program, fragmentShader);
+
+            this.gl.linkProgram(this.program);
+
+            if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
+                console.error('Could not link program.\n' + 'VALIDATE_STATUS: ' + this.gl.getProgramParameter(program, this.gl.VALIDATE_STATUS) + '\n' + 'ERROR: ' + this.gl.getError());
+                return null;
+            }
+
+            this.initialized = true;
+        }
+    }, {
+        key: 'updateUniforms',
+        value: function updateUniforms(renderer) {
+            // Always update time uniform if it exists
+            if (this.uniforms['time']) {
+                var unif = this.uniforms['time'];
+
+                var currentTime = new Date().getTime();
+                unif.value += currentTime - this.lastTime;
+                this.lastTime = currentTime;
+
+                Lore.Uniform.Set(this.gl, this.program, unif);
+
+                unif.stale = false;
+            }
+            for (var uniform in this.uniforms) {
+                var _unif = this.uniforms[uniform];
+                if (_unif.stale) {
+                    Lore.Uniform.Set(this.gl, this.program, _unif);
+                }
             }
         }
-
-        // this.effect.bind();
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        this.render(this.camera, this.geometries);
-        // this.effect.unbind();
-
-        this.opts.camera.isProjectionMatrixStale = false;
-        this.opts.camera.isViewMatrixStale = false;
-    },
-
-    createGeometry: function createGeometry(name, shaderName) {
-        var shader = Lore.getShader(shaderName);
-        shader.init(this.gl);
-        var geometry = new Lore.Geometry(name, this.gl, shader);
-
-        this.geometries[name] = geometry;
-
-        return geometry;
-    },
-
-    setMaxFps: function setMaxFps(fps) {
-        this.maxFps = 1000 / fps;
-    },
-
-    getDevicePixelRatio: function getDevicePixelRatio() {
-        return window.devicePixelRatio || 1;
-    }
-};
-
-Lore.Shader = function (name, uniforms, vertexShader, fragmentShader) {
-    this.name = name;
-    this.uniforms = uniforms || {};
-    this.vertexShader = vertexShader || [];
-    this.fragmentShader = fragmentShader || [];
-    this.gl = null;
-    this.program = null;
-    this.initialized = false;
-    this.lastTime = new Date().getTime();
-
-    // Add the two default shaders (the same shaders as in getVertexShader)
-    this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix', new Lore.Matrix4f().entries, 'float_mat4');
-
-    this.uniforms['projectionMatrix'] = new Lore.Uniform('projectionMatrix', new Lore.Matrix4f().entries, 'float_mat4');
-};
-
-Lore.Shader.prototype = {
-    constructor: Lore.Shader,
-
-    clone: function clone() {
-        return new Lore.Shader(this.name, this.uniforms, this.vertexShader, this.fragmentShader);
-    },
-
-    getVertexShaderCode: function getVertexShaderCode() {
-        return this.vertexShader.join('\n');
-    },
-
-    getFragmentShaderCode: function getFragmentShaderCode() {
-        return this.fragmentShader.join('\n');
-    },
-
-    getVertexShader: function getVertexShader(gl) {
-        var shader = gl.createShader(gl.VERTEX_SHADER);
-
-        var vertexShaderCode = 'uniform mat4 modelViewMatrix;\n' + 'uniform mat4 projectionMatrix;\n\n' + this.getVertexShaderCode();
-
-        gl.shaderSource(shader, vertexShaderCode);
-        gl.compileShader(shader);
-
-        Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Vertex Shader');
-        return shader;
-    },
-
-    getFragmentShader: function getFragmentShader(gl) {
-        var shader = gl.createShader(gl.FRAGMENT_SHADER);
-        // Adding precision, see:
-        // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
-        // and:
-        // http://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
-        var fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' + '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' + this.getFragmentShaderCode();
-
-        gl.shaderSource(shader, fragmentShaderCode);
-        gl.compileShader(shader);
-
-        Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Fragment Shader');
-        return shader;
-    },
-
-    init: function init(gl) {
-        this.gl = gl;
-        this.program = this.gl.createProgram();
-        var vertexShader = this.getVertexShader(this.gl);
-        var fragmentShader = this.getFragmentShader(this.gl);
-
-        if (!vertexShader || !fragmentShader) {
-            console.error('Failed to create the fragment or the vertex shader.');
-            return null;
+    }, {
+        key: 'use',
+        value: function use() {
+            this.gl.useProgram(this.program);
+            this.updateUniforms();
         }
+    }], [{
+        key: 'showCompilationInfo',
+        value: function showCompilationInfo(gl, shader, name, prefix) {
+            prefix = prefix || 'Shader';
+            // This was stolen from THREE.js
+            // https://github.com/mrdoob/three.js/blob/master/src/renderers/webgl/WebGLShader.js
+            if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) === false) {
+                console.error(prefix + ' ' + name + ' did not compile.');
+            }
 
-        this.gl.attachShader(this.program, vertexShader);
-        this.gl.attachShader(this.program, fragmentShader);
-
-        this.gl.linkProgram(this.program);
-
-        if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
-            console.error('Could not link program.\n' + 'VALIDATE_STATUS: ' + this.gl.getProgramParameter(program, this.gl.VALIDATE_STATUS) + '\n' + 'ERROR: ' + this.gl.getError());
-            return null;
-        }
-
-        this.initialized = true;
-    },
-
-    updateUniforms: function updateUniforms(renderer) {
-        // Always update time uniform if it exists
-        if (this.uniforms['time']) {
-            var unif = this.uniforms['time'];
-
-            var currentTime = new Date().getTime();
-            unif.value += currentTime - this.lastTime;
-            this.lastTime = currentTime;
-
-            Lore.Uniform.Set(this.gl, this.program, unif);
-
-            unif.stale = false;
-        }
-        for (var uniform in this.uniforms) {
-            var _unif = this.uniforms[uniform];
-            if (_unif.stale) {
-                Lore.Uniform.Set(this.gl, this.program, _unif);
+            if (gl.getShaderInfoLog(shader) !== '') {
+                console.warn(prefix + ' ' + name + ' info log: ' + gl.getShaderInfoLog(shader));
             }
         }
-    },
+    }]);
 
-    use: function use() {
-        this.gl.useProgram(this.program);
-        this.updateUniforms();
-    }
-};
+    return Shader;
+}();
 
-Lore.Shader.showCompilationInfo = function (gl, shader, name, prefix) {
-    prefix = prefix || 'Shader';
-    // This was stolen from THREE.js
-    // https://github.com/mrdoob/three.js/blob/master/src/renderers/webgl/WebGLShader.js
-    if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) === false) {
-        console.error(prefix + ' ' + name + ' did not compile.');
-    }
+Lore.Uniform = function () {
+    function Uniform(name, value, type) {
+        _classCallCheck(this, Uniform);
 
-    if (gl.getShaderInfoLog(shader) !== '') {
-        console.warn(prefix + ' ' + name + ' info log: ' + gl.getShaderInfoLog(shader));
-    }
-};
-
-Lore.Uniform = function (name, value, type) {
-    this.name = name;
-    this.value = value;
-    this.type = type;
-    this.stale = true;
-};
-
-Lore.Uniform.prototype = {
-    constructor: Lore.Uniform,
-
-    setValue: function setValue(value) {
+        this.name = name;
         this.value = value;
+        this.type = type;
         this.stale = true;
     }
-};
 
-Lore.Uniform.Set = function (gl, program, uniform) {
-    var location = gl.getUniformLocation(program, uniform.name);
+    _createClass(Uniform, [{
+        key: 'setValue',
+        value: function setValue(value) {
+            this.value = value;
+            this.stale = true;
+        }
+    }], [{
+        key: 'Set',
+        value: function Set(gl, program, uniform) {
+            var location = gl.getUniformLocation(program, uniform.name);
 
-    if (uniform.type === 'int') {
-        gl.uniform1i(location, uniform.value);
-    } else if (uniform.type === 'int_vec2') {
-        gl.uniform2iv(location, uniform.value);
-    } else if (uniform.type === 'int_vec3') {
-        gl.uniform3iv(location, uniform.value);
-    } else if (uniform.type === 'int_vec4') {
-        gl.uniform4iv(location, uniform.value);
-    } else if (uniform.type === 'int_array') {
-        gl.uniform1iv(location, uniform.value);
-    } else if (uniform.type === 'float') {
-        gl.uniform1f(location, uniform.value);
-    } else if (uniform.type === 'float_vec2') {
-        gl.uniform2fv(location, uniform.value);
-    } else if (uniform.type === 'float_vec3') {
-        gl.uniform3fv(location, uniform.value);
-    } else if (uniform.type === 'float_vec4') {
-        gl.uniform4fv(location, uniform.value);
-    } else if (uniform.type === 'float_array') {
-        gl.uniform1fv(location, uniform.value);
-    } else if (uniform.type === 'float_mat2') {
-        // false, see https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix
-        gl.uniformMatrix2fv(location, false, uniform.value);
-    } else if (uniform.type === 'float_mat3') {
-        gl.uniformMatrix3fv(location, false, uniform.value);
-    } else if (uniform.type === 'float_mat4') {
-        gl.uniformMatrix4fv(location, false, uniform.value);
-    }
+            if (uniform.type === 'int') {
+                gl.uniform1i(location, uniform.value);
+            } else if (uniform.type === 'int_vec2') {
+                gl.uniform2iv(location, uniform.value);
+            } else if (uniform.type === 'int_vec3') {
+                gl.uniform3iv(location, uniform.value);
+            } else if (uniform.type === 'int_vec4') {
+                gl.uniform4iv(location, uniform.value);
+            } else if (uniform.type === 'int_array') {
+                gl.uniform1iv(location, uniform.value);
+            } else if (uniform.type === 'float') {
+                gl.uniform1f(location, uniform.value);
+            } else if (uniform.type === 'float_vec2') {
+                gl.uniform2fv(location, uniform.value);
+            } else if (uniform.type === 'float_vec3') {
+                gl.uniform3fv(location, uniform.value);
+            } else if (uniform.type === 'float_vec4') {
+                gl.uniform4fv(location, uniform.value);
+            } else if (uniform.type === 'float_array') {
+                gl.uniform1fv(location, uniform.value);
+            } else if (uniform.type === 'float_mat2') {
+                // false, see https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix
+                gl.uniformMatrix2fv(location, false, uniform.value);
+            } else if (uniform.type === 'float_mat3') {
+                gl.uniformMatrix3fv(location, false, uniform.value);
+            } else if (uniform.type === 'float_mat4') {
+                gl.uniformMatrix4fv(location, false, uniform.value);
+            }
 
-    // TODO: Add SAMPLER_2D and SAMPLER_CUBE
+            // TODO: Add SAMPLER_2D and SAMPLER_CUBE
 
-    // Had to set this to true because point sizes did not update...
-    uniform.stale = true;
-};
+            // Had to set this to true because point sizes did not update...
+            uniform.stale = true;
+        }
+    }]);
+
+    return Uniform;
+}();
 
 // This is more or less the same implementation of a 3d node that
 // THREE.js uses
@@ -786,294 +855,344 @@ Lore.Node = function () {
     return Node;
 }();
 
-Lore.Geometry = function (name, gl, shader) {
-    Lore.Node.call(this);
+Lore.Geometry = function (_Lore$Node) {
+    _inherits(Geometry, _Lore$Node);
 
-    this.type = 'Lore.Geometry';
-    this.name = name;
-    this.gl = gl;
-    this.shader = shader;
-    this.attributes = {};
-    this.drawMode = this.gl.POINTS;
-    this.isVisible = true;
-};
+    function Geometry(name, gl, shader) {
+        _classCallCheck(this, Geometry);
 
-Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
-    constructor: Lore.Geometry,
+        var _this2 = _possibleConstructorReturn(this, (Geometry.__proto__ || Object.getPrototypeOf(Geometry)).call(this));
 
-    addAttribute: function addAttribute(name, data, length) {
-        this.attributes[name] = new Lore.Attribute(data, length, name);
-        this.attributes[name].createBuffer(this.gl, this.shader.program);
-        return this;
-    },
-
-    updateAttribute: function updateAttribute(name, data) {
-        if (data) this.attributes[name].data = data;
-        this.attributes[name].update(this.gl);
-        return this;
-    },
-
-    getAttribute: function getAttribute(name) {
-        return this.attributes[name];
-    },
-
-    removeAttribute: function removeAttribute(name) {
-        delete this.attributes[name];
-        return this;
-    },
-
-    setMode: function setMode(drawMode) {
-        switch (drawMode) {
-            case Lore.DrawModes.points:
-                this.drawMode = this.gl.POINTS;
-                break;
-            case Lore.DrawModes.lines:
-                this.drawMode = this.gl.LINES;
-                break;
-            case Lore.DrawModes.lineStrip:
-                this.drawMode = this.gl.LINE_STRIP;
-                break;
-            case Lore.DrawModes.lineLoop:
-                this.drawMode = this.gl.LINE_LOOP;
-                break;
-            case Lore.DrawModes.triangles:
-                this.drawMode = this.gl.TRIANGLES;
-                break;
-            case Lore.DrawModes.triangleStrip:
-                this.drawMode = this.gl.TRIANGLE_STRIP;
-                break;
-            case Lore.DrawModes.triangleFan:
-                this.drawMode = this.gl.TRIANGLE_FAN;
-                break;
-        }
-
-        return this;
-    },
-
-    size: function size() {
-        // Is this ok? All attributes should have the same length ...
-        if (Object.keys(this.attributes).length > 0) {
-            return this.attributes[Object.keys(this.attributes)[0]].size;
-        }
-
-        return 0;
-    },
-
-    draw: function draw(renderer) {
-        if (!this.isVisible) return;
-
-        for (var prop in this.attributes) {
-            if (this.attributes[prop].stale) this.attributes[prop].update(this.gl);
-        }this.shader.use();
-
-        // Update the modelView and projection matrices
-        if (renderer.camera.isProjectionMatrixStale) {
-            this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
-        }
-
-        if (renderer.camera.isViewMatrixStale) {
-            var modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
-            this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
-        }
-
-        this.shader.updateUniforms();
-
-        // How exactly does the binding work??
-        // What will happen if I want to draw a second geometry?
-        for (var _prop in this.attributes) {
-            this.attributes[_prop].bind(this.gl);
-        }
-
-        this.gl.drawArrays(this.drawMode, 0, this.size());
+        _this2.type = 'Lore.Geometry';
+        _this2.name = name;
+        _this2.gl = gl;
+        _this2.shader = shader;
+        _this2.attributes = {};
+        _this2.drawMode = _this2.gl.POINTS;
+        _this2.isVisible = true;
+        return _this2;
     }
-});
 
-Lore.Attribute = function (data, attributeLength, name) {
-    this.type = 'Lore.Attribute';
-    this.data = data;
-    this.attributeLength = attributeLength || 3;
-    this.name = name;
-    this.size = this.data.length / this.attributeLength;
-    this.buffer = null;
-    this.attributeLocation;
-    this.bufferType = null;
-    this.drawMode = null;
-    this.stale = false;
-};
+    _createClass(Geometry, [{
+        key: 'addAttribute',
+        value: function addAttribute(name, data, length) {
+            this.attributes[name] = new Lore.Attribute(data, length, name);
+            this.attributes[name].createBuffer(this.gl, this.shader.program);
 
-Lore.Attribute.prototype = {
-    constructor: Lore.Attribute,
-
-    setFromVector: function setFromVector(index, v) {
-        this.data.set(v.components, index * this.attributeLength, v.components.length);
-    },
-
-    setFromVectorArray: function setFromVectorArray(arr) {
-        if (this.attributeLength !== arr[0].components.length) throw 'The attribute has a length of ' + this.attributeLength + '. But the vectors have ' + arr[0].components.length + ' components.';
-
-        for (var i = 0; i < arr.length; i++) {
-            this.data.set(arr[i].components, i * this.attributeLength, arr[i].components.length);
+            return this;
         }
-    },
+    }, {
+        key: 'updateAttribute',
+        value: function updateAttribute(name, data) {
+            if (data) {
+                this.attributes[name].data = data;
+            }
 
-    getX: function getX(index) {
-        return this.data[index * this.attributeLength];
-    },
+            this.attributes[name].update(this.gl);
 
-    setX: function setX(index, value) {
-        this.data[index * this.attributeLength];
-    },
+            return this;
+        }
+    }, {
+        key: 'getAttribute',
+        value: function getAttribute(name) {
+            return this.attributes[name];
+        }
+    }, {
+        key: 'removeAttribute',
+        value: function removeAttribute(name) {
+            delete this.attributes[name];
 
-    getY: function getY(index) {
-        return this.data[index * this.attributeLength + 1];
-    },
+            return this;
+        }
+    }, {
+        key: 'setMode',
+        value: function setMode(drawMode) {
+            switch (drawMode) {
+                case Lore.DrawModes.points:
+                    this.drawMode = this.gl.POINTS;
+                    break;
+                case Lore.DrawModes.lines:
+                    this.drawMode = this.gl.LINES;
+                    break;
+                case Lore.DrawModes.lineStrip:
+                    this.drawMode = this.gl.LINE_STRIP;
+                    break;
+                case Lore.DrawModes.lineLoop:
+                    this.drawMode = this.gl.LINE_LOOP;
+                    break;
+                case Lore.DrawModes.triangles:
+                    this.drawMode = this.gl.TRIANGLES;
+                    break;
+                case Lore.DrawModes.triangleStrip:
+                    this.drawMode = this.gl.TRIANGLE_STRIP;
+                    break;
+                case Lore.DrawModes.triangleFan:
+                    this.drawMode = this.gl.TRIANGLE_FAN;
+                    break;
+            }
 
-    setY: function setY(index, value) {
-        this.data[index * this.attributeLength + 1];
-    },
+            return this;
+        }
+    }, {
+        key: 'size',
+        value: function size() {
+            // Is this ok? All attributes should have the same length ...
+            if (Object.keys(this.attributes).length > 0) {
+                return this.attributes[Object.keys(this.attributes)[0]].size;
+            }
 
-    getZ: function getZ(index) {
-        return this.data[index * this.attributeLength + 2];
-    },
+            return 0;
+        }
+    }, {
+        key: 'draw',
+        value: function draw(renderer) {
+            if (!this.isVisible) return;
 
-    setZ: function setZ(index, value) {
-        this.data[index * this.attributeLength + 2];
-    },
-    getW: function getW(index) {
-        return this.data[index * this.attributeLength + 3];
-    },
+            for (var prop in this.attributes) {
+                if (this.attributes[prop].stale) this.attributes[prop].update(this.gl);
+            }this.shader.use();
 
-    setW: function setW(index, value) {
-        this.data[index * this.attributeLength + 3];
-    },
+            // Update the modelView and projection matrices
+            if (renderer.camera.isProjectionMatrixStale) {
+                this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
+            }
 
-    getGlType: function getGlType(gl) {
-        // Just floats for now
-        // TODO: Add additional types.
-        return gl.FLOAT;
-    },
+            if (renderer.camera.isViewMatrixStale) {
+                var modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
+                this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
+            }
 
-    update: function update(gl) {
-        gl.bindBuffer(this.bufferType, this.buffer);
-        gl.bufferData(this.bufferType, this.data, this.drawMode);
+            this.shader.updateUniforms();
+
+            // How exactly does the binding work??
+            // What will happen if I want to draw a second geometry?
+            for (var _prop in this.attributes) {
+                this.attributes[_prop].bind(this.gl);
+            }
+
+            this.gl.drawArrays(this.drawMode, 0, this.size());
+        }
+    }]);
+
+    return Geometry;
+}(Lore.Node);
+
+Lore.Attribute = function () {
+    function Attribute(data, attributeLength, name) {
+        _classCallCheck(this, Attribute);
+
+        this.type = 'Lore.Attribute';
+        this.data = data;
+        this.attributeLength = attributeLength || 3;
+        this.name = name;
+        this.size = this.data.length / this.attributeLength;
+        this.buffer = null;
+        this.attributeLocation;
+        this.bufferType = null;
+        this.drawMode = null;
         this.stale = false;
-    },
+    }
 
-    createBuffer: function createBuffer(gl, program, bufferType, drawMode) {
-        this.buffer = gl.createBuffer();
-        this.bufferType = bufferType || gl.ARRAY_BUFFER;
-        this.drawMode = drawMode || gl.STATIC_DRAW;
-
-        gl.bindBuffer(this.bufferType, this.buffer);
-        gl.bufferData(this.bufferType, this.data, this.drawMode);
-
-        this.buffer.itemSize = this.attributeLength;
-        this.buffer.numItems = this.size;
-
-        this.attributeLocation = gl.getAttribLocation(program, this.name);
-        gl.bindBuffer(this.bufferType, null);
-    },
-
-    bind: function bind(gl) {
-        gl.bindBuffer(this.bufferType, this.buffer);
-
-        // Only enable attribute if it actually exists in the Shader
-        if (this.attributeLocation >= 0) {
-            gl.vertexAttribPointer(this.attributeLocation, this.attributeLength, this.getGlType(gl), gl.FALSE, 0, 0);
-            gl.enableVertexAttribArray(this.attributeLocation);
+    _createClass(Attribute, [{
+        key: 'setFromVector',
+        value: function setFromVector(index, v) {
+            this.data.set(v.components, index * this.attributeLength, v.components.length);
         }
+    }, {
+        key: 'setFromVectorArray',
+        value: function setFromVectorArray(arr) {
+            if (this.attributeLength !== arr[0].components.length) throw 'The attribute has a length of ' + this.attributeLength + '. But the vectors have ' + arr[0].components.length + ' components.';
+
+            for (var i = 0; i < arr.length; i++) {
+                this.data.set(arr[i].components, i * this.attributeLength, arr[i].components.length);
+            }
+        }
+    }, {
+        key: 'getX',
+        value: function getX(index) {
+            return this.data[index * this.attributeLength];
+        }
+    }, {
+        key: 'setX',
+        value: function setX(index, value) {
+            this.data[index * this.attributeLength];
+        }
+    }, {
+        key: 'getY',
+        value: function getY(index) {
+            return this.data[index * this.attributeLength + 1];
+        }
+    }, {
+        key: 'setY',
+        value: function setY(index, value) {
+            this.data[index * this.attributeLength + 1];
+        }
+    }, {
+        key: 'getZ',
+        value: function getZ(index) {
+            return this.data[index * this.attributeLength + 2];
+        }
+    }, {
+        key: 'setZ',
+        value: function setZ(index, value) {
+            this.data[index * this.attributeLength + 2];
+        }
+    }, {
+        key: 'getW',
+        value: function getW(index) {
+            return this.data[index * this.attributeLength + 3];
+        }
+    }, {
+        key: 'setW',
+        value: function setW(index, value) {
+            this.data[index * this.attributeLength + 3];
+        }
+    }, {
+        key: 'getGlType',
+        value: function getGlType(gl) {
+            // Just floats for now
+            // TODO: Add additional types.
+            return gl.FLOAT;
+        }
+    }, {
+        key: 'update',
+        value: function update(gl) {
+            gl.bindBuffer(this.bufferType, this.buffer);
+            gl.bufferData(this.bufferType, this.data, this.drawMode);
+
+            this.stale = false;
+        }
+    }, {
+        key: 'createBuffer',
+        value: function createBuffer(gl, program, bufferType, drawMode) {
+            this.buffer = gl.createBuffer();
+            this.bufferType = bufferType || gl.ARRAY_BUFFER;
+            this.drawMode = drawMode || gl.STATIC_DRAW;
+
+            gl.bindBuffer(this.bufferType, this.buffer);
+            gl.bufferData(this.bufferType, this.data, this.drawMode);
+
+            this.buffer.itemSize = this.attributeLength;
+            this.buffer.numItems = this.size;
+
+            this.attributeLocation = gl.getAttribLocation(program, this.name);
+            gl.bindBuffer(this.bufferType, null);
+        }
+    }, {
+        key: 'bind',
+        value: function bind(gl) {
+            gl.bindBuffer(this.bufferType, this.buffer);
+
+            // Only enable attribute if it actually exists in the Shader
+            if (this.attributeLocation >= 0) {
+                gl.vertexAttribPointer(this.attributeLocation, this.attributeLength, this.getGlType(gl), gl.FALSE, 0, 0);
+                gl.enableVertexAttribArray(this.attributeLocation);
+            }
+        }
+    }]);
+
+    return Attribute;
+}();
+
+Lore.Effect = function () {
+    function Effect(renderer, shaderName) {
+        _classCallCheck(this, Effect);
+
+        this.renderer = renderer;
+        this.gl = this.renderer.gl;
+
+        this.framebuffer = this.initFramebuffer();
+        this.texture = this.initTexture();
+        this.renderbuffer = this.initRenderbuffer();
+
+        this.shader = Lore.getShader(shaderName);
+        this.shader.init(this.renderer.gl);
+
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
     }
-};
 
-Lore.Effect = function (renderer, shaderName) {
-    this.renderer = renderer;
-    this.gl = this.renderer.gl;
+    _createClass(Effect, [{
+        key: 'initBuffer',
+        value: function initBuffer() {
+            var g = this.gl;
+            var texCoordLocation = g.getAttribLocation(this.shader.program, 'v_coord');
 
-    this.framebuffer = this.initFramebuffer();
-    this.texture = this.initTexture();
-    this.renderbuffer = this.initRenderbuffer();
+            // provide texture coordinates for the rectangle.
+            var texCoordBuffer = g.createBuffer();
+            g.bindBuffer(g.ARRAY_BUFFER, texCoordBuffer);
+            g.bufferData(g.ARRAY_BUFFER, new Float32Array([1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0]), g.STATIC_DRAW);
 
-    this.shader = Lore.getShader(shaderName);
-    this.shader.init(this.renderer.gl);
+            g.enableVertexAttribArray(texCoordLocation);
+            g.vertexAttribPointer(texCoordLocation, 2, g.FLOAT, false, 0, 0);
 
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-};
+            return texCoordBuffer;
+        }
+    }, {
+        key: 'initTexture',
+        value: function initTexture() {
+            var g = this.gl;
 
-Lore.Effect.prototype = {
-    constructor: Lore.Effect,
+            var texture = g.createTexture();
+            g.bindTexture(g.TEXTURE_2D, texture);
+            g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+            g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+            g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+            g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
 
-    initBuffer: function initBuffer() {
-        var g = this.gl;
-        var texCoordLocation = g.getAttribLocation(this.shader.program, 'v_coord');
+            g.bindTexture(g.TEXTURE_2D, texture);
+            g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, this.renderer.getWidth(), this.renderer.getHeight(), 0, g.RGBA, g.UNSIGNED_BYTE, null);
 
-        // provide texture coordinates for the rectangle.
-        var texCoordBuffer = g.createBuffer();
-        g.bindBuffer(g.ARRAY_BUFFER, texCoordBuffer);
-        g.bufferData(g.ARRAY_BUFFER, new Float32Array([1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0]), g.STATIC_DRAW);
+            g.framebufferTexture2D(g.FRAMEBUFFER, g.COLOR_ATTACHMENT0, g.TEXTURE_2D, texture, 0);
 
-        g.enableVertexAttribArray(texCoordLocation);
-        g.vertexAttribPointer(texCoordLocation, 2, g.FLOAT, false, 0, 0);
+            return texture;
+        }
+    }, {
+        key: 'initFramebuffer',
+        value: function initFramebuffer() {
+            var g = this.gl;
 
-        return texCoordBuffer;
-    },
+            var framebuffer = g.createFramebuffer();
+            g.bindFramebuffer(g.FRAMEBUFFER, framebuffer);
+            return framebuffer;
+        }
+    }, {
+        key: 'initRenderbuffer',
+        value: function initRenderbuffer() {
+            var g = this.gl;
 
-    initTexture: function initTexture() {
-        var g = this.gl;
+            var renderbuffer = g.createRenderbuffer();
+            g.bindRenderbuffer(g.RENDERBUFFER, renderbuffer);
 
-        var texture = g.createTexture();
-        g.bindTexture(g.TEXTURE_2D, texture);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
-        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+            g.renderbufferStorage(g.RENDERBUFFER, g.DEPTH_COMPONENT16, this.renderer.getWidth(), this.renderer.getHeight());
+            g.framebufferRenderbuffer(g.FRAMEBUFFER, g.DEPTH_ATTACHMENT, g.RENDERBUFFER, renderbuffer);
 
-        g.bindTexture(g.TEXTURE_2D, texture);
-        g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, this.renderer.getWidth(), this.renderer.getHeight(), 0, g.RGBA, g.UNSIGNED_BYTE, null);
+            // g.renderbufferStorage(g.RENDERBUFFER, g.DEPTH_STENCIL, this.renderer.getWidth(), this.renderer.getHeight());
+            // g.framebufferRenderbuffer(g.FRAMEBUFFER, g.DEPTH_STENCIL_ATTACHMENT, g.RENDERBUFFER, renderbuffer);
 
-        g.framebufferTexture2D(g.FRAMEBUFFER, g.COLOR_ATTACHMENT0, g.TEXTURE_2D, texture, 0);
+            return renderbuffer;
+        }
+    }, {
+        key: 'bind',
+        value: function bind() {
+            var g = this.gl;
+            g.bindFramebuffer(g.FRAMEBUFFER, this.framebuffer);
+            g.clear(g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT);
+        }
+    }, {
+        key: 'unbind',
+        value: function unbind() {
+            var g = this.gl;
+            g.bindRenderbuffer(g.RENDERBUFFER, null);
+            g.bindFramebuffer(g.FRAMEBUFFER, null);
 
-        return texture;
-    },
+            this.initBuffer();
+            this.shader.use();
+            g.drawArrays(g.TRIANGLES, 0, 6);
+        }
+    }]);
 
-    initFramebuffer: function initFramebuffer() {
-        var g = this.gl;
-
-        var framebuffer = g.createFramebuffer();
-        g.bindFramebuffer(g.FRAMEBUFFER, framebuffer);
-        return framebuffer;
-    },
-
-    initRenderbuffer: function initRenderbuffer() {
-        var g = this.gl;
-
-        var renderbuffer = g.createRenderbuffer();
-        g.bindRenderbuffer(g.RENDERBUFFER, renderbuffer);
-
-        g.renderbufferStorage(g.RENDERBUFFER, g.DEPTH_COMPONENT16, this.renderer.getWidth(), this.renderer.getHeight());
-        g.framebufferRenderbuffer(g.FRAMEBUFFER, g.DEPTH_ATTACHMENT, g.RENDERBUFFER, renderbuffer);
-
-        // g.renderbufferStorage(g.RENDERBUFFER, g.DEPTH_STENCIL, this.renderer.getWidth(), this.renderer.getHeight());
-        // g.framebufferRenderbuffer(g.FRAMEBUFFER, g.DEPTH_STENCIL_ATTACHMENT, g.RENDERBUFFER, renderbuffer);
-
-        return renderbuffer;
-    },
-
-    bind: function bind() {
-        var g = this.gl;
-        g.bindFramebuffer(g.FRAMEBUFFER, this.framebuffer);
-        g.clear(g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT);
-    },
-
-    unbind: function unbind() {
-        var g = this.gl;
-        g.bindRenderbuffer(g.RENDERBUFFER, null);
-        g.bindFramebuffer(g.FRAMEBUFFER, null);
-
-        this.initBuffer();
-        this.shader.use();
-        g.drawArrays(g.TRIANGLES, 0, 6);
-    }
-};
+    return Effect;
+}();
 
 Lore.ControlsBase = function () {
     function ControlsBase(renderer) {
@@ -1395,38 +1514,38 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
     function OrbitalControls(renderer, radius, lookAt) {
         _classCallCheck(this, OrbitalControls);
 
-        var _this2 = _possibleConstructorReturn(this, (OrbitalControls.__proto__ || Object.getPrototypeOf(OrbitalControls)).call(this, renderer));
+        var _this3 = _possibleConstructorReturn(this, (OrbitalControls.__proto__ || Object.getPrototypeOf(OrbitalControls)).call(this, renderer));
 
-        _this2.up = Lore.Vector3f.up();
-        _this2.radius = radius;
-        _this2.renderer = renderer;
-        _this2.camera = renderer.camera;
-        _this2.canvas = renderer.canvas;
+        _this3.up = Lore.Vector3f.up();
+        _this3.radius = radius;
+        _this3.renderer = renderer;
+        _this3.camera = renderer.camera;
+        _this3.canvas = renderer.canvas;
 
-        _this2.yRotationLimit = Math.PI;
+        _this3.yRotationLimit = Math.PI;
 
-        _this2.dPhi = 0.0;
-        _this2.dTheta = 0.0;
-        _this2.dPan = new Lore.Vector3f();
+        _this3.dPhi = 0.0;
+        _this3.dTheta = 0.0;
+        _this3.dPan = new Lore.Vector3f();
 
-        _this2.spherical = new Lore.SphericalCoords();
-        _this2.lookAt = lookAt || new Lore.Vector3f();
+        _this3.spherical = new Lore.SphericalCoords();
+        _this3.lookAt = lookAt || new Lore.Vector3f();
 
-        _this2.scale = 0.95;
+        _this3.scale = 0.95;
 
-        _this2.camera.position = new Lore.Vector3f(radius, radius, radius);
-        _this2.camera.updateProjectionMatrix();
-        _this2.camera.updateViewMatrix();
+        _this3.camera.position = new Lore.Vector3f(radius, radius, radius);
+        _this3.camera.updateProjectionMatrix();
+        _this3.camera.updateViewMatrix();
 
-        _this2.rotationLocked = false;
+        _this3.rotationLocked = false;
 
-        var that = _this2;
+        var that = _this3;
 
-        _this2.addEventListener('mousedrag', function (e) {
+        _this3.addEventListener('mousedrag', function (e) {
             that.update(e.e, e.source);
         });
 
-        _this2.addEventListener('mousewheel', function (e) {
+        _this3.addEventListener('mousewheel', function (e) {
             that.update({
                 x: 0,
                 y: -e.e
@@ -1434,11 +1553,11 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         });
 
         // Initial update
-        _this2.update({
+        _this3.update({
             x: 0,
             y: 0
         }, 'left');
-        return _this2;
+        return _this3;
     }
 
     _createClass(OrbitalControls, [{
@@ -1478,8 +1597,12 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         value: function update(e, source) {
             if (source == 'left' && !this.rotationLocked) {
                 // Rotate
-                this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
-                this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
+                this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * 0.5 * this.camera.zoom);
+                this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * 0.5 * this.camera.zoom);
+
+                // It's just to fast like this ...
+                // this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
+                // this.dPhi = -2 * Math.PI * e.y / this.canvas.clientHeight;
             } else if (source == 'right' || source == 'left' && this.rotationLocked) {
                 // Translate
                 var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
@@ -1515,14 +1638,11 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
             this.spherical.secure();
 
             // Limit radius here
-
             this.lookAt.add(this.dPan);
             offset.setFromSphericalCoords(this.spherical);
 
             this.camera.position.copyFrom(this.lookAt).add(offset);
-
             this.camera.setLookAt(this.lookAt);
-
             this.camera.updateViewMatrix();
 
             this.dPhi = 0.0;
@@ -1633,21 +1753,21 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
     return OrbitalControls;
 }(Lore.ControlsBase);
 
-Lore.CameraBase = function (_Lore$Node) {
-    _inherits(CameraBase, _Lore$Node);
+Lore.CameraBase = function (_Lore$Node2) {
+    _inherits(CameraBase, _Lore$Node2);
 
     function CameraBase() {
         _classCallCheck(this, CameraBase);
 
-        var _this3 = _possibleConstructorReturn(this, (CameraBase.__proto__ || Object.getPrototypeOf(CameraBase)).call(this));
+        var _this4 = _possibleConstructorReturn(this, (CameraBase.__proto__ || Object.getPrototypeOf(CameraBase)).call(this));
 
-        _this3.type = 'Lore.CameraBase';
-        _this3.renderer = null;
-        _this3.isProjectionMatrixStale = false;
-        _this3.isViewMatrixStale = false;
-        _this3.projectionMatrix = new Lore.ProjectionMatrix();
-        _this3.viewMatrix = new Lore.Matrix4f();
-        return _this3;
+        _this4.type = 'Lore.CameraBase';
+        _this4.renderer = null;
+        _this4.isProjectionMatrixStale = false;
+        _this4.isViewMatrixStale = false;
+        _this4.projectionMatrix = new Lore.ProjectionMatrix();
+        _this4.viewMatrix = new Lore.Matrix4f();
+        return _this4;
     }
 
     _createClass(CameraBase, [{
@@ -1719,19 +1839,19 @@ Lore.OrthographicCamera = function (_Lore$CameraBase) {
     function OrthographicCamera(left, right, top, bottom, near, far) {
         _classCallCheck(this, OrthographicCamera);
 
-        var _this4 = _possibleConstructorReturn(this, (OrthographicCamera.__proto__ || Object.getPrototypeOf(OrthographicCamera)).call(this));
+        var _this5 = _possibleConstructorReturn(this, (OrthographicCamera.__proto__ || Object.getPrototypeOf(OrthographicCamera)).call(this));
 
-        _this4.type = 'Lore.OrthographicCamera';
-        _this4.zoom = 1.0;
-        _this4.left = left;
-        _this4.right = right;
-        _this4.top = top;
-        _this4.bottom = bottom;
-        _this4.near = near || 0.1;
-        _this4.far = far || 2500;
+        _this5.type = 'Lore.OrthographicCamera';
+        _this5.zoom = 1.0;
+        _this5.left = left;
+        _this5.right = right;
+        _this5.top = top;
+        _this5.bottom = bottom;
+        _this5.near = near || 0.1;
+        _this5.far = far || 2500;
 
-        _this4.updateProjectionMatrix();
-        return _this4;
+        _this5.updateProjectionMatrix();
+        return _this5;
     }
 
     _createClass(OrthographicCamera, [{
@@ -3468,18 +3588,18 @@ var RadixSort = function () {
     return RadixSort;
 }();
 
-Lore.HelperBase = function (_Lore$Node2) {
-    _inherits(HelperBase, _Lore$Node2);
+Lore.HelperBase = function (_Lore$Node3) {
+    _inherits(HelperBase, _Lore$Node3);
 
     function HelperBase(renderer, geometryName, shaderName) {
         _classCallCheck(this, HelperBase);
 
-        var _this6 = _possibleConstructorReturn(this, (HelperBase.__proto__ || Object.getPrototypeOf(HelperBase)).call(this));
+        var _this7 = _possibleConstructorReturn(this, (HelperBase.__proto__ || Object.getPrototypeOf(HelperBase)).call(this));
 
-        _this6.renderer = renderer;
-        _this6.shader = Lore.Shaders[shaderName];
-        _this6.geometry = _this6.renderer.createGeometry(geometryName, shaderName);
-        return _this6;
+        _this7.renderer = renderer;
+        _this7.shader = Lore.Shaders[shaderName];
+        _this7.geometry = _this7.renderer.createGeometry(geometryName, shaderName);
+        return _this7;
     }
 
     _createClass(HelperBase, [{
@@ -3532,7 +3652,7 @@ Lore.PointHelper = function (_Lore$HelperBase) {
     function PointHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, PointHelper);
 
-        var _this7 = _possibleConstructorReturn(this, (PointHelper.__proto__ || Object.getPrototypeOf(PointHelper)).call(this, renderer, geometryName, shaderName));
+        var _this8 = _possibleConstructorReturn(this, (PointHelper.__proto__ || Object.getPrototypeOf(PointHelper)).call(this, renderer, geometryName, shaderName));
 
         var defaults = {
             octree: true,
@@ -3542,14 +3662,14 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             maxPointSize: 100.0
         };
 
-        _this7.opts = Lore.Utils.extend(true, defaults, options);
-        _this7.indices = null;
-        _this7.octree = null;
-        _this7.geometry.setMode(Lore.DrawModes.points);
-        _this7.initPointSize();
-        _this7.filters = {};
-        _this7.pointSize = 1.0 * _this7.opts.pointScale;
-        return _this7;
+        _this8.opts = Lore.Utils.extend(true, defaults, options);
+        _this8.indices = null;
+        _this8.octree = null;
+        _this8.geometry.setMode(Lore.DrawModes.points);
+        _this8.initPointSize();
+        _this8.filters = {};
+        _this8.pointSize = 1.0 * _this8.opts.pointScale;
+        return _this8;
     }
 
     _createClass(PointHelper, [{
@@ -4035,22 +4155,22 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
     function OctreeHelper(renderer, geometryName, shaderName, target, options) {
         _classCallCheck(this, OctreeHelper);
 
-        var _this8 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
+        var _this9 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this8.defaults = {
+        _this9.defaults = {
             visualize: false
         };
 
-        _this8.opts = Lore.Utils.extend(true, _this8.defaults, options);
-        _this8.eventListeners = {};
-        _this8.target = target;
-        _this8.renderer = renderer;
-        _this8.octree = _this8.target.octree;
-        _this8.raycaster = new Lore.Raycaster();
-        _this8.hovered = null;
-        _this8.selected = [];
+        _this9.opts = Lore.Utils.extend(true, _this9.defaults, options);
+        _this9.eventListeners = {};
+        _this9.target = target;
+        _this9.renderer = renderer;
+        _this9.octree = _this9.target.octree;
+        _this9.raycaster = new Lore.Raycaster();
+        _this9.hovered = null;
+        _this9.selected = [];
 
-        var that = _this8;
+        var that = _this9;
 
         renderer.controls.addEventListener('dblclick', function (e) {
             if (e.e.mouse.state.middle || e.e.mouse.state.right) {
@@ -4111,8 +4231,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
             that.raiseEvent('updated');
         });
 
-        _this8.init();
-        return _this8;
+        _this9.init();
+        return _this9;
     }
 
     _createClass(OctreeHelper, [{
@@ -4614,18 +4734,18 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     function CsvFileReader(elementId, options) {
         _classCallCheck(this, CsvFileReader);
 
-        var _this9 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+        var _this10 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
 
-        _this9.defaults = {
+        _this10.defaults = {
             separator: ',',
             cols: [],
             types: [],
             header: true
         };
 
-        _this9.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
-        _this9.columns = [];
-        return _this9;
+        _this10.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
+        _this10.columns = [];
+        return _this10;
     }
 
     _createClass(CsvFileReader, [{

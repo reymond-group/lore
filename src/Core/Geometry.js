@@ -1,77 +1,81 @@
-Lore.Geometry = function(name, gl, shader) {
-    Lore.Node.call(this);
+Lore.Geometry = class Geometry extends Lore.Node {
+    constructor(name, gl, shader) {
+        super();
 
-    this.type = 'Lore.Geometry';
-    this.name = name;
-    this.gl = gl;
-    this.shader = shader;
-    this.attributes = {};
-    this.drawMode = this.gl.POINTS;
-    this.isVisible = true;
-}
+        this.type = 'Lore.Geometry';
+        this.name = name;
+        this.gl = gl;
+        this.shader = shader;
+        this.attributes = {};
+        this.drawMode = this.gl.POINTS;
+        this.isVisible = true;
+    }
 
-Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
-    constructor: Lore.Geometry,
-
-    addAttribute: function(name, data, length) {
+    addAttribute(name, data, length) {
         this.attributes[name] = new Lore.Attribute(data, length, name);
         this.attributes[name].createBuffer(this.gl, this.shader.program);
-        return this;
-    },
 
-    updateAttribute: function(name, data) {
-        if(data) this.attributes[name].data = data;
+        return this;
+    }
+
+    updateAttribute(name, data) {
+        if (data) {
+            this.attributes[name].data = data;
+        }
+
         this.attributes[name].update(this.gl);
-        return this;
-    },
 
-    getAttribute: function(name) {
+        return this;
+    }
+
+    getAttribute(name) {
         return this.attributes[name];
-    },
+    }
 
-    removeAttribute: function(name) {
+    removeAttribute(name) {
         delete this.attributes[name];
-        return this;
-    },
 
-    setMode: function(drawMode) {
+        return this;
+    }
+
+    setMode(drawMode) {
         switch (drawMode) {
-            case Lore.DrawModes.points:
-                this.drawMode = this.gl.POINTS;
-                break;
-            case Lore.DrawModes.lines:
-                this.drawMode = this.gl.LINES;
-                break;
-            case Lore.DrawModes.lineStrip:
-                this.drawMode = this.gl.LINE_STRIP;
-                break;
-            case Lore.DrawModes.lineLoop:
-                this.drawMode = this.gl.LINE_LOOP;
-                break;
-            case Lore.DrawModes.triangles:
-                this.drawMode = this.gl.TRIANGLES;
-                break;
-            case Lore.DrawModes.triangleStrip:
-                this.drawMode = this.gl.TRIANGLE_STRIP;
-                break;
-            case Lore.DrawModes.triangleFan:
-                this.drawMode = this.gl.TRIANGLE_FAN;
-                break;
+        case Lore.DrawModes.points:
+            this.drawMode = this.gl.POINTS;
+            break;
+        case Lore.DrawModes.lines:
+            this.drawMode = this.gl.LINES;
+            break;
+        case Lore.DrawModes.lineStrip:
+            this.drawMode = this.gl.LINE_STRIP;
+            break;
+        case Lore.DrawModes.lineLoop:
+            this.drawMode = this.gl.LINE_LOOP;
+            break;
+        case Lore.DrawModes.triangles:
+            this.drawMode = this.gl.TRIANGLES;
+            break;
+        case Lore.DrawModes.triangleStrip:
+            this.drawMode = this.gl.TRIANGLE_STRIP;
+            break;
+        case Lore.DrawModes.triangleFan:
+            this.drawMode = this.gl.TRIANGLE_FAN;
+            break;
         }
 
         return this;
-    },
+    }
 
-    size: function() {
+    size() {
         // Is this ok? All attributes should have the same length ...
         if (Object.keys(this.attributes).length > 0) {
             return this.attributes[Object.keys(this.attributes)[0]].size;
         }
 
         return 0;
-    },
+    }
 
-    draw: function(renderer) {
+    draw(renderer) {
         if (!this.isVisible) return;
 
         for (let prop in this.attributes)
@@ -98,5 +102,5 @@ Lore.Geometry.prototype = Object.assign(Object.create(Lore.Node.prototype), {
         }
 
         this.gl.drawArrays(this.drawMode, 0, this.size());
-    },
-});
+    }
+}

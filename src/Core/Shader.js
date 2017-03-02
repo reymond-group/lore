@@ -1,37 +1,35 @@
-Lore.Shader = function(name, uniforms, vertexShader, fragmentShader) {
-    this.name = name;
-    this.uniforms = uniforms || {};
-    this.vertexShader = vertexShader || [];
-    this.fragmentShader = fragmentShader || [];
-    this.gl = null;
-    this.program = null;
-    this.initialized = false;
-    this.lastTime = new Date().getTime();
+Lore.Shader = class Shader {
+    constructor(name, uniforms, vertexShader, fragmentShader) {
+        this.name = name;
+        this.uniforms = uniforms || {};
+        this.vertexShader = vertexShader || [];
+        this.fragmentShader = fragmentShader || [];
+        this.gl = null;
+        this.program = null;
+        this.initialized = false;
+        this.lastTime = new Date().getTime();
 
-    // Add the two default shaders (the same shaders as in getVertexShader)
-    this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix',
-        (new Lore.Matrix4f()).entries, 'float_mat4');
+        // Add the two default shaders (the same shaders as in getVertexShader)
+        this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix',
+            (new Lore.Matrix4f()).entries, 'float_mat4');
 
-    this.uniforms['projectionMatrix'] = new Lore.Uniform('projectionMatrix',
-        (new Lore.Matrix4f()).entries, 'float_mat4');
-}
-
-Lore.Shader.prototype = {
-    constructor: Lore.Shader,
+        this.uniforms['projectionMatrix'] = new Lore.Uniform('projectionMatrix',
+            (new Lore.Matrix4f()).entries, 'float_mat4');
+    }
     
-    clone: function() {
+    clone() {
         return new Lore.Shader(this.name, this.uniforms, this.vertexShader, this.fragmentShader);
-    },
+    }
 
-    getVertexShaderCode: function() {
+    getVertexShaderCode() {
         return this.vertexShader.join('\n');
-    },
+    }
 
-    getFragmentShaderCode: function() {
+    getFragmentShaderCode() {
         return this.fragmentShader.join('\n');
-    },
+    }
 
-    getVertexShader: function(gl) {
+    getVertexShader(gl) {
         let shader = gl.createShader(gl.VERTEX_SHADER);
 
         let vertexShaderCode = 'uniform mat4 modelViewMatrix;\n' +
@@ -43,9 +41,9 @@ Lore.Shader.prototype = {
 
         Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Vertex Shader');
         return shader;
-    },
+    }
 
-    getFragmentShader: function(gl) {
+    getFragmentShader(gl) {
         let shader = gl.createShader(gl.FRAGMENT_SHADER);
         // Adding precision, see:
         // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
@@ -60,9 +58,9 @@ Lore.Shader.prototype = {
 
         Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Fragment Shader');
         return shader;
-    },
+    }
 
-    init: function(gl) {
+    init(gl) {
         this.gl = gl;
         this.program = this.gl.createProgram();
         let vertexShader = this.getVertexShader(this.gl);
@@ -86,9 +84,9 @@ Lore.Shader.prototype = {
         }
 
         this.initialized = true;
-    },
+    }
 
-    updateUniforms: function(renderer) {
+    updateUniforms(renderer) {
         // Always update time uniform if it exists
         if (this.uniforms['time']) {
             let unif = this.uniforms['time'];
@@ -107,23 +105,23 @@ Lore.Shader.prototype = {
                 Lore.Uniform.Set(this.gl, this.program, unif);
             }
         }
-    },
+    }
 
-    use: function() {
+    use() {
       this.gl.useProgram(this.program);
       this.updateUniforms();
     }
-}
 
-Lore.Shader.showCompilationInfo = function(gl, shader, name, prefix) {
-    prefix = prefix || 'Shader';
-    // This was stolen from THREE.js
-    // https://github.com/mrdoob/three.js/blob/master/src/renderers/webgl/WebGLShader.js
-    if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) === false) {
-        console.error(prefix + ' ' + name + ' did not compile.');
-    }
+    static showCompilationInfo(gl, shader, name, prefix) {
+        prefix = prefix || 'Shader';
+        // This was stolen from THREE.js
+        // https://github.com/mrdoob/three.js/blob/master/src/renderers/webgl/WebGLShader.js
+        if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) === false) {
+            console.error(prefix + ' ' + name + ' did not compile.');
+        }
 
-    if (gl.getShaderInfoLog(shader) !== '') {
-        console.warn(prefix + ' ' + name + ' info log: ' + gl.getShaderInfoLog(shader));
+        if (gl.getShaderInfoLog(shader) !== '') {
+            console.warn(prefix + ' ' + name + ' info log: ' + gl.getShaderInfoLog(shader));
+        }
     }
 }

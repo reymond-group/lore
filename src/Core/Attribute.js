@@ -1,76 +1,76 @@
-Lore.Attribute = function(data, attributeLength, name) {
-    this.type = 'Lore.Attribute';
-    this.data = data;
-    this.attributeLength = attributeLength || 3;
-    this.name = name;
-    this.size = this.data.length / this.attributeLength;
-    this.buffer = null;
-    this.attributeLocation;
-    this.bufferType = null;
-    this.drawMode = null;
-    this.stale = false;
-}
+Lore.Attribute = class Attribute {
+    constructor(data, attributeLength, name) {
+        this.type = 'Lore.Attribute';
+        this.data = data;
+        this.attributeLength = attributeLength || 3;
+        this.name = name;
+        this.size = this.data.length / this.attributeLength;
+        this.buffer = null;
+        this.attributeLocation;
+        this.bufferType = null;
+        this.drawMode = null;
+        this.stale = false;
+    }
 
-Lore.Attribute.prototype = {
-    constructor: Lore.Attribute,
-
-    setFromVector: function(index, v) {
+    setFromVector(index, v) {
         this.data.set(v.components, index * this.attributeLength, v.components.length);
-    },
+    }
 
-    setFromVectorArray: function(arr) {
+    setFromVectorArray(arr) {
         if (this.attributeLength !== arr[0].components.length)
             throw 'The attribute has a length of ' + this.attributeLength + '. But the vectors have ' + arr[0].components.length + ' components.';
 
         for (let i = 0; i < arr.length; i++) {
             this.data.set(arr[i].components, i * this.attributeLength, arr[i].components.length);
         }
-    },
+    }
 
-    getX: function(index) {
+    getX(index) {
         return this.data[index * this.attributeLength];
-    },
+    }
 
-    setX: function(index, value) {
+    setX(index, value) {
         this.data[index * this.attributeLength];
-    },
+    }
 
-    getY: function(index) {
+    getY(index) {
         return this.data[index * this.attributeLength + 1];
-    },
+    }
 
-    setY: function(index, value) {
+    setY(index, value) {
         this.data[index * this.attributeLength + 1];
-    },
+    }
 
-    getZ: function(index) {
+    getZ(index) {
         return this.data[index * this.attributeLength + 2];
-    },
+    }
 
-    setZ: function(index, value) {
+    setZ(index, value) {
         this.data[index * this.attributeLength + 2];
-    },
-    getW: function(index) {
+    }
+
+    getW(index) {
         return this.data[index * this.attributeLength + 3];
-    },
+    }
 
-    setW: function(index, value) {
+    setW(index, value) {
         this.data[index * this.attributeLength + 3];
-    },
+    }
 
-    getGlType: function(gl) {
+    getGlType(gl) {
         // Just floats for now
         // TODO: Add additional types.
         return gl.FLOAT;
-    },
+    }
 
-    update: function(gl) {
+    update(gl) {
         gl.bindBuffer(this.bufferType, this.buffer);
         gl.bufferData(this.bufferType, this.data, this.drawMode);
-        this.stale = false;
-    },
 
-    createBuffer: function(gl, program, bufferType, drawMode) {
+        this.stale = false;
+    }
+
+    createBuffer(gl, program, bufferType, drawMode) {
         this.buffer = gl.createBuffer();
         this.bufferType = bufferType || gl.ARRAY_BUFFER;
         this.drawMode = drawMode || gl.STATIC_DRAW;
@@ -83,9 +83,9 @@ Lore.Attribute.prototype = {
 
         this.attributeLocation = gl.getAttribLocation(program, this.name);
         gl.bindBuffer(this.bufferType, null);
-    },
+    }
 
-    bind: function(gl) {
+    bind(gl) {
         gl.bindBuffer(this.bufferType, this.buffer);
 
         // Only enable attribute if it actually exists in the Shader

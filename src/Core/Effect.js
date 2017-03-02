@@ -1,21 +1,20 @@
-Lore.Effect = function(renderer, shaderName) {
-    this.renderer = renderer;
-    this.gl = this.renderer.gl;
+Lore.Effect = class Effect {
 
-    this.framebuffer = this.initFramebuffer();
-    this.texture = this.initTexture();
-    this.renderbuffer = this.initRenderbuffer();
-    
-    this.shader = Lore.getShader(shaderName);
-    this.shader.init(this.renderer.gl);
+    constructor(renderer, shaderName) {
+        this.renderer = renderer;
+        this.gl = this.renderer.gl;
 
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-}
+        this.framebuffer = this.initFramebuffer();
+        this.texture = this.initTexture();
+        this.renderbuffer = this.initRenderbuffer();
+        
+        this.shader = Lore.getShader(shaderName);
+        this.shader.init(this.renderer.gl);
 
-Lore.Effect.prototype = {
-    constructor: Lore.Effect,
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    }
 
-    initBuffer: function() {
+    initBuffer() {
       let g = this.gl;
       let texCoordLocation = g.getAttribLocation(this.shader.program, 'v_coord');
 
@@ -34,9 +33,9 @@ Lore.Effect.prototype = {
       g.vertexAttribPointer(texCoordLocation, 2, g.FLOAT, false, 0, 0);
 
       return texCoordBuffer;
-    },
+    }
 
-    initTexture: function() {
+    initTexture() {
         let g = this.gl;
 
         let texture = g.createTexture();
@@ -52,17 +51,17 @@ Lore.Effect.prototype = {
         g.framebufferTexture2D(g.FRAMEBUFFER, g.COLOR_ATTACHMENT0, g.TEXTURE_2D, texture, 0);
 
         return texture;
-    },
+    }
 
-    initFramebuffer: function() {
+    initFramebuffer() {
         let g = this.gl;
 
         let framebuffer = g.createFramebuffer();
         g.bindFramebuffer(g.FRAMEBUFFER, framebuffer);
         return framebuffer;
-    },
+    }
 
-    initRenderbuffer: function() {
+    initRenderbuffer() {
       let g = this.gl;
 
       let renderbuffer = g.createRenderbuffer();
@@ -75,15 +74,15 @@ Lore.Effect.prototype = {
       // g.framebufferRenderbuffer(g.FRAMEBUFFER, g.DEPTH_STENCIL_ATTACHMENT, g.RENDERBUFFER, renderbuffer);
 
       return renderbuffer;
-    },
+    }
 
-    bind: function() {
+    bind() {
         let g = this.gl;
         g.bindFramebuffer(g.FRAMEBUFFER, this.framebuffer);
         g.clear(g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT);
-    },
+    }
 
-    unbind: function() {
+    unbind() {
         let g = this.gl;
         g.bindRenderbuffer(g.RENDERBUFFER, null);
         g.bindFramebuffer(g.FRAMEBUFFER, null);

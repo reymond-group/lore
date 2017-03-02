@@ -78,8 +78,12 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     update(e, source) {
         if (source == 'left' && !this.rotationLocked) {
             // Rotate
-            this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
-            this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
+            this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * 0.5 * this.camera.zoom);
+            this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * 0.5 * this.camera.zoom);
+            
+            // It's just to fast like this ...
+            // this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
+            // this.dPhi = -2 * Math.PI * e.y / this.canvas.clientHeight;
         } else if (source == 'right' || source == 'left' && this.rotationLocked) {
             // Translate
             let x = e.x * (this.camera.right - this.camera.left) /
@@ -117,14 +121,11 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
         this.spherical.secure();
 
         // Limit radius here
-
         this.lookAt.add(this.dPan);
         offset.setFromSphericalCoords(this.spherical);
 
         this.camera.position.copyFrom(this.lookAt).add(offset);
-
         this.camera.setLookAt(this.lookAt);
-
         this.camera.updateViewMatrix();
 
         this.dPhi = 0.0;
