@@ -60,7 +60,7 @@ Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('siz
         'vec3 v = normalize(vec3(0.1, -0.2, 1.0));',
         'vec3 h = normalize(light_dir + v);',
         'float specular = pow(max(0.0, dot(N, h)), 100.0);',
-        'specular += 0.1 * rand(gl_PointCoord);',
+        '// specular += 0.1 * rand(gl_PointCoord);',
         'gl_FragColor = vec4(vColor * diffuse + specular * 0.5, 1.0);',
     '}'
 ]);
