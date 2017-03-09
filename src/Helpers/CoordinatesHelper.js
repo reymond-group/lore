@@ -1,15 +1,66 @@
-Lore.CoordinatesHelper = function(renderer, geometryName, shaderName, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.CoordinatesHelper.defaults, options);
+Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
 
-    this.geometry.setMode(Lore.DrawModes.lines);
-    this.init();
-}
+    constructor(renderer, geometryName, shaderName, options) {
+        super(renderer, geometryName, shaderName);
 
-Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.CoordinatesHelper,
+        
+        this.defaults = {
+            position: new Lore.Vector3f(),
+            axis: {
+                x: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                },
+                y: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                },
+                z: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                }
+            },
+            ticks: {
+                x: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#222222')
+                },
+                y: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#222222')
+                },
+                z: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#222222')
+                }
+            },
+            box: {
+                enabled: true,
+                x: {
+                    color: Lore.Color.fromHex('#999999')
+                },
+                y: {
+                    color: Lore.Color.fromHex('#999999')
+                },
+                z: {
+                    color: Lore.Color.fromHex('#999999')
+                }
+            },
+        }
 
-    init: function() {
+        this.opts = Lore.Utils.extend(true, this.defaults, options);
+
+        this.geometry.setMode(Lore.DrawModes.lines);
+        this.init();
+    }
+
+    init() {
         let p = this.opts.position.components;
         let ao = this.opts.axis;
 
@@ -32,7 +83,7 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         ];
 
         // Adding the box
-        if(this.opts.box.enabled) {
+        if (this.opts.box.enabled) {
             let bx = this.opts.box.x.color.components;
             let by = this.opts.box.y.color.components;
             let bz = this.opts.box.z.color.components;
@@ -70,7 +121,8 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // X ticks
         let pos = p[0];
         let col = xTicks.color.components;
-        for(let i = 0; i < xTicks.count - 1; i++) {
+
+        for (let i = 0; i < xTicks.count - 1; i++) {
             pos += xTickOffset;
             // From
             positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -79,7 +131,8 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[0];
-        for(let i = 0; i < xTicks.count - 1; i++) {
+
+        for (let i = 0; i < xTicks.count - 1; i++) {
             pos += xTickOffset;
             // From
             positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -90,7 +143,8 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Y ticks
         pos = p[1];
         col = yTicks.color.components;
-        for(let i = 0; i < yTicks.count - 1; i++) {
+
+        for (let i = 0; i < yTicks.count - 1; i++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -99,7 +153,8 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[1];
-        for(let i = 0; i < yTicks.count - 1; i++) {
+
+        for (let i = 0; i < yTicks.count - 1; i++) {
             pos += yTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
@@ -110,7 +165,8 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         // Z ticks
         pos = p[2];
         col = zTicks.color.components;
-        for(let i = 0; i < zTicks.count - 1; i++) {
+        
+        for (let i = 0; i < zTicks.count - 1; i++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
@@ -119,7 +175,8 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         }
 
         pos = p[2];
-        for(let i = 0; i < zTicks.count - 1; i++) {
+        
+        for (let i = 0; i < zTicks.count - 1; i++) {
             pos += zTickOffset;
             // From
             positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
@@ -130,55 +187,4 @@ Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.p
         this.setAttribute('position', new Float32Array(positions));
         this.setAttribute('color', new Float32Array(colors));
     }
-});
-
-
-Lore.CoordinatesHelper.defaults = {
-    position: new Lore.Vector3f(),
-    axis: {
-        x: {
-            length: 50.0,
-            color: Lore.Color.fromHex('#222222')
-        },
-        y: {
-            length: 50.0,
-            color: Lore.Color.fromHex('#222222')
-        },
-        z: {
-            length: 50.0,
-            color: Lore.Color.fromHex('#222222')
-        }
-    },
-    ticks: {
-        x: {
-            count: 10,
-            length: 5.0,
-            offset: new Lore.Vector3f(),
-            color: Lore.Color.fromHex('#222222')
-        },
-        y: {
-            count: 10,
-            length: 5.0,
-            offset: new Lore.Vector3f(),
-            color: Lore.Color.fromHex('#222222')
-        },
-        z: {
-            count: 10,
-            length: 5.0,
-            offset: new Lore.Vector3f(),
-            color: Lore.Color.fromHex('#222222')
-        }
-    },
-    box: {
-        enabled: true,
-        x: {
-            color: Lore.Color.fromHex('#999999')
-        },
-        y: {
-            color: Lore.Color.fromHex('#999999')
-        },
-        z: {
-            color: Lore.Color.fromHex('#999999')
-        }
-    },
 }

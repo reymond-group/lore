@@ -1,51 +1,51 @@
-Lore.InRangeFilter = function(attribute, attributeIndex, min, max) {
-    Lore.FilterBase.call(this, attribute, attributeIndex);
-    this.min = min;
-    this.max = max;
-}
+Lore.InRangeFilter = class InRangeFilter extends Lore.FilterBase {
+    constructor(attribute, attributeIndex, min, max) {
+        super(attribute, attributeIndex);
 
-Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.prototype), {
-    constructor: Lore.InRangeFilter,
+        this.min = min;
+        this.max = max;
+    }
 
-    getMin: function() {
+    getMin() {
         return this.min;
-    },
+    }
 
-    setMin: function(value) {
+    setMin(value) {
         this.min = value;
-    },
+    }
 
-    getMax: function() {
+    getMax() {
         return this.max;
-    },
+    }
 
-    setMax: function(value) {
+    setMax(value) {
         this.max = value;
-    },
+    }
 
-    filter: function() {
+    filter() {
         let attribute = this.geometry.attributes[this.attribute];
 
-        for(let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+        for (let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
             let value = attribute.data[i + this.attributeIndex];
             let size = this.geometry.attributes['color'].data[i + 2];
-            if(value > this.max || value < this.min)
+            if(value > this.max || value < this.min) {
                 this.geometry.attributes['color'].data[i + 2] = -Math.abs(size);
-            else
+            } else {
                 this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
+            }
         }
 
         this.geometry.updateAttribute('color');
-    },
+    }
 
-    reset: function() {
+    reset() {
         let attribute = this.geometry.attributes[this.attribute];
 
-        for(let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+        for (let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
             let size = this.geometry.attributes['color'].data[i + 2];
             this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
         }
 
         this.geometry.updateAttribute('color');
     } 
-});
+}

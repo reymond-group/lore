@@ -1,84 +1,96 @@
-Lore.TreeHelper = function (renderer, geometryName, shaderName, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.TreeHelper.defaults, options);
-    this.indices = null;
-    this.geometry.setMode(Lore.DrawModes.lines);
-    this.initPointSize();
-    this.filters = {};
-}
+Lore.TreeHelper = class TreeHelper extends Lore.HelperBase {
 
-Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.TreeHelper,
+    constructor(renderer, geometryName, shaderName, options) {
+        super(renderer, geometryName, shaderName);
+                
+        this.defaults = {
+            pointScale: 1.0,
+            maxPointSize: 100.0
+        }
 
-    getMaxLength: function (x, y, z) {
+        this.opts = Lore.Utils.extend(true, this.defaults, options);
+        this.indices = null;
+        this.geometry.setMode(Lore.DrawModes.lines);
+        this.initPointSize();
+        this.filters = {};
+    }
+
+    getMaxLength(x, y, z) {
         return Math.max(x.length, Math.max(y.length, z.length));
-    },
+    }
 
-    setPositions: function (positions) {
+    setPositions(positions) {
         this.setAttribute('position', positions);
-    },
+    }
 
-    setPositionsXYZ: function (x, y, z, length) {
+    setPositionsXYZ(x, y, z, length) {
         let positions = new Float32Array(length * 3);
+        
         for (let i = 0; i < length; i++) {
             let j = 3 * i;
+            
             positions[j] = x[i] || 0;
             positions[j + 1] = y[i] || 0;
             positions[j + 2] = z[i] || 0;
         }
 
         this.setAttribute('position', positions);
-    },
+    }
 
-    setPositionsXYZHSS: function (x, y, z, hue, saturation, size) {
+    setPositionsXYZHSS(x, y, z, hue, saturation, size) {
         let length = this.getMaxLength(x, y, z);
+        
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
-    },
+    }
 
-    setColors: function (colors) {
+    setColors(colors) {
         this.setAttribute('color', colors);
-    },
+    }
 
-    updateColors: function (colors) {
+    updateColors(colors) {
         this.updateAttributeAll('color', colors);
-    },
+    }
 
-    updateColor: function (index, color) {
+    updateColor(index, color) {
         this.updateAttribute('color', index, color.components);
-    },
+    }
 
-    setPointSize: function (size) {
-        if(size * this.opts.pointScale > this.opts.maxPointSize) return;
+    setPointSize(size) {
+        if (size * this.opts.pointScale > this.opts.maxPointSize) {
+            return;
+        }
+
         this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
-    },
+    }
 
-    getPointSize: function () {
+    getPointSize() {
         return this.geometry.shader.uniforms.size.value;
-    },
+    }
 
-    setFogDistance: function (fogDistance) {
+    setFogDistance(fogDistance) {
         this.geometry.shader.uniforms.fogDistance.value = fogDistance;
-    },
+    }
 
-    initPointSize: function () {
+    initPointSize() {
         this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
-    },
+    }
     
-    getCutoff: function() {
+    getCutoff() {
         return this.geometry.shader.uniforms.cutoff.value;
-    },
+    }
 
-    setCutoff: function (cutoff) {
+    setCutoff(cutoff) {
         this.geometry.shader.uniforms.cutoff.value = cutoff;
-    },
+    }
 
-    getHue: function (index) {
+    getHue(index) {
         let colors = this.getAttribute('color');
+        
         return colors[index * 3];
-    },
+    }
 
-    setHSS: function (hue, saturation, size, length) {
+    setHSS(hue, saturation, size, length) {
         let c = new Float32Array(length * 3);
 
         for (let i = 0; i < length * 3; i += 3) {
@@ -88,24 +100,19 @@ Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototyp
         }
 
         this.setColors(c);
-    },
+    }
 
 
-    addFilter: function (name, filter) {
+    addFilter(name, filter) {
         filter.setGeometry(this.geometry);
         this.filters[name] = filter;
-    },
+    }
 
-    removeFilter: function (name) {
+    removeFilter(name) {
         delete this.filters[name];
-    },
+    }
 
-    getFilter: function (name) {
+    getFilter(name) {
         return this.filters[name];
     }
-});
-
-Lore.TreeHelper.defaults = {
-    pointScale: 1.0,
-    maxPointSize: 100.0
 }

@@ -3889,292 +3889,340 @@ Lore.PointHelper = function (_Lore$HelperBase) {
     return PointHelper;
 }(Lore.HelperBase);
 
-Lore.TreeHelper = function (renderer, geometryName, shaderName, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.TreeHelper.defaults, options);
-    this.indices = null;
-    this.geometry.setMode(Lore.DrawModes.lines);
-    this.initPointSize();
-    this.filters = {};
-};
+Lore.TreeHelper = function (_Lore$HelperBase2) {
+    _inherits(TreeHelper, _Lore$HelperBase2);
 
-Lore.TreeHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.TreeHelper,
+    function TreeHelper(renderer, geometryName, shaderName, options) {
+        _classCallCheck(this, TreeHelper);
 
-    getMaxLength: function getMaxLength(x, y, z) {
-        return Math.max(x.length, Math.max(y.length, z.length));
-    },
+        var _this9 = _possibleConstructorReturn(this, (TreeHelper.__proto__ || Object.getPrototypeOf(TreeHelper)).call(this, renderer, geometryName, shaderName));
 
-    setPositions: function setPositions(positions) {
-        this.setAttribute('position', positions);
-    },
+        _this9.defaults = {
+            pointScale: 1.0,
+            maxPointSize: 100.0
+        };
 
-    setPositionsXYZ: function setPositionsXYZ(x, y, z, length) {
-        var positions = new Float32Array(length * 3);
-        for (var i = 0; i < length; i++) {
-            var j = 3 * i;
-            positions[j] = x[i] || 0;
-            positions[j + 1] = y[i] || 0;
-            positions[j + 2] = z[i] || 0;
-        }
-
-        this.setAttribute('position', positions);
-    },
-
-    setPositionsXYZHSS: function setPositionsXYZHSS(x, y, z, hue, saturation, size) {
-        var length = this.getMaxLength(x, y, z);
-        this.setPositionsXYZ(x, y, z, length);
-        this.setHSS(hue, saturation, size, length);
-    },
-
-    setColors: function setColors(colors) {
-        this.setAttribute('color', colors);
-    },
-
-    updateColors: function updateColors(colors) {
-        this.updateAttributeAll('color', colors);
-    },
-
-    updateColor: function updateColor(index, color) {
-        this.updateAttribute('color', index, color.components);
-    },
-
-    setPointSize: function setPointSize(size) {
-        if (size * this.opts.pointScale > this.opts.maxPointSize) return;
-        this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
-    },
-
-    getPointSize: function getPointSize() {
-        return this.geometry.shader.uniforms.size.value;
-    },
-
-    setFogDistance: function setFogDistance(fogDistance) {
-        this.geometry.shader.uniforms.fogDistance.value = fogDistance;
-    },
-
-    initPointSize: function initPointSize() {
-        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
-    },
-
-    getCutoff: function getCutoff() {
-        return this.geometry.shader.uniforms.cutoff.value;
-    },
-
-    setCutoff: function setCutoff(cutoff) {
-        this.geometry.shader.uniforms.cutoff.value = cutoff;
-    },
-
-    getHue: function getHue(index) {
-        var colors = this.getAttribute('color');
-        return colors[index * 3];
-    },
-
-    setHSS: function setHSS(hue, saturation, size, length) {
-        var c = new Float32Array(length * 3);
-
-        for (var i = 0; i < length * 3; i += 3) {
-            c[i] = hue;
-            c[i + 1] = saturation;
-            c[i + 2] = size;
-        }
-
-        this.setColors(c);
-    },
-
-    addFilter: function addFilter(name, filter) {
-        filter.setGeometry(this.geometry);
-        this.filters[name] = filter;
-    },
-
-    removeFilter: function removeFilter(name) {
-        delete this.filters[name];
-    },
-
-    getFilter: function getFilter(name) {
-        return this.filters[name];
+        _this9.opts = Lore.Utils.extend(true, _this9.defaults, options);
+        _this9.indices = null;
+        _this9.geometry.setMode(Lore.DrawModes.lines);
+        _this9.initPointSize();
+        _this9.filters = {};
+        return _this9;
     }
-});
 
-Lore.TreeHelper.defaults = {
-    pointScale: 1.0,
-    maxPointSize: 100.0
-};
-
-Lore.CoordinatesHelper = function (renderer, geometryName, shaderName, options) {
-    Lore.HelperBase.call(this, renderer, geometryName, shaderName);
-    this.opts = Lore.Utils.extend(true, Lore.CoordinatesHelper.defaults, options);
-
-    this.geometry.setMode(Lore.DrawModes.lines);
-    this.init();
-};
-
-Lore.CoordinatesHelper.prototype = Object.assign(Object.create(Lore.HelperBase.prototype), {
-    constructor: Lore.CoordinatesHelper,
-
-    init: function init() {
-        var p = this.opts.position.components;
-        var ao = this.opts.axis;
-
-        // Setting the origin position of the axes
-        var positions = [p[0], p[1], p[2], p[0] + ao.x.length, p[1], p[2], p[0], p[1], p[2], p[0], p[1] + ao.y.length, p[2], p[0], p[1], p[2], p[0], p[1], p[2] + ao.z.length];
-
-        // Setting the colors of the axes
-        var cx = ao.x.color.components;
-        var cy = ao.y.color.components;
-        var cz = ao.z.color.components;
-
-        var colors = [cx[0], cx[1], cx[2], cx[0], cx[1], cx[2], cy[0], cy[1], cy[2], cy[0], cy[1], cy[2], cz[0], cz[1], cz[2], cz[0], cz[1], cz[2]];
-
-        // Adding the box
-        if (this.opts.box.enabled) {
-            var bx = this.opts.box.x.color.components;
-            var by = this.opts.box.y.color.components;
-            var bz = this.opts.box.z.color.components;
-
-            positions.push(p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0], p[1], p[2] + ao.z.length, p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0], p[1] + ao.y.length, p[2], p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1], p[2] + ao.z.length, p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0] + ao.x.length, p[1], p[2], p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2], p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2]);
-
-            colors.push(bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2]);
+    _createClass(TreeHelper, [{
+        key: 'getMaxLength',
+        value: function getMaxLength(x, y, z) {
+            return Math.max(x.length, Math.max(y.length, z.length));
         }
-
-        // Adding the ticks
-        var xTicks = this.opts.ticks.x,
-            xTickOffset = ao.x.length / xTicks.count;
-        var yTicks = this.opts.ticks.y,
-            yTickOffset = ao.y.length / yTicks.count;
-        var zTicks = this.opts.ticks.z,
-            zTickOffset = ao.z.length / zTicks.count;
-
-        // X ticks
-        var pos = p[0];
-        var col = xTicks.color.components;
-        for (var i = 0; i < xTicks.count - 1; i++) {
-            pos += xTickOffset;
-            // From
-            positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, p[2] + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+    }, {
+        key: 'setPositions',
+        value: function setPositions(positions) {
+            this.setAttribute('position', positions);
         }
+    }, {
+        key: 'setPositionsXYZ',
+        value: function setPositionsXYZ(x, y, z, length) {
+            var positions = new Float32Array(length * 3);
 
-        pos = p[0];
-        for (var _i4 = 0; _i4 < xTicks.count - 1; _i4++) {
-            pos += xTickOffset;
-            // From
-            positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            for (var i = 0; i < length; i++) {
+                var j = 3 * i;
+
+                positions[j] = x[i] || 0;
+                positions[j + 1] = y[i] || 0;
+                positions[j + 2] = z[i] || 0;
+            }
+
+            this.setAttribute('position', positions);
         }
+    }, {
+        key: 'setPositionsXYZHSS',
+        value: function setPositionsXYZHSS(x, y, z, hue, saturation, size) {
+            var length = this.getMaxLength(x, y, z);
 
-        // Y ticks
-        pos = p[1];
-        col = yTicks.color.components;
-        for (var _i5 = 0; _i5 < yTicks.count - 1; _i5++) {
-            pos += yTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            this.setPositionsXYZ(x, y, z, length);
+            this.setHSS(hue, saturation, size, length);
         }
-
-        pos = p[1];
-        for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
-            pos += yTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+    }, {
+        key: 'setColors',
+        value: function setColors(colors) {
+            this.setAttribute('color', colors);
         }
-
-        // Z ticks
-        pos = p[2];
-        col = zTicks.color.components;
-        for (var _i7 = 0; _i7 < zTicks.count - 1; _i7++) {
-            pos += zTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+    }, {
+        key: 'updateColors',
+        value: function updateColors(colors) {
+            this.updateAttributeAll('color', colors);
         }
-
-        pos = p[2];
-        for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
-            pos += zTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+    }, {
+        key: 'updateColor',
+        value: function updateColor(index, color) {
+            this.updateAttribute('color', index, color.components);
         }
+    }, {
+        key: 'setPointSize',
+        value: function setPointSize(size) {
+            if (size * this.opts.pointScale > this.opts.maxPointSize) {
+                return;
+            }
 
-        this.setAttribute('position', new Float32Array(positions));
-        this.setAttribute('color', new Float32Array(colors));
+            this.geometry.shader.uniforms.size.value = size * this.opts.pointScale;
+        }
+    }, {
+        key: 'getPointSize',
+        value: function getPointSize() {
+            return this.geometry.shader.uniforms.size.value;
+        }
+    }, {
+        key: 'setFogDistance',
+        value: function setFogDistance(fogDistance) {
+            this.geometry.shader.uniforms.fogDistance.value = fogDistance;
+        }
+    }, {
+        key: 'initPointSize',
+        value: function initPointSize() {
+            this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
+        }
+    }, {
+        key: 'getCutoff',
+        value: function getCutoff() {
+            return this.geometry.shader.uniforms.cutoff.value;
+        }
+    }, {
+        key: 'setCutoff',
+        value: function setCutoff(cutoff) {
+            this.geometry.shader.uniforms.cutoff.value = cutoff;
+        }
+    }, {
+        key: 'getHue',
+        value: function getHue(index) {
+            var colors = this.getAttribute('color');
+
+            return colors[index * 3];
+        }
+    }, {
+        key: 'setHSS',
+        value: function setHSS(hue, saturation, size, length) {
+            var c = new Float32Array(length * 3);
+
+            for (var i = 0; i < length * 3; i += 3) {
+                c[i] = hue;
+                c[i + 1] = saturation;
+                c[i + 2] = size;
+            }
+
+            this.setColors(c);
+        }
+    }, {
+        key: 'addFilter',
+        value: function addFilter(name, filter) {
+            filter.setGeometry(this.geometry);
+            this.filters[name] = filter;
+        }
+    }, {
+        key: 'removeFilter',
+        value: function removeFilter(name) {
+            delete this.filters[name];
+        }
+    }, {
+        key: 'getFilter',
+        value: function getFilter(name) {
+            return this.filters[name];
+        }
+    }]);
+
+    return TreeHelper;
+}(Lore.HelperBase);
+
+Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
+    _inherits(CoordinatesHelper, _Lore$HelperBase3);
+
+    function CoordinatesHelper(renderer, geometryName, shaderName, options) {
+        _classCallCheck(this, CoordinatesHelper);
+
+        var _this10 = _possibleConstructorReturn(this, (CoordinatesHelper.__proto__ || Object.getPrototypeOf(CoordinatesHelper)).call(this, renderer, geometryName, shaderName));
+
+        _this10.defaults = {
+            position: new Lore.Vector3f(),
+            axis: {
+                x: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                },
+                y: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                },
+                z: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                }
+            },
+            ticks: {
+                x: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#222222')
+                },
+                y: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#222222')
+                },
+                z: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#222222')
+                }
+            },
+            box: {
+                enabled: true,
+                x: {
+                    color: Lore.Color.fromHex('#999999')
+                },
+                y: {
+                    color: Lore.Color.fromHex('#999999')
+                },
+                z: {
+                    color: Lore.Color.fromHex('#999999')
+                }
+            }
+        };
+
+        _this10.opts = Lore.Utils.extend(true, _this10.defaults, options);
+
+        _this10.geometry.setMode(Lore.DrawModes.lines);
+        _this10.init();
+        return _this10;
     }
-});
 
-Lore.CoordinatesHelper.defaults = {
-    position: new Lore.Vector3f(),
-    axis: {
-        x: {
-            length: 50.0,
-            color: Lore.Color.fromHex('#222222')
-        },
-        y: {
-            length: 50.0,
-            color: Lore.Color.fromHex('#222222')
-        },
-        z: {
-            length: 50.0,
-            color: Lore.Color.fromHex('#222222')
-        }
-    },
-    ticks: {
-        x: {
-            count: 10,
-            length: 5.0,
-            offset: new Lore.Vector3f(),
-            color: Lore.Color.fromHex('#222222')
-        },
-        y: {
-            count: 10,
-            length: 5.0,
-            offset: new Lore.Vector3f(),
-            color: Lore.Color.fromHex('#222222')
-        },
-        z: {
-            count: 10,
-            length: 5.0,
-            offset: new Lore.Vector3f(),
-            color: Lore.Color.fromHex('#222222')
-        }
-    },
-    box: {
-        enabled: true,
-        x: {
-            color: Lore.Color.fromHex('#999999')
-        },
-        y: {
-            color: Lore.Color.fromHex('#999999')
-        },
-        z: {
-            color: Lore.Color.fromHex('#999999')
-        }
-    }
-};
+    _createClass(CoordinatesHelper, [{
+        key: 'init',
+        value: function init() {
+            var p = this.opts.position.components;
+            var ao = this.opts.axis;
 
-Lore.OctreeHelper = function (_Lore$HelperBase2) {
-    _inherits(OctreeHelper, _Lore$HelperBase2);
+            // Setting the origin position of the axes
+            var positions = [p[0], p[1], p[2], p[0] + ao.x.length, p[1], p[2], p[0], p[1], p[2], p[0], p[1] + ao.y.length, p[2], p[0], p[1], p[2], p[0], p[1], p[2] + ao.z.length];
+
+            // Setting the colors of the axes
+            var cx = ao.x.color.components;
+            var cy = ao.y.color.components;
+            var cz = ao.z.color.components;
+
+            var colors = [cx[0], cx[1], cx[2], cx[0], cx[1], cx[2], cy[0], cy[1], cy[2], cy[0], cy[1], cy[2], cz[0], cz[1], cz[2], cz[0], cz[1], cz[2]];
+
+            // Adding the box
+            if (this.opts.box.enabled) {
+                var bx = this.opts.box.x.color.components;
+                var by = this.opts.box.y.color.components;
+                var bz = this.opts.box.z.color.components;
+
+                positions.push(p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0], p[1], p[2] + ao.z.length, p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0], p[1] + ao.y.length, p[2], p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1], p[2] + ao.z.length, p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0] + ao.x.length, p[1], p[2], p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2], p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2]);
+
+                colors.push(bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], bx[0], bx[1], bx[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], by[0], by[1], by[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2], bz[0], bz[1], bz[2]);
+            }
+
+            // Adding the ticks
+            var xTicks = this.opts.ticks.x,
+                xTickOffset = ao.x.length / xTicks.count;
+            var yTicks = this.opts.ticks.y,
+                yTickOffset = ao.y.length / yTicks.count;
+            var zTicks = this.opts.ticks.z,
+                zTickOffset = ao.z.length / zTicks.count;
+
+            // X ticks
+            var pos = p[0];
+            var col = xTicks.color.components;
+
+            for (var i = 0; i < xTicks.count - 1; i++) {
+                pos += xTickOffset;
+                // From
+                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, p[2] + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            pos = p[0];
+
+            for (var _i4 = 0; _i4 < xTicks.count - 1; _i4++) {
+                pos += xTickOffset;
+                // From
+                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            // Y ticks
+            pos = p[1];
+            col = yTicks.color.components;
+
+            for (var _i5 = 0; _i5 < yTicks.count - 1; _i5++) {
+                pos += yTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            pos = p[1];
+
+            for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
+                pos += yTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            // Z ticks
+            pos = p[2];
+            col = zTicks.color.components;
+
+            for (var _i7 = 0; _i7 < zTicks.count - 1; _i7++) {
+                pos += zTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            pos = p[2];
+
+            for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
+                pos += zTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            this.setAttribute('position', new Float32Array(positions));
+            this.setAttribute('color', new Float32Array(colors));
+        }
+    }]);
+
+    return CoordinatesHelper;
+}(Lore.HelperBase);
+
+Lore.OctreeHelper = function (_Lore$HelperBase4) {
+    _inherits(OctreeHelper, _Lore$HelperBase4);
 
     function OctreeHelper(renderer, geometryName, shaderName, target, options) {
         _classCallCheck(this, OctreeHelper);
 
-        var _this9 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
+        var _this11 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this9.defaults = {
+        _this11.defaults = {
             visualize: false
         };
 
-        _this9.opts = Lore.Utils.extend(true, _this9.defaults, options);
-        _this9.eventListeners = {};
-        _this9.target = target;
-        _this9.renderer = renderer;
-        _this9.octree = _this9.target.octree;
-        _this9.raycaster = new Lore.Raycaster();
-        _this9.hovered = null;
-        _this9.selected = [];
+        _this11.opts = Lore.Utils.extend(true, _this11.defaults, options);
+        _this11.eventListeners = {};
+        _this11.target = target;
+        _this11.renderer = renderer;
+        _this11.octree = _this11.target.octree;
+        _this11.raycaster = new Lore.Raycaster();
+        _this11.hovered = null;
+        _this11.selected = [];
 
-        var that = _this9;
+        var that = _this11;
 
         renderer.controls.addEventListener('dblclick', function (e) {
             if (e.e.mouse.state.middle || e.e.mouse.state.right) {
@@ -4235,8 +4283,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
             that.raiseEvent('updated');
         });
 
-        _this9.init();
-        return _this9;
+        _this11.init();
+        return _this11;
     }
 
     _createClass(OctreeHelper, [{
@@ -4608,80 +4656,106 @@ Lore.OctreeHelper = function (_Lore$HelperBase2) {
     return OctreeHelper;
 }(Lore.HelperBase);
 
-Lore.FilterBase = function (attribute, attributeIndex) {
-    this.type = 'Lore.FilterBase';
-    this.geometry = null;
-    this.attribute = attribute;
-    this.attributeIndex = attributeIndex;
-    this.active = false;
-};
+Lore.FilterBase = function () {
+    function FilterBase(attribute, attributeIndex) {
+        _classCallCheck(this, FilterBase);
 
-Lore.FilterBase.prototype = {
-    constructor: Lore.FilterBase,
-
-    getGeometry: function getGeometry() {
-        return this.geometry;
-    },
-
-    setGeometry: function setGeometry(value) {
-        this.geometry = value;
-    },
-
-    filter: function filter() {}
-};
-
-Lore.FilterBase.isVisible = function (geometry, index) {
-    return geometry.attributes['color'].data[index * 3 + 2] > 0.0;
-};
-
-Lore.InRangeFilter = function (attribute, attributeIndex, min, max) {
-    Lore.FilterBase.call(this, attribute, attributeIndex);
-    this.min = min;
-    this.max = max;
-};
-
-Lore.InRangeFilter.prototype = Object.assign(Object.create(Lore.FilterBase.prototype), {
-    constructor: Lore.InRangeFilter,
-
-    getMin: function getMin() {
-        return this.min;
-    },
-
-    setMin: function setMin(value) {
-        this.min = value;
-    },
-
-    getMax: function getMax() {
-        return this.max;
-    },
-
-    setMax: function setMax(value) {
-        this.max = value;
-    },
-
-    filter: function filter() {
-        var attribute = this.geometry.attributes[this.attribute];
-
-        for (var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            var value = attribute.data[i + this.attributeIndex];
-            var size = this.geometry.attributes['color'].data[i + 2];
-            if (value > this.max || value < this.min) this.geometry.attributes['color'].data[i + 2] = -Math.abs(size);else this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
-        }
-
-        this.geometry.updateAttribute('color');
-    },
-
-    reset: function reset() {
-        var attribute = this.geometry.attributes[this.attribute];
-
-        for (var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            var size = this.geometry.attributes['color'].data[i + 2];
-            this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
-        }
-
-        this.geometry.updateAttribute('color');
+        this.type = 'Lore.FilterBase';
+        this.geometry = null;
+        this.attribute = attribute;
+        this.attributeIndex = attributeIndex;
+        this.active = false;
     }
-});
+
+    _createClass(FilterBase, [{
+        key: 'getGeometry',
+        value: function getGeometry() {
+            return this.geometry;
+        }
+    }, {
+        key: 'setGeometry',
+        value: function setGeometry(value) {
+            this.geometry = value;
+        }
+    }, {
+        key: 'filter',
+        value: function filter() {}
+    }], [{
+        key: 'isVisible',
+        value: function isVisible(geometry, index) {
+            return geometry.attributes['color'].data[index * 3 + 2] > 0.0;
+        }
+    }]);
+
+    return FilterBase;
+}();
+
+Lore.InRangeFilter = function (_Lore$FilterBase) {
+    _inherits(InRangeFilter, _Lore$FilterBase);
+
+    function InRangeFilter(attribute, attributeIndex, min, max) {
+        _classCallCheck(this, InRangeFilter);
+
+        var _this12 = _possibleConstructorReturn(this, (InRangeFilter.__proto__ || Object.getPrototypeOf(InRangeFilter)).call(this, attribute, attributeIndex));
+
+        _this12.min = min;
+        _this12.max = max;
+        return _this12;
+    }
+
+    _createClass(InRangeFilter, [{
+        key: 'getMin',
+        value: function getMin() {
+            return this.min;
+        }
+    }, {
+        key: 'setMin',
+        value: function setMin(value) {
+            this.min = value;
+        }
+    }, {
+        key: 'getMax',
+        value: function getMax() {
+            return this.max;
+        }
+    }, {
+        key: 'setMax',
+        value: function setMax(value) {
+            this.max = value;
+        }
+    }, {
+        key: 'filter',
+        value: function filter() {
+            var attribute = this.geometry.attributes[this.attribute];
+
+            for (var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+                var value = attribute.data[i + this.attributeIndex];
+                var size = this.geometry.attributes['color'].data[i + 2];
+                if (value > this.max || value < this.min) {
+                    this.geometry.attributes['color'].data[i + 2] = -Math.abs(size);
+                } else {
+                    this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
+                }
+            }
+
+            this.geometry.updateAttribute('color');
+        }
+    }, {
+        key: 'reset',
+        value: function reset() {
+            var attribute = this.geometry.attributes[this.attribute];
+
+            for (var i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+                var size = this.geometry.attributes['color'].data[i + 2];
+                this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
+            }
+
+            this.geometry.updateAttribute('color');
+        }
+    }]);
+
+    return InRangeFilter;
+}(Lore.FilterBase);
 
 Lore.FileReaderBase = function () {
     function FileReaderBase(elementId) {
@@ -4738,18 +4812,18 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     function CsvFileReader(elementId, options) {
         _classCallCheck(this, CsvFileReader);
 
-        var _this10 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+        var _this13 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
 
-        _this10.defaults = {
+        _this13.defaults = {
             separator: ',',
             cols: [],
             types: [],
             header: true
         };
 
-        _this10.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
-        _this10.columns = [];
-        return _this10;
+        _this13.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
+        _this13.columns = [];
+        return _this13;
     }
 
     _createClass(CsvFileReader, [{
@@ -4925,7 +4999,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_SPAN_MAX     8.0',
-                                                                                                                                                                                                                                                                                                                                                                         'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                                          'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
                                                                                                                                                                                                                                                                                                                                                                         '{',
                                                                                                                                                                                                                                                                                                                                                                             'fragCoord = fragCoord * resolution;',
                                                                                                                                                                                                                                                                                                                                                                             'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -4944,23 +5018,23 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                             'float lumaM  = dot(rgbM,  luma);',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                             'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                                              'vec2 dir;',
                                                                                                                                                                                                                                                                                                                                                                             'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
                                                                                                                                                                                                                                                                                                                                                                             'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                             'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                                              'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
                                                                                                                                                                                                                                                                                                                                                                             'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-                                                                                                                                                                                                                                                                                                                                                                             'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                              'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                              'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                             'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                                              'float lumaB = dot(rgbB, luma);',
                                                                                                                                                                                                                                                                                                                                                                             'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbA, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                             'else',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbB, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                         '}',
-                                                                                                                                                                                                                                                                                                                                                                         'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                                          'uniform sampler2D fbo_texture;',
                                                                                                                                                                                                                                                                                                                                                                         'varying vec2 f_texcoord;',
                                                                                                                                                                                                                                                                                                                                                                         'void main(void) {',
                                                                                                                                                                                                                                                                                                                                                                             'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
