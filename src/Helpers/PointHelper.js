@@ -65,6 +65,10 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         this.setPositionsXYZ(x, y, z, length);
         this.setHSS(hue, saturation, size, length);
 
+        // TODO: Check why the projection matrix update is needed
+        this.renderer.camera.updateProjectionMatrix();
+        this.renderer.camera.updateViewMatrix();
+
         return this;
     }
 
@@ -148,7 +152,7 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
     }
 
     initPointSize() {
-        this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
+        this.setPointSize(this.renderer.camera.zoom + 0.1);
 
         return this;
     }

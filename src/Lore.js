@@ -66,20 +66,20 @@ Lore.init = function(canvas, options) {
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 250, color: Lore.Color.fromHex('#097692') },
-            y: { length: 250, color: Lore.Color.fromHex('#097692') },
-            z: { length: 250, color: Lore.Color.fromHex('#097692') }
+            x: { length: 250, color: Lore.Color.fromHex('#222222') },
+            y: { length: 250, color: Lore.Color.fromHex('#222222') },
+            z: { length: 250, color: Lore.Color.fromHex('#222222') }
         },
         ticks: {
-          x: { length: 10, color: Lore.Color.fromHex('#097692') },
-          y: { length: 10, color: Lore.Color.fromHex('#097692') },
-          z: { length: 10, color: Lore.Color.fromHex('#097692') }
+          x: { length: 10, color: Lore.Color.fromHex('#1f1f1f') },
+          y: { length: 10, color: Lore.Color.fromHex('#1f1f1f') },
+          z: { length: 10, color: Lore.Color.fromHex('#1f1f1f') }
         },
         box: {
-          enabled: false,
-          x: { color: Lore.Color.fromHex('#004F6E') },
-          y: { color: Lore.Color.fromHex('#004F6E') },
-          z: { color: Lore.Color.fromHex('#004F6E') }
+          enabled: true,
+          x: { color: Lore.Color.fromHex('#222222') },
+          y: { color: Lore.Color.fromHex('#222222') },
+          z: { color: Lore.Color.fromHex('#222222') }
         }
     });
     
@@ -106,7 +106,7 @@ Lore.init = function(canvas, options) {
 }
 
 Lore.defaults = {
-    clearColor: '#001821',
+    clearColor: '#121212',
     limitRotationToHorizon: false,
     antialiasing: false
 };

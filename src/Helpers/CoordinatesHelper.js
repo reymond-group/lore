@@ -21,6 +21,7 @@ Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
                 }
             },
             ticks: {
+                enabled: true,
                 x: {
                     count: 10,
                     length: 5.0,
@@ -114,74 +115,76 @@ Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
         }
 
         // Adding the ticks
-        let xTicks = this.opts.ticks.x, xTickOffset = ao.x.length / xTicks.count;
-        let yTicks = this.opts.ticks.y, yTickOffset = ao.y.length / yTicks.count;
-        let zTicks = this.opts.ticks.z, zTickOffset = ao.z.length / zTicks.count;
+        if (this.opts.ticks.enabled) {
+            let xTicks = this.opts.ticks.x, xTickOffset = ao.x.length / xTicks.count;
+            let yTicks = this.opts.ticks.y, yTickOffset = ao.y.length / yTicks.count;
+            let zTicks = this.opts.ticks.z, zTickOffset = ao.z.length / zTicks.count;
 
-        // X ticks
-        let pos = p[0];
-        let col = xTicks.color.components;
+            // X ticks
+            let pos = p[0];
+            let col = xTicks.color.components;
 
-        for (let i = 0; i < xTicks.count - 1; i++) {
-            pos += xTickOffset;
-            // From
-            positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
-                           pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, p[2] + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-        }
+            for (let i = 0; i < xTicks.count - 1; i++) {
+                pos += xTickOffset;
+                // From
+                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, p[2] + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
 
-        pos = p[0];
+            pos = p[0];
 
-        for (let i = 0; i < xTicks.count - 1; i++) {
-            pos += xTickOffset;
-            // From
-            positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
-                           pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-        }
+            for (let i = 0; i < xTicks.count - 1; i++) {
+                pos += xTickOffset;
+                // From
+                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
 
-        // Y ticks
-        pos = p[1];
-        col = yTicks.color.components;
+            // Y ticks
+            pos = p[1];
+            col = yTicks.color.components;
 
-        for (let i = 0; i < yTicks.count - 1; i++) {
-            pos += yTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
-                           p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-        }
+            for (let i = 0; i < yTicks.count - 1; i++) {
+                pos += yTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
 
-        pos = p[1];
+            pos = p[1];
 
-        for (let i = 0; i < yTicks.count - 1; i++) {
-            pos += yTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
-                           p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-        }
+            for (let i = 0; i < yTicks.count - 1; i++) {
+                pos += yTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
 
-        // Z ticks
-        pos = p[2];
-        col = zTicks.color.components;
-        
-        for (let i = 0; i < zTicks.count - 1; i++) {
-            pos += zTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
-                           p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-        }
+            // Z ticks
+            pos = p[2];
+            col = zTicks.color.components;
+            
+            for (let i = 0; i < zTicks.count - 1; i++) {
+                pos += zTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
 
-        pos = p[2];
-        
-        for (let i = 0; i < zTicks.count - 1; i++) {
-            pos += zTickOffset;
-            // From
-            positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
-                           p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
-            colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            pos = p[2];
+            
+            for (let i = 0; i < zTicks.count - 1; i++) {
+                pos += zTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
         }
 
         this.setAttribute('position', new Float32Array(positions));

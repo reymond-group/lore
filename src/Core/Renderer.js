@@ -74,8 +74,14 @@ Lore.Renderer = class Renderer {
         }
 
         // Blending
-        //g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
+        /*
+        g.blendFunc(g.SRC_ALPHA, g.ONE);
+        g.enable(g.BLEND);
+        g.disable(g.DEPTH_TEST);
+        */
+
         // Extensions
+        
         let oes = 'OES_standard_derivatives';
         let extOes = g.getExtension(oes);
         

@@ -75,20 +75,20 @@ Lore.init = function (canvas, options) {
     var coordinatesHelper = new Lore.CoordinatesHelper(renderer, 'Coordinates', 'coordinates', {
         position: new Lore.Vector3f(0, 0, 0),
         axis: {
-            x: { length: 250, color: Lore.Color.fromHex('#097692') },
-            y: { length: 250, color: Lore.Color.fromHex('#097692') },
-            z: { length: 250, color: Lore.Color.fromHex('#097692') }
+            x: { length: 250, color: Lore.Color.fromHex('#222222') },
+            y: { length: 250, color: Lore.Color.fromHex('#222222') },
+            z: { length: 250, color: Lore.Color.fromHex('#222222') }
         },
         ticks: {
-            x: { length: 10, color: Lore.Color.fromHex('#097692') },
-            y: { length: 10, color: Lore.Color.fromHex('#097692') },
-            z: { length: 10, color: Lore.Color.fromHex('#097692') }
+            x: { length: 10, color: Lore.Color.fromHex('#1f1f1f') },
+            y: { length: 10, color: Lore.Color.fromHex('#1f1f1f') },
+            z: { length: 10, color: Lore.Color.fromHex('#1f1f1f') }
         },
         box: {
-            enabled: false,
-            x: { color: Lore.Color.fromHex('#004F6E') },
-            y: { color: Lore.Color.fromHex('#004F6E') },
-            z: { color: Lore.Color.fromHex('#004F6E') }
+            enabled: true,
+            x: { color: Lore.Color.fromHex('#222222') },
+            y: { color: Lore.Color.fromHex('#222222') },
+            z: { color: Lore.Color.fromHex('#222222') }
         }
     });
 
@@ -115,7 +115,7 @@ Lore.init = function (canvas, options) {
 };
 
 Lore.defaults = {
-    clearColor: '#001821',
+    clearColor: '#121212',
     limitRotationToHorizon: false,
     antialiasing: false
 };
@@ -342,8 +342,14 @@ Lore.Renderer = function () {
             }
 
             // Blending
-            //g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
+            /*
+            g.blendFunc(g.SRC_ALPHA, g.ONE);
+            g.enable(g.BLEND);
+            g.disable(g.DEPTH_TEST);
+            */
+
             // Extensions
+
             var oes = 'OES_standard_derivatives';
             var extOes = g.getExtension(oes);
 
@@ -3382,6 +3388,7 @@ Lore.Statistics = function () {
         key: 'randomNormalScaled',
         value: function randomNormalScaled(mean, sd) {
             var r = Lore.Statistics.randomNormalInRange(-1, 1);
+
             return r * sd + mean;
         }
     }, {
@@ -3415,6 +3422,7 @@ Lore.Statistics = function () {
 }();
 
 Lore.Statistics.spareRandomNormal = null;
+
 Lore.Ray = function () {
     function Ray(source, direction) {
         _classCallCheck(this, Ray);
@@ -3774,6 +3782,10 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             this.setPositionsXYZ(x, y, z, length);
             this.setHSS(hue, saturation, size, length);
 
+            // TODO: Check why the projection matrix update is needed
+            this.renderer.camera.updateProjectionMatrix();
+            this.renderer.camera.updateViewMatrix();
+
             return this;
         }
     }, {
@@ -3868,7 +3880,7 @@ Lore.PointHelper = function (_Lore$HelperBase) {
     }, {
         key: 'initPointSize',
         value: function initPointSize() {
-            this.geometry.shader.uniforms.size.value = this.renderer.camera.zoom * this.opts.pointScale;
+            this.setPointSize(this.renderer.camera.zoom + 0.1);
 
             return this;
         }
@@ -4105,6 +4117,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
                 }
             },
             ticks: {
+                enabled: true,
                 x: {
                     count: 10,
                     length: 5.0,
@@ -4173,71 +4186,73 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
             }
 
             // Adding the ticks
-            var xTicks = this.opts.ticks.x,
-                xTickOffset = ao.x.length / xTicks.count;
-            var yTicks = this.opts.ticks.y,
-                yTickOffset = ao.y.length / yTicks.count;
-            var zTicks = this.opts.ticks.z,
-                zTickOffset = ao.z.length / zTicks.count;
+            if (this.opts.ticks.enabled) {
+                var xTicks = this.opts.ticks.x,
+                    xTickOffset = ao.x.length / xTicks.count;
+                var yTicks = this.opts.ticks.y,
+                    yTickOffset = ao.y.length / yTicks.count;
+                var zTicks = this.opts.ticks.z,
+                    zTickOffset = ao.z.length / zTicks.count;
 
-            // X ticks
-            var pos = p[0];
-            var col = xTicks.color.components;
+                // X ticks
+                var pos = p[0];
+                var col = xTicks.color.components;
 
-            for (var i = 0; i < xTicks.count - 1; i++) {
-                pos += xTickOffset;
-                // From
-                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, p[2] + xTicks.offset.components[2]);
-                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-            }
+                for (var i = 0; i < xTicks.count - 1; i++) {
+                    pos += xTickOffset;
+                    // From
+                    positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, p[2] + xTicks.offset.components[2]);
+                    colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+                }
 
-            pos = p[0];
+                pos = p[0];
 
-            for (var _i5 = 0; _i5 < xTicks.count - 1; _i5++) {
-                pos += xTickOffset;
-                // From
-                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
-                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-            }
+                for (var _i5 = 0; _i5 < xTicks.count - 1; _i5++) {
+                    pos += xTickOffset;
+                    // From
+                    positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                    colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+                }
 
-            // Y ticks
-            pos = p[1];
-            col = yTicks.color.components;
+                // Y ticks
+                pos = p[1];
+                col = yTicks.color.components;
 
-            for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
-                pos += yTickOffset;
-                // From
-                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
-                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-            }
+                for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
+                    pos += yTickOffset;
+                    // From
+                    positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
+                    colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+                }
 
-            pos = p[1];
+                pos = p[1];
 
-            for (var _i7 = 0; _i7 < yTicks.count - 1; _i7++) {
-                pos += yTickOffset;
-                // From
-                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
-                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-            }
+                for (var _i7 = 0; _i7 < yTicks.count - 1; _i7++) {
+                    pos += yTickOffset;
+                    // From
+                    positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                    colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+                }
 
-            // Z ticks
-            pos = p[2];
-            col = zTicks.color.components;
+                // Z ticks
+                pos = p[2];
+                col = zTicks.color.components;
 
-            for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
-                pos += zTickOffset;
-                // From
-                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
-                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
-            }
+                for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
+                    pos += zTickOffset;
+                    // From
+                    positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
+                    colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+                }
 
-            pos = p[2];
+                pos = p[2];
 
-            for (var _i9 = 0; _i9 < zTicks.count - 1; _i9++) {
-                pos += zTickOffset;
-                // From
-                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
-                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+                for (var _i9 = 0; _i9 < zTicks.count - 1; _i9++) {
+                    pos += zTickOffset;
+                    // From
+                    positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
+                    colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+                }
             }
 
             this.setAttribute('position', new Float32Array(positions));
@@ -5029,7 +5044,7 @@ Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', { size: new
     cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
     time: new Lore.Uniform('time', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'uniform float time;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'hsv.g *= max(0.15, abs(sin(time * 0.002)));', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
-Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', {}, ['attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'void main() {', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'gl_PointSize = 1.0;', 'vColor = color;', '}'], ['varying vec3 vColor;', 'void main() {', 'gl_FragColor = vec4(vColor, 0.5);', '}']);
+Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', {}, ['attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'void main() {', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'gl_PointSize = 1.0;', 'vColor = color;', '}'], ['varying vec3 vColor;', 'void main() {', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
 Lore.Shaders['tree'] = new Lore.Shader('Tree', { size: new Lore.Uniform('size', 5.0, 'float'),
     fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
