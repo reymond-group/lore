@@ -1,61 +1,59 @@
-Lore.Quaternion = function (x, y, z, w) {
-    if (arguments.length === 1) {
-        this.components = new Float32Array(x);
-    } else if (arguments.length === 2) {
-        this.components = new Float32Array(4);
-        this.setFromAxisAngle(x, y);
-    } else {
-        this.components = new Float32Array(4);
-        this.components[0] = x || 0.0;
-        this.components[1] = y || 0.0;
-        this.components[2] = z || 0.0;
-        this.components[3] = (w !== undefined) ? w : 1.0;
+Lore.Quaternion = class Quaternion {
+    constructor(x, y, z, w) {
+        if (arguments.length === 1) {
+            this.components = new Float32Array(x);
+        } else if (arguments.length === 2) {
+            this.components = new Float32Array(4);
+            this.setFromAxisAngle(x, y);
+        } else {
+            this.components = new Float32Array(4);
+            this.components[0] = x || 0.0;
+            this.components[1] = y || 0.0;
+            this.components[2] = z || 0.0;
+            this.components[3] = (w !== undefined) ? w : 1.0;
+        }
     }
-}
 
-Lore.Quaternion.prototype = {
-    constructor: Lore.Quaternion,
-
-    getX: function () {
+    getX() {
         return this.components[0];
-    },
+    }
 
-    getY: function () {
+    getY() {
         return this.components[1];
-    },
+    }
 
-    getZ: function () {
+    getZ() {
         return this.components[2];
-    },
+    }
 
-    getW: function () {
+    getW() {
         return this.components[3];
-    },
+    }
 
-    set: function (x, y, z, w) {
+    set(x, y, z, w) {
         this.components[0] = x;
         this.components[1] = y;
         this.components[2] = z;
         this.components[3] = w;
-    },
+    }
 
-    setX: function (x) {
+    setX(x) {
         this.components[0] = x;
-    },
+    }
 
-    setY: function (y) {
+    setY(y) {
         this.components[1] = y;
-    },
+    }
 
-    setZ: function (z) {
+    setZ(z) {
         this.components[2] = z;
-    },
+    }
 
-    setW: function (w) {
+    setW(w) {
         this.components[3] = w;
-    },
+    }
 
-    setFromAxisAngle: function (axis, angle) {
+    setFromAxisAngle(axis, angle) {
         // See:
         // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
 
@@ -68,9 +66,9 @@ Lore.Quaternion.prototype = {
         this.components[1] = normAxis.components[1] * sinHalfAngle;
         this.components[2] = normAxis.components[2] * sinHalfAngle;
         this.components[3] = Math.cos(halfAngle);
-    },
+    }
 
-    setFromUnitVectors: function (from, to) {
+    setFromUnitVectors(from, to) {
         let v = null;
         let r = from.dot(to) + 1;
 
@@ -87,29 +85,29 @@ Lore.Quaternion.prototype = {
 
         this.set(v.components[0], v.components[1], v.components[2], r);
         this.normalize();
-    },
+    }
 
-    lookAt: function (source, dest, up) {
+    lookAt(source, dest, up) {
         this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
         return this;
-    },
+    }
 
-    lengthSq: function () {
+    lengthSq() {
         return this.components[0] * this.components[0] +
             this.components[1] * this.components[1] +
             this.components[2] * this.components[2] +
             this.components[3] * this.components[3];
-    },
+    }
 
-    length: function () {
+    length() {
         return Math.sqrt(this.lengthSq());
-    },
+    }
 
-    inverse: function () {
+    inverse() {
         return this.conjugate().normalize();
-    },
+    }
 
-    normalize: function () {
+    normalize() {
         let length = this.length();
 
         if (length === 0) {
@@ -126,16 +124,16 @@ Lore.Quaternion.prototype = {
         }
 
         return this;
-    },
+    }
 
-    dot: function (q) {
+    dot(q) {
         return this.components[0] * q.components[0] +
             this.components[1] * q.components[1] +
             this.components[2] * q.components[2] +
             this.components[3] * q.components[3];
-    },
+    }
 
-    multiplyA: function (b) {
+    multiplyA(b) {
         // See:
         // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 
@@ -150,9 +148,9 @@ Lore.Quaternion.prototype = {
         this.components[3] = w;
 
         return this;
-    },
+    }
 
-    multiplyB: function (a) {
+    multiplyB(a) {
         // See:
         // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 
@@ -167,18 +165,18 @@ Lore.Quaternion.prototype = {
         this.components[3] = w;
 
         return this;
-    },
+    }
 
-    multiplyScalar: function (s) {
+    multiplyScalar(s) {
         this.components[0] *= s;
         this.components[1] *= s;
         this.components[2] *= s;
         this.components[3] *= s;
 
         return this;
-    },
+    }
 
-    conjugate: function () {
+    conjugate() {
         // See:
         // http://www.3dgep.com/understanding-quaternions/#Quaternion_Conjugate
         this.components[0] *= -1;
@@ -186,48 +184,48 @@ Lore.Quaternion.prototype = {
         this.components[2] *= -1;
 
         return this;
-    },
+    }
 
-    add: function (q) {
+    add(q) {
         this.components[0] += q.components[0];
         this.components[1] += q.components[1];
         this.components[2] += q.components[2];
         this.components[3] += q.components[3];
 
         return this;
-    },
+    }
 
-    subtract: function (q) {
+    subtract(q) {
         this.components[0] -= q.components[0];
         this.components[1] -= q.components[1];
         this.components[2] -= q.components[2];
         this.components[3] -= q.components[3];
 
         return this;
-    },
+    }
 
-    rotateX: function (angle) {
+    rotateX(angle) {
         let halfAngle = angle / 2.0;
         return this.multiplyA(
             new Lore.Quaternion(Math.sin(halfAngle), 0.0, 0.0, Math.cos(halfAngle))
         );
-    },
+    }
 
-    rotateY: function (angle) {
+    rotateY(angle) {
         let halfAngle = angle / 2.0;
         return this.multiplyA(
             new Lore.Quaternion(0.0, Math.sin(halfAngle), 0.0, Math.cos(halfAngle))
         );
-    },
+    }
 
-    rotateZ: function (angle) {
+    rotateZ(angle) {
         let halfAngle = angle / 2.0;
         return this.multiplyA(
             new Lore.Quaternion(0.0, 0.0, Math.sin(halfAngle), Math.cos(halfAngle))
         );
-    },
+    }
 
-    toAxisAngle: function () {
+    toAxisAngle() {
         // It seems like this isn't numerically stable. This could be solved
         // by some checks as described here:
         // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
@@ -235,9 +233,9 @@ Lore.Quaternion.prototype = {
         // https://www.flipcode.com/documents/matrfaq.html#Q57
         // However, this function currently isn't used.
         console.warn('The method toAxisAngle() has not been implemented.')
-    },
+    }
 
-    toRotationMatrix: function () {
+    toRotationMatrix() {
         let i = this.components[0];
         let j = this.components[1];
         let k = this.components[2];
@@ -268,9 +266,9 @@ Lore.Quaternion.prototype = {
         mat.entries[10] = 1 - 2 * (ii + jj);
 
         return mat;
-    },
+    }
 
-    setFromMatrix: function (m) {
+    setFromMatrix(m) {
         // As in three.js, this is an implementation straight from:
         // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 
@@ -314,21 +312,21 @@ Lore.Quaternion.prototype = {
         }
 
         return this;
-    },
+    }
 
-    clone: function () {
+    clone() {
         return new Lore.Quaternion(this.components[0], this.components[1],
             this.components[2], this.components[3]);
-    },
+    }
 
-    equals: function (q) {
+    equals(q) {
         return this.components[0] === q.components[0] &&
             this.components[1] === q.components[1] &&
             this.components[2] === q.components[2] &&
             this.components[3] === q.components[3];
-    },
+    }
 
-    toString: function () {
+    toString() {
         return 'x: ' + this.getX() + ', y: ' + this.getY() + ', z: ' +
             this.getZ() + ', w: ' + this.getW();
     }

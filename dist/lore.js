@@ -2782,321 +2782,357 @@ Lore.Matrix4f = function () {
     return Matrix4f;
 }();
 
-Lore.Quaternion = function (x, y, z, w) {
-    if (arguments.length === 1) {
-        this.components = new Float32Array(x);
-    } else if (arguments.length === 2) {
-        this.components = new Float32Array(4);
-        this.setFromAxisAngle(x, y);
-    } else {
-        this.components = new Float32Array(4);
-        this.components[0] = x || 0.0;
-        this.components[1] = y || 0.0;
-        this.components[2] = z || 0.0;
-        this.components[3] = w !== undefined ? w : 1.0;
+Lore.Quaternion = function () {
+    function Quaternion(x, y, z, w) {
+        _classCallCheck(this, Quaternion);
+
+        if (arguments.length === 1) {
+            this.components = new Float32Array(x);
+        } else if (arguments.length === 2) {
+            this.components = new Float32Array(4);
+            this.setFromAxisAngle(x, y);
+        } else {
+            this.components = new Float32Array(4);
+            this.components[0] = x || 0.0;
+            this.components[1] = y || 0.0;
+            this.components[2] = z || 0.0;
+            this.components[3] = w !== undefined ? w : 1.0;
+        }
     }
-};
 
-Lore.Quaternion.prototype = {
-    constructor: Lore.Quaternion,
-
-    getX: function getX() {
-        return this.components[0];
-    },
-
-    getY: function getY() {
-        return this.components[1];
-    },
-
-    getZ: function getZ() {
-        return this.components[2];
-    },
-
-    getW: function getW() {
-        return this.components[3];
-    },
-
-    set: function set(x, y, z, w) {
-        this.components[0] = x;
-        this.components[1] = y;
-        this.components[2] = z;
-        this.components[3] = w;
-    },
-
-    setX: function setX(x) {
-        this.components[0] = x;
-    },
-
-    setY: function setY(y) {
-        this.components[1] = y;
-    },
-
-    setZ: function setZ(z) {
-        this.components[2] = z;
-    },
-
-    setW: function setW(w) {
-        this.components[3] = w;
-    },
-
-    setFromAxisAngle: function setFromAxisAngle(axis, angle) {
-        // See:
-        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
-
-        // Normalize the axis. The resulting quaternion will be normalized as well
-        var normAxis = Lore.Vector3f.normalize(axis);
-        var halfAngle = angle / 2.0;
-        var sinHalfAngle = Math.sin(halfAngle);
-
-        this.components[0] = normAxis.components[0] * sinHalfAngle;
-        this.components[1] = normAxis.components[1] * sinHalfAngle;
-        this.components[2] = normAxis.components[2] * sinHalfAngle;
-        this.components[3] = Math.cos(halfAngle);
-    },
-
-    setFromUnitVectors: function setFromUnitVectors(from, to) {
-        var v = null;
-        var r = from.dot(to) + 1;
-
-        if (r < 0.000001) {
-            v = new Lore.Vector3f();
-            r = 0;
-            if (Math.abs(from.components[0]) > Math.abs(from.components[2])) v.set(-from.components[1], from.components[0], 0);else v.set(0, -from.components[2], from.components[1]);
-        } else {
-            v = Lore.Vector3f.cross(from, to);
+    _createClass(Quaternion, [{
+        key: 'getX',
+        value: function getX() {
+            return this.components[0];
         }
-
-        this.set(v.components[0], v.components[1], v.components[2], r);
-        this.normalize();
-    },
-
-    lookAt: function lookAt(source, dest, up) {
-        this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
-        return this;
-    },
-
-    lengthSq: function lengthSq() {
-        return this.components[0] * this.components[0] + this.components[1] * this.components[1] + this.components[2] * this.components[2] + this.components[3] * this.components[3];
-    },
-
-    length: function length() {
-        return Math.sqrt(this.lengthSq());
-    },
-
-    inverse: function inverse() {
-        return this.conjugate().normalize();
-    },
-
-    normalize: function normalize() {
-        var length = this.length();
-
-        if (length === 0) {
-            this.components[0] = 0.0;
-            this.components[1] = 0.0;
-            this.components[2] = 0.0;
-            this.components[3] = 1.0;
-        } else {
-            var inv = 1 / length;
-            this.components[0] *= inv;
-            this.components[1] *= inv;
-            this.components[2] *= inv;
-            this.components[3] *= inv;
+    }, {
+        key: 'getY',
+        value: function getY() {
+            return this.components[1];
         }
-
-        return this;
-    },
-
-    dot: function dot(q) {
-        return this.components[0] * q.components[0] + this.components[1] * q.components[1] + this.components[2] * q.components[2] + this.components[3] * q.components[3];
-    },
-
-    multiplyA: function multiplyA(b) {
-        // See:
-        // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
-
-        var x = this.components[0] * b.components[3] + this.components[3] * b.components[0] + this.components[1] * b.components[2] - this.components[2] * b.components[1];
-        var y = this.components[1] * b.components[3] + this.components[3] * b.components[1] + this.components[2] * b.components[0] - this.components[0] * b.components[2];
-        var z = this.components[2] * b.components[3] + this.components[3] * b.components[2] + this.components[0] * b.components[1] - this.components[1] * b.components[0];
-        var w = this.components[3] * b.components[3] - this.components[0] * b.components[0] - this.components[1] * b.components[1] - this.components[2] * b.components[2];
-
-        this.components[0] = x;
-        this.components[1] = y;
-        this.components[2] = z;
-        this.components[3] = w;
-
-        return this;
-    },
-
-    multiplyB: function multiplyB(a) {
-        // See:
-        // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
-
-        var x = a.components[0] * this.components[3] + a.components[3] * this.components[0] + a.components[1] * this.components[2] - a.components[2] * this.components[1];
-        var y = a.components[1] * this.components[3] + a.components[3] * this.components[1] + a.components[2] * this.components[0] - a.components[0] * this.components[2];
-        var z = a.components[2] * this.components[3] + a.components[3] * this.components[2] + a.components[0] * this.components[1] - a.components[1] * this.components[0];
-        var w = a.components[3] * this.components[3] - a.components[0] * this.components[0] - a.components[1] * this.components[1] - a.components[2] * this.components[2];
-
-        this.components[0] = x;
-        this.components[1] = y;
-        this.components[2] = z;
-        this.components[3] = w;
-
-        return this;
-    },
-
-    multiplyScalar: function multiplyScalar(s) {
-        this.components[0] *= s;
-        this.components[1] *= s;
-        this.components[2] *= s;
-        this.components[3] *= s;
-
-        return this;
-    },
-
-    conjugate: function conjugate() {
-        // See:
-        // http://www.3dgep.com/understanding-quaternions/#Quaternion_Conjugate
-        this.components[0] *= -1;
-        this.components[1] *= -1;
-        this.components[2] *= -1;
-
-        return this;
-    },
-
-    add: function add(q) {
-        this.components[0] += q.components[0];
-        this.components[1] += q.components[1];
-        this.components[2] += q.components[2];
-        this.components[3] += q.components[3];
-
-        return this;
-    },
-
-    subtract: function subtract(q) {
-        this.components[0] -= q.components[0];
-        this.components[1] -= q.components[1];
-        this.components[2] -= q.components[2];
-        this.components[3] -= q.components[3];
-
-        return this;
-    },
-
-    rotateX: function rotateX(angle) {
-        var halfAngle = angle / 2.0;
-        return this.multiplyA(new Lore.Quaternion(Math.sin(halfAngle), 0.0, 0.0, Math.cos(halfAngle)));
-    },
-
-    rotateY: function rotateY(angle) {
-        var halfAngle = angle / 2.0;
-        return this.multiplyA(new Lore.Quaternion(0.0, Math.sin(halfAngle), 0.0, Math.cos(halfAngle)));
-    },
-
-    rotateZ: function rotateZ(angle) {
-        var halfAngle = angle / 2.0;
-        return this.multiplyA(new Lore.Quaternion(0.0, 0.0, Math.sin(halfAngle), Math.cos(halfAngle)));
-    },
-
-    toAxisAngle: function toAxisAngle() {
-        // It seems like this isn't numerically stable. This could be solved
-        // by some checks as described here:
-        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
-        // or here:
-        // https://www.flipcode.com/documents/matrfaq.html#Q57
-        // However, this function currently isn't used.
-        console.warn('The method toAxisAngle() has not been implemented.');
-    },
-
-    toRotationMatrix: function toRotationMatrix() {
-        var i = this.components[0];
-        var j = this.components[1];
-        var k = this.components[2];
-        var r = this.components[3];
-
-        var ii = i * i;
-        var ij = i * j;
-        var ik = i * k;
-        var ir = i * r;
-
-        var jr = j * r;
-        var jj = j * j;
-        var jk = j * k;
-
-        var kk = k * k;
-        var kr = k * r;
-
-        var mat = new Lore.Matrix4f();
-
-        mat.entries[0] = 1 - 2 * (jj + kk);
-        mat.entries[1] = 2 * (ij + kr);
-        mat.entries[2] = 2 * (ik - jr);
-        mat.entries[4] = 2 * (jk - kr);
-        mat.entries[5] = 1 - 2 * (ii + kk);
-        mat.entries[6] = 2 * (jk + ir);
-        mat.entries[8] = 2 * (ik + jr);
-        mat.entries[9] = 2 * (jk - ir);
-        mat.entries[10] = 1 - 2 * (ii + jj);
-
-        return mat;
-    },
-
-    setFromMatrix: function setFromMatrix(m) {
-        // As in three.js, this is an implementation straight from:
-        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-
-        // Get the rotation matrix (if m is a Matrix4f)
-        var m00 = m.entries[0],
-            m01 = m.entries[4],
-            m02 = m.entries[8];
-        var m10 = m.entries[1],
-            m11 = m.entries[5],
-            m12 = m.entries[9];
-        var m20 = m.entries[2],
-            m21 = m.entries[6],
-            m22 = m.entries[10];
-
-        var t = m00 + m11 + m22;
-
-        if (t > 0) {
-            var s = 0.5 / Math.sqrt(t + 1.0);
-            this.components[0] = (m21 - m12) * s;
-            this.components[1] = (m02 - m20) * s;
-            this.components[2] = (m10 - m01) * s;
-            this.components[3] = 0.25 / s;
-        } else if (m00 > m11 && m00 > m22) {
-            var _s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
-            this.components[0] = 0.25 * _s;
-            this.components[1] = (m01 + m10) / _s;
-            this.components[2] = (m02 + m20) / _s;
-            this.components[3] = (m21 - m12) / _s;
-        } else if (m11 > m22) {
-            var _s2 = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
-            this.components[0] = (m01 + m10) / _s2;
-            this.components[1] = 0.25 * _s2;
-            this.components[2] = (m12 + m21) / _s2;
-            this.components[3] = (m02 - m20) / _s2;
-        } else {
-            var _s3 = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
-            this.components[0] = (m02 + m20) / _s3;
-            this.components[1] = (m12 + m21) / _s3;
-            this.components[2] = 0.25 * _s3;
-            this.components[3] = (m10 - m01) / _s3;
+    }, {
+        key: 'getZ',
+        value: function getZ() {
+            return this.components[2];
         }
+    }, {
+        key: 'getW',
+        value: function getW() {
+            return this.components[3];
+        }
+    }, {
+        key: 'set',
+        value: function set(x, y, z, w) {
+            this.components[0] = x;
+            this.components[1] = y;
+            this.components[2] = z;
+            this.components[3] = w;
+        }
+    }, {
+        key: 'setX',
+        value: function setX(x) {
+            this.components[0] = x;
+        }
+    }, {
+        key: 'setY',
+        value: function setY(y) {
+            this.components[1] = y;
+        }
+    }, {
+        key: 'setZ',
+        value: function setZ(z) {
+            this.components[2] = z;
+        }
+    }, {
+        key: 'setW',
+        value: function setW(w) {
+            this.components[3] = w;
+        }
+    }, {
+        key: 'setFromAxisAngle',
+        value: function setFromAxisAngle(axis, angle) {
+            // See:
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
 
-        return this;
-    },
+            // Normalize the axis. The resulting quaternion will be normalized as well
+            var normAxis = Lore.Vector3f.normalize(axis);
+            var halfAngle = angle / 2.0;
+            var sinHalfAngle = Math.sin(halfAngle);
 
-    clone: function clone() {
-        return new Lore.Quaternion(this.components[0], this.components[1], this.components[2], this.components[3]);
-    },
+            this.components[0] = normAxis.components[0] * sinHalfAngle;
+            this.components[1] = normAxis.components[1] * sinHalfAngle;
+            this.components[2] = normAxis.components[2] * sinHalfAngle;
+            this.components[3] = Math.cos(halfAngle);
+        }
+    }, {
+        key: 'setFromUnitVectors',
+        value: function setFromUnitVectors(from, to) {
+            var v = null;
+            var r = from.dot(to) + 1;
 
-    equals: function equals(q) {
-        return this.components[0] === q.components[0] && this.components[1] === q.components[1] && this.components[2] === q.components[2] && this.components[3] === q.components[3];
-    },
+            if (r < 0.000001) {
+                v = new Lore.Vector3f();
+                r = 0;
+                if (Math.abs(from.components[0]) > Math.abs(from.components[2])) v.set(-from.components[1], from.components[0], 0);else v.set(0, -from.components[2], from.components[1]);
+            } else {
+                v = Lore.Vector3f.cross(from, to);
+            }
 
-    toString: function toString() {
-        return 'x: ' + this.getX() + ', y: ' + this.getY() + ', z: ' + this.getZ() + ', w: ' + this.getW();
-    }
-};
+            this.set(v.components[0], v.components[1], v.components[2], r);
+            this.normalize();
+        }
+    }, {
+        key: 'lookAt',
+        value: function lookAt(source, dest, up) {
+            this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
+            return this;
+        }
+    }, {
+        key: 'lengthSq',
+        value: function lengthSq() {
+            return this.components[0] * this.components[0] + this.components[1] * this.components[1] + this.components[2] * this.components[2] + this.components[3] * this.components[3];
+        }
+    }, {
+        key: 'length',
+        value: function length() {
+            return Math.sqrt(this.lengthSq());
+        }
+    }, {
+        key: 'inverse',
+        value: function inverse() {
+            return this.conjugate().normalize();
+        }
+    }, {
+        key: 'normalize',
+        value: function normalize() {
+            var length = this.length();
+
+            if (length === 0) {
+                this.components[0] = 0.0;
+                this.components[1] = 0.0;
+                this.components[2] = 0.0;
+                this.components[3] = 1.0;
+            } else {
+                var inv = 1 / length;
+                this.components[0] *= inv;
+                this.components[1] *= inv;
+                this.components[2] *= inv;
+                this.components[3] *= inv;
+            }
+
+            return this;
+        }
+    }, {
+        key: 'dot',
+        value: function dot(q) {
+            return this.components[0] * q.components[0] + this.components[1] * q.components[1] + this.components[2] * q.components[2] + this.components[3] * q.components[3];
+        }
+    }, {
+        key: 'multiplyA',
+        value: function multiplyA(b) {
+            // See:
+            // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
+
+            var x = this.components[0] * b.components[3] + this.components[3] * b.components[0] + this.components[1] * b.components[2] - this.components[2] * b.components[1];
+            var y = this.components[1] * b.components[3] + this.components[3] * b.components[1] + this.components[2] * b.components[0] - this.components[0] * b.components[2];
+            var z = this.components[2] * b.components[3] + this.components[3] * b.components[2] + this.components[0] * b.components[1] - this.components[1] * b.components[0];
+            var w = this.components[3] * b.components[3] - this.components[0] * b.components[0] - this.components[1] * b.components[1] - this.components[2] * b.components[2];
+
+            this.components[0] = x;
+            this.components[1] = y;
+            this.components[2] = z;
+            this.components[3] = w;
+
+            return this;
+        }
+    }, {
+        key: 'multiplyB',
+        value: function multiplyB(a) {
+            // See:
+            // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
+
+            var x = a.components[0] * this.components[3] + a.components[3] * this.components[0] + a.components[1] * this.components[2] - a.components[2] * this.components[1];
+            var y = a.components[1] * this.components[3] + a.components[3] * this.components[1] + a.components[2] * this.components[0] - a.components[0] * this.components[2];
+            var z = a.components[2] * this.components[3] + a.components[3] * this.components[2] + a.components[0] * this.components[1] - a.components[1] * this.components[0];
+            var w = a.components[3] * this.components[3] - a.components[0] * this.components[0] - a.components[1] * this.components[1] - a.components[2] * this.components[2];
+
+            this.components[0] = x;
+            this.components[1] = y;
+            this.components[2] = z;
+            this.components[3] = w;
+
+            return this;
+        }
+    }, {
+        key: 'multiplyScalar',
+        value: function multiplyScalar(s) {
+            this.components[0] *= s;
+            this.components[1] *= s;
+            this.components[2] *= s;
+            this.components[3] *= s;
+
+            return this;
+        }
+    }, {
+        key: 'conjugate',
+        value: function conjugate() {
+            // See:
+            // http://www.3dgep.com/understanding-quaternions/#Quaternion_Conjugate
+            this.components[0] *= -1;
+            this.components[1] *= -1;
+            this.components[2] *= -1;
+
+            return this;
+        }
+    }, {
+        key: 'add',
+        value: function add(q) {
+            this.components[0] += q.components[0];
+            this.components[1] += q.components[1];
+            this.components[2] += q.components[2];
+            this.components[3] += q.components[3];
+
+            return this;
+        }
+    }, {
+        key: 'subtract',
+        value: function subtract(q) {
+            this.components[0] -= q.components[0];
+            this.components[1] -= q.components[1];
+            this.components[2] -= q.components[2];
+            this.components[3] -= q.components[3];
+
+            return this;
+        }
+    }, {
+        key: 'rotateX',
+        value: function rotateX(angle) {
+            var halfAngle = angle / 2.0;
+            return this.multiplyA(new Lore.Quaternion(Math.sin(halfAngle), 0.0, 0.0, Math.cos(halfAngle)));
+        }
+    }, {
+        key: 'rotateY',
+        value: function rotateY(angle) {
+            var halfAngle = angle / 2.0;
+            return this.multiplyA(new Lore.Quaternion(0.0, Math.sin(halfAngle), 0.0, Math.cos(halfAngle)));
+        }
+    }, {
+        key: 'rotateZ',
+        value: function rotateZ(angle) {
+            var halfAngle = angle / 2.0;
+            return this.multiplyA(new Lore.Quaternion(0.0, 0.0, Math.sin(halfAngle), Math.cos(halfAngle)));
+        }
+    }, {
+        key: 'toAxisAngle',
+        value: function toAxisAngle() {
+            // It seems like this isn't numerically stable. This could be solved
+            // by some checks as described here:
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
+            // or here:
+            // https://www.flipcode.com/documents/matrfaq.html#Q57
+            // However, this function currently isn't used.
+            console.warn('The method toAxisAngle() has not been implemented.');
+        }
+    }, {
+        key: 'toRotationMatrix',
+        value: function toRotationMatrix() {
+            var i = this.components[0];
+            var j = this.components[1];
+            var k = this.components[2];
+            var r = this.components[3];
+
+            var ii = i * i;
+            var ij = i * j;
+            var ik = i * k;
+            var ir = i * r;
+
+            var jr = j * r;
+            var jj = j * j;
+            var jk = j * k;
+
+            var kk = k * k;
+            var kr = k * r;
+
+            var mat = new Lore.Matrix4f();
+
+            mat.entries[0] = 1 - 2 * (jj + kk);
+            mat.entries[1] = 2 * (ij + kr);
+            mat.entries[2] = 2 * (ik - jr);
+            mat.entries[4] = 2 * (jk - kr);
+            mat.entries[5] = 1 - 2 * (ii + kk);
+            mat.entries[6] = 2 * (jk + ir);
+            mat.entries[8] = 2 * (ik + jr);
+            mat.entries[9] = 2 * (jk - ir);
+            mat.entries[10] = 1 - 2 * (ii + jj);
+
+            return mat;
+        }
+    }, {
+        key: 'setFromMatrix',
+        value: function setFromMatrix(m) {
+            // As in three.js, this is an implementation straight from:
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+
+            // Get the rotation matrix (if m is a Matrix4f)
+            var m00 = m.entries[0],
+                m01 = m.entries[4],
+                m02 = m.entries[8];
+            var m10 = m.entries[1],
+                m11 = m.entries[5],
+                m12 = m.entries[9];
+            var m20 = m.entries[2],
+                m21 = m.entries[6],
+                m22 = m.entries[10];
+
+            var t = m00 + m11 + m22;
+
+            if (t > 0) {
+                var s = 0.5 / Math.sqrt(t + 1.0);
+                this.components[0] = (m21 - m12) * s;
+                this.components[1] = (m02 - m20) * s;
+                this.components[2] = (m10 - m01) * s;
+                this.components[3] = 0.25 / s;
+            } else if (m00 > m11 && m00 > m22) {
+                var _s = 2.0 * Math.sqrt(1.0 + m00 - m11 - m22);
+                this.components[0] = 0.25 * _s;
+                this.components[1] = (m01 + m10) / _s;
+                this.components[2] = (m02 + m20) / _s;
+                this.components[3] = (m21 - m12) / _s;
+            } else if (m11 > m22) {
+                var _s2 = 2.0 * Math.sqrt(1.0 + m11 - m00 - m22);
+                this.components[0] = (m01 + m10) / _s2;
+                this.components[1] = 0.25 * _s2;
+                this.components[2] = (m12 + m21) / _s2;
+                this.components[3] = (m02 - m20) / _s2;
+            } else {
+                var _s3 = 2.0 * Math.sqrt(1.0 + m22 - m00 - m11);
+                this.components[0] = (m02 + m20) / _s3;
+                this.components[1] = (m12 + m21) / _s3;
+                this.components[2] = 0.25 * _s3;
+                this.components[3] = (m10 - m01) / _s3;
+            }
+
+            return this;
+        }
+    }, {
+        key: 'clone',
+        value: function clone() {
+            return new Lore.Quaternion(this.components[0], this.components[1], this.components[2], this.components[3]);
+        }
+    }, {
+        key: 'equals',
+        value: function equals(q) {
+            return this.components[0] === q.components[0] && this.components[1] === q.components[1] && this.components[2] === q.components[2] && this.components[3] === q.components[3];
+        }
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return 'x: ' + this.getX() + ', y: ' + this.getY() + ', z: ' + this.getZ() + ', w: ' + this.getW();
+        }
+    }]);
+
+    return Quaternion;
+}();
 
 Lore.Quaternion.dot = function (q, p) {
     return new Lore.Quaternion(q.components[0] * p.components[0] + q.components[1] * p.components[1] + q.components[2] * p.components[2] + q.components[3] * p.components[3]);
@@ -3177,7 +3213,6 @@ Lore.Quaternion.slerp = function (q, p, t) {
 
     return new Lore.Quaternion(q.components[0] * ratioA + tmp.components[0] * ratioB, q.components[1] * ratioA + tmp.components[1] * ratioB, q.components[2] * ratioA + tmp.components[2] * ratioB, q.components[3] * ratioA + tmp.components[3] * ratioB);
 };
-
 Lore.SphericalCoords = function () {
     function SphericalCoords(radius, phi, theta) {
         _classCallCheck(this, SphericalCoords);
@@ -3300,74 +3335,86 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
     return ProjectionMatrix;
 }(Lore.Matrix4f);
 
-Lore.Statistics = function () {};
+Lore.Statistics = function () {
+    function Statistics() {
+        _classCallCheck(this, Statistics);
+    }
 
-Lore.Statistics.prototype = {
-    constructor: Lore.Vector2f
+    _createClass(Statistics, null, [{
+        key: 'randomNormal',
+        value: function randomNormal() {
+            var val = void 0,
+                u = void 0,
+                v = void 0,
+                s = void 0,
+                mul = void 0;
 
-};
+            if (Lore.Statistics.spareRandomNormal !== null) {
+                val = Lore.Statistics.spareRandomNormal;
+                Lore.Statistics.spareRandomNormal = null;
+            } else {
+                do {
+                    u = Math.random() * 2 - 1;
+                    v = Math.random() * 2 - 1;
 
-// Using Marsaglia polar
+                    s = u * u + v * v;
+                } while (s === 0 || s >= 1);
+
+                mul = Math.sqrt(-2 * Math.log(s) / s);
+                val = u * mul;
+                Lore.Statistics.spareRandomNormal = v * mul;
+            }
+
+            return val / 14;
+        }
+    }, {
+        key: 'randomNormalInRange',
+        value: function randomNormalInRange(a, b) {
+            var val = void 0;
+
+            do {
+                val = Lore.Statistics.randomNormal();
+            } while (val < a || val > b);
+
+            return val;
+        }
+    }, {
+        key: 'randomNormalScaled',
+        value: function randomNormalScaled(mean, sd) {
+            var r = Lore.Statistics.randomNormalInRange(-1, 1);
+            return r * sd + mean;
+        }
+    }, {
+        key: 'normalize',
+        value: function normalize(arr) {
+            var max = Number.MIN_VALUE;
+            var min = Number.MAX_VALUE;
+
+            for (var i = 0; i < arr.length; i++) {
+                var val = arr[i];
+                if (val > max) max = val;
+                if (val < min) min = val;
+            }
+
+            var diff = max - min;
+
+            for (var _i = 0; _i < arr.length; _i++) {
+                arr[_i] = (arr[_i] - min) / diff;
+            }
+
+            return [min, max];
+        }
+    }, {
+        key: 'scale',
+        value: function scale(value, oldMin, oldMax, newMin, newMax) {
+            return (newMax - newMin) * (value - oldMin) / (oldMax - oldMin) + newMin;
+        }
+    }]);
+
+    return Statistics;
+}();
+
 Lore.Statistics.spareRandomNormal = null;
-Lore.Statistics.randomNormal = function () {
-    var val, u, v, s, mul;
-
-    if (Lore.Statistics.spareRandomNormal !== null) {
-        val = Lore.Statistics.spareRandomNormal;
-        Lore.Statistics.spareRandomNormal = null;
-    } else {
-        do {
-            u = Math.random() * 2 - 1;
-            v = Math.random() * 2 - 1;
-
-            s = u * u + v * v;
-        } while (s === 0 || s >= 1);
-
-        mul = Math.sqrt(-2 * Math.log(s) / s);
-        val = u * mul;
-        Lore.Statistics.spareRandomNormal = v * mul;
-    }
-
-    return val / 14;
-};
-
-Lore.Statistics.randomNormalInRange = function (a, b) {
-    var val;
-
-    do {
-        val = Lore.Statistics.randomNormal();
-    } while (val < a || val > b);
-
-    return val;
-};
-
-Lore.Statistics.randomNormalScaled = function (mean, sd) {
-    var r = Lore.Statistics.randomNormalInRange(-1, 1);
-    return r * sd + mean;
-};
-
-Lore.Statistics.normalize = function (arr) {
-    var max = Number.MIN_VALUE;
-    var min = Number.MAX_VALUE;
-
-    for (var i = 0; i < arr.length; i++) {
-        var val = arr[i];
-        if (val > max) max = val;
-        if (val < min) min = val;
-    }
-
-    var diff = max - min;
-    for (var i = 0; i < arr.length; i++) {
-        arr[i] = (arr[i] - min) / diff;
-    }
-
-    return [min, max];
-};
-
-Lore.Statistics.scale = function (value, oldMin, oldMax, newMin, newMax) {
-    return (newMax - newMin) * (value - oldMin) / (oldMax - oldMin) + newMin;
-};
-
 Lore.Ray = function () {
     function Ray(source, direction) {
         _classCallCheck(this, Ray);
@@ -3478,10 +3525,10 @@ var RadixSort = function () {
             this.initHistograms(input, maxOffset, lastMask);
 
             // Create the offset table
-            for (var _i = 0; _i <= maxOffset; _i += this.max) {
+            for (var _i2 = 0; _i2 <= maxOffset; _i2 += this.max) {
                 var sum = 0;
 
-                for (var j = _i; j < _i + this.max; j++) {
+                for (var j = _i2; j < _i2 + this.max; j++) {
                     var tmpSum = this.histograms[j] + sum;
 
                     this.histograms[j] = sum - 1;
@@ -3707,8 +3754,8 @@ Lore.PointHelper = function (_Lore$HelperBase) {
                 var initialBounds = Lore.AABB.fromPoints(positions);
                 var indices = new Uint32Array(length);
 
-                for (var _i2 = 0; _i2 < length; _i2++) {
-                    indices[_i2] = _i2;
+                for (var _i3 = 0; _i3 < length; _i3++) {
+                    indices[_i3] = _i3;
                 }
 
                 this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
@@ -3744,14 +3791,14 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             }
 
             // Convert to HOS (Hue, Opacity, Size)
-            for (var _i3 = 0; _i3 < c.length; _i3 += 3) {
-                var _r = c[_i3];
-                var _g = c[_i3 + 1];
-                var _b = c[_i3 + 2];
+            for (var _i4 = 0; _i4 < c.length; _i4 += 3) {
+                var _r = c[_i4];
+                var _g = c[_i4 + 1];
+                var _b = c[_i4 + 2];
 
-                c[_i3] = Lore.Color.rgbToHsl(_r, _g, _b)[0];
-                c[_i3 + 1] = colors[1];
-                c[_i3 + 2] = colors[2];
+                c[_i4] = Lore.Color.rgbToHsl(_r, _g, _b)[0];
+                c[_i4 + 1] = colors[1];
+                c[_i4 + 2] = colors[2];
             }
 
             this.updateColors(c);
@@ -4146,7 +4193,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
 
             pos = p[0];
 
-            for (var _i4 = 0; _i4 < xTicks.count - 1; _i4++) {
+            for (var _i5 = 0; _i5 < xTicks.count - 1; _i5++) {
                 pos += xTickOffset;
                 // From
                 positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
@@ -4157,7 +4204,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
             pos = p[1];
             col = yTicks.color.components;
 
-            for (var _i5 = 0; _i5 < yTicks.count - 1; _i5++) {
+            for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
                 pos += yTickOffset;
                 // From
                 positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
@@ -4166,7 +4213,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
 
             pos = p[1];
 
-            for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
+            for (var _i7 = 0; _i7 < yTicks.count - 1; _i7++) {
                 pos += yTickOffset;
                 // From
                 positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
@@ -4177,7 +4224,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
             pos = p[2];
             col = zTicks.color.components;
 
-            for (var _i7 = 0; _i7 < zTicks.count - 1; _i7++) {
+            for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
                 pos += zTickOffset;
                 // From
                 positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
@@ -4186,7 +4233,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
 
             pos = p[2];
 
-            for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
+            for (var _i9 = 0; _i9 < zTicks.count - 1; _i9++) {
                 pos += zTickOffset;
                 // From
                 positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
@@ -4999,7 +5046,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_SPAN_MAX     8.0',
-                                                                                                                                                                                                                                                                                                                                                                          'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                                         'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
                                                                                                                                                                                                                                                                                                                                                                         '{',
                                                                                                                                                                                                                                                                                                                                                                             'fragCoord = fragCoord * resolution;',
                                                                                                                                                                                                                                                                                                                                                                             'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -5018,23 +5065,23 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                             'float lumaM  = dot(rgbM,  luma);',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                              'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                                             'vec2 dir;',
                                                                                                                                                                                                                                                                                                                                                                             'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
                                                                                                                                                                                                                                                                                                                                                                             'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                              'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                                             'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
                                                                                                                                                                                                                                                                                                                                                                             'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-                                                                                                                                                                                                                                                                                                                                                                              'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                             'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                              'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                                             'float lumaB = dot(rgbB, luma);',
                                                                                                                                                                                                                                                                                                                                                                             'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbA, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                             'else',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbB, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                         '}',
-                                                                                                                                                                                                                                                                                                                                                                          'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                                         'uniform sampler2D fbo_texture;',
                                                                                                                                                                                                                                                                                                                                                                         'varying vec2 f_texcoord;',
                                                                                                                                                                                                                                                                                                                                                                         'void main(void) {',
                                                                                                                                                                                                                                                                                                                                                                             'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
@@ -5103,47 +5150,47 @@ Lore.Octree = function () {
             var childPointCounts = new Uint32Array(8);
             var codes = new Float32Array(pointIndices.length);
 
-            for (var _i9 = 0; _i9 < pointIndices.length; _i9++) {
+            for (var _i10 = 0; _i10 < pointIndices.length; _i10++) {
                 // Points are indices to the vertices array
                 // which stores x,y,z coordinates linear
-                var k = pointIndices[_i9] * 3;
+                var k = pointIndices[_i10] * 3;
 
                 // Assign point to subtree, this gives a code
                 // 000, 001, 010, 011, 100, 101, 110, 111
                 // (-> 8 possible subtrees)
-                if (vertices[k + 0] >= aabb.center.components[0]) codes[_i9] |= 4;
-                if (vertices[k + 1] >= aabb.center.components[1]) codes[_i9] |= 2;
-                if (vertices[k + 2] >= aabb.center.components[2]) codes[_i9] |= 1;
+                if (vertices[k + 0] >= aabb.center.components[0]) codes[_i10] |= 4;
+                if (vertices[k + 1] >= aabb.center.components[1]) codes[_i10] |= 2;
+                if (vertices[k + 2] >= aabb.center.components[2]) codes[_i10] |= 1;
 
-                childPointCounts[codes[_i9]]++;
+                childPointCounts[codes[_i10]]++;
             }
 
             var nextPoints = new Array(8);
             var nextAabb = new Array(8);
 
-            for (var _i10 = 0; _i10 < 8; _i10++) {
-                if (childPointCounts[_i10] == 0) continue;
-                nextPoints[_i10] = new Uint32Array(childPointCounts[_i10]);
+            for (var _i11 = 0; _i11 < 8; _i11++) {
+                if (childPointCounts[_i11] == 0) continue;
+                nextPoints[_i11] = new Uint32Array(childPointCounts[_i11]);
 
                 for (var j = 0, _k = 0; j < pointIndices.length; j++) {
-                    if (codes[j] == _i10) {
-                        nextPoints[_i10][_k++] = pointIndices[j];
+                    if (codes[j] == _i11) {
+                        nextPoints[_i11][_k++] = pointIndices[j];
                     }
                 }
 
-                var o = this.offsets[_i10];
+                var o = this.offsets[_i11];
                 var offset = new Lore.Vector3f(o[0], o[1], o[2]);
                 offset.multiplyScalar(aabb.radius);
-                nextAabb[_i10] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
+                nextAabb[_i11] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
             }
 
-            for (var _i11 = 0; _i11 < 8; _i11++) {
-                if (childPointCounts[_i11] == 0) {
+            for (var _i12 = 0; _i12 < 8; _i12++) {
+                if (childPointCounts[_i12] == 0) {
                     continue;
                 }
 
-                var nextLocCode = this.generateLocCode(locCode, _i11);
-                this.build(nextPoints[_i11], vertices, nextAabb[_i11], nextLocCode);
+                var nextLocCode = this.generateLocCode(locCode, _i12);
+                this.build(nextPoints[_i12], vertices, nextAabb[_i12], nextLocCode);
             }
 
             return this;
@@ -5306,9 +5353,9 @@ Lore.Octree = function () {
                     return;
                 }
 
-                for (var _i12 = 0; _i12 < points.length; _i12++) {
+                for (var _i13 = 0; _i13 < points.length; _i13++) {
                     result.push({
-                        index: points[_i12],
+                        index: points[_i13],
                         locCode: locCode
                     });
                 }
@@ -5688,9 +5735,9 @@ Lore.Octree = function () {
                 return indices;
             }
 
-            for (var _i13 = 0; _i13 < sortedCellDistances.array.length; _i13++) {
+            for (var _i14 = 0; _i14 < sortedCellDistances.array.length; _i14++) {
                 // Get the points from the cell and merge them with the already found ones
-                var _locCode = cellDistances.locCodes[sortedCellDistances.indices[_i13]];
+                var _locCode = cellDistances.locCodes[sortedCellDistances.indices[_i14]];
                 var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, _locCode, positions);
 
                 pointDistances = Lore.Octree.mergePointDistances(pointDistances, newPointDistances);
@@ -5699,7 +5746,7 @@ Lore.Octree = function () {
                 var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
                 for (var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
-                    if (sortedNewPointDistances.array[j] > sortedCellDistances.array[_i13 + 1]) {
+                    if (sortedNewPointDistances.array[j] > sortedCellDistances.array[_i14 + 1]) {
                         pointOffset = j;
                         break;
                     }
@@ -5790,8 +5837,8 @@ Lore.Octree = function () {
 
             var dists = new Float32Array(l1 - l2);
 
-            for (var _i14 = l2, c = 0; _i14 < l1; _i14++, c++) {
-                dists[c] = this.aabbs[locCodes[_i14]].distanceToPointSq(x, y, z);
+            for (var _i15 = l2, c = 0; _i15 < l1; _i15++, c++) {
+                dists[c] = this.aabbs[locCodes[_i15]].distanceToPointSq(x, y, z);
             }
 
             cellDistances.distancesSq = Lore.Utils.concatTypedArrays(distancesSq, dists);
