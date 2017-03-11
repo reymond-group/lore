@@ -26,31 +26,31 @@ Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
                     count: 10,
                     length: 5.0,
                     offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#222222')
+                    color: Lore.Color.fromHex('#1f1f1f')
                 },
                 y: {
                     count: 10,
                     length: 5.0,
                     offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#222222')
+                    color: Lore.Color.fromHex('#1f1f1f')
                 },
                 z: {
                     count: 10,
                     length: 5.0,
                     offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#222222')
+                    color: Lore.Color.fromHex('#1f1f1f')
                 }
             },
             box: {
                 enabled: true,
                 x: {
-                    color: Lore.Color.fromHex('#999999')
+                    color: Lore.Color.fromHex('#222222')
                 },
                 y: {
-                    color: Lore.Color.fromHex('#999999')
+                    color: Lore.Color.fromHex('#222222')
                 },
                 z: {
-                    color: Lore.Color.fromHex('#999999')
+                    color: Lore.Color.fromHex('#222222')
                 }
             },
         }
