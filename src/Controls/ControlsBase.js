@@ -1,5 +1,10 @@
+/** An abstract class representing the base for controls implementations. */
 Lore.ControlsBase = class ControlsBase {
 
+    /**
+     * Creates an instance of ControlsBase.
+     * @param {Renderer} renderer An instance of a Lore renderer.
+     */
     constructor(renderer) {
         this.renderer = renderer;
         this.canvas = renderer.canvas;
@@ -291,6 +296,12 @@ Lore.ControlsBase = class ControlsBase {
         });
     }
 
+    /**
+     * Adds an event listener to this controls instance.
+     * 
+     * @param {String} eventName The name of the event that is to be listened for.
+     * @param {Function} callback A callback function to be called on the event being fired.
+     */
     addEventListener(eventName, callback) {
         if (!this.eventListeners[eventName]) {
             this.eventListeners[eventName] = [];
@@ -299,13 +310,17 @@ Lore.ControlsBase = class ControlsBase {
         this.eventListeners[eventName].push(callback);
     }
 
+    /**
+     * Raises an event.
+     * 
+     * @param {any} eventName The name of the event to be raised.
+     * @param {any} data The data to be supplied to the callback function.
+     */
     raiseEvent(eventName, data) {
-        if (!this.eventListeners[eventName]) {
-            return;
-        }
-
-        for (let i = 0; i < this.eventListeners[eventName].length; i++) {
-            this.eventListeners[eventName][i](data);
+        if (this.eventListeners[eventName]) {
+            for (let i = 0; i < this.eventListeners[eventName].length; i++) {
+                this.eventListeners[eventName][i](data);
+            }
         }
     }
 }

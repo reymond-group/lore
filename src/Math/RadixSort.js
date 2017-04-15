@@ -1,4 +1,9 @@
+/** A class wrapping a radix sort for floats. */
 class RadixSort {
+    /**
+     * Creates an instance of RadixSort.
+     * 
+     */
     constructor() {
         this.max = undefined;
         this.mask = undefined;
@@ -7,6 +12,14 @@ class RadixSort {
         this.tmpIndices = undefined;
     }
 
+    /**
+     * Sorts a 32-bit float array using radix sort.
+     * 
+     * @param {Float32Array} arr The array to be sorted.
+     * @param {Boolean} copyArray A boolean indicating whether to perform the sorting directly on the array or copy it.
+     * @returns {Object} The result in the form { array: sortedArray, indices: sortedIndices }.
+     * 
+     */
     sort(arr, copyArray) {
         let array = null;
 
@@ -85,6 +98,13 @@ class RadixSort {
         };
     }
 
+    /**
+     * The lsb (least significant bit) pass of the algorithm.
+     * 
+     * @param {Float32Array} arr The array.
+     * @param {Float32Array} aux An auxilliary array.
+     * 
+     */
     lsbPass(arr, aux) {
         for (let i = 0, n = arr.length; i < n; i++) {
             let val = arr[i];
@@ -99,6 +119,13 @@ class RadixSort {
         }
     }
 
+    /**
+     * The main pass of the algorithm.
+     * 
+     * @param {Float32Array} arr The array.
+     * @param {Float32Array} aux An auxilliary array.
+     * 
+     */
     pass(arr, aux) {
         let n = arr.length;
 
@@ -113,6 +140,13 @@ class RadixSort {
         this.indices.set(this.tmpIndices);
     }
 
+    /**
+     * The msb (most significant bit) pass of the algorithm.
+     * 
+     * @param {Float32Array} arr The array.
+     * @param {Float32Array} aux An auxilliary array.
+     * 
+     */
     msbPass(arr, aux, msbMask) {
         let lastMask = (msbMask << 1) - 1;
         let n = arr.length;
@@ -129,7 +163,15 @@ class RadixSort {
 
         this.indices.set(this.tmpIndices);
     }
-
+    
+    /**
+     * Initialize the histogram used by the algorithm.
+     * 
+     * @param {Float32Array} arr The array to be sorted.
+     * @param {Number} maxOffset The maximum offset.
+     * @param {Number} lastMask The last max, based on the msb (most significant bit) mask.
+     * 
+     */
     initHistograms(arr, maxOffset, lastMask) {
         let n = arr.length;
 
