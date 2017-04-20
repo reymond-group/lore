@@ -45,7 +45,9 @@ Lore.getShader = function (shaderName) {
 
 Lore.init = function(canvas, options) {
     this.opts = Lore.Utils.extend(true, Lore.defaults, options);
-
+    
+    Lore.getGrakaInfo(canvas);
+    
     // Init UI
     var ui = new Lore.UI(canvas);
 
@@ -103,6 +105,27 @@ Lore.init = function(canvas, options) {
     }
 
     return renderer;
+}
+
+Lore.getGrakaInfo = function(targetId) {
+    let canvas = document.getElementById(targetId);
+    let gl = canvas.getContext('webgl');
+
+    let info = {
+        renderer: '',
+        vendor: ''
+    };
+
+    let dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    
+    if (dbgRenderInfo != null) {
+        info.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+        info.vendor   = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
+    }
+    
+    console.log(info);
+
+    return info;
 }
 
 Lore.defaults = {
