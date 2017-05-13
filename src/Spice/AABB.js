@@ -64,6 +64,7 @@ Lore.AABB = class AABB {
 
     /**
      * Sets the location code of this axis-aligned bounding box.
+     * 
      * @param {number} locCode - The location code.
      */
     setLocCode(locCode) {
@@ -74,6 +75,7 @@ Lore.AABB = class AABB {
 
     /**
      * Gets the location code of this axis-aligned bounding box.
+     * 
      * @returns {number} The location code.
      */
     getLocCode() {
@@ -82,6 +84,7 @@ Lore.AABB = class AABB {
 
     /**
      * Tests whether or not this axis-aligned bounding box is intersected by a ray.
+     * 
      * @param {Lore.Vector3f} source - The source of the ray.
      * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
      * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
@@ -121,6 +124,7 @@ Lore.AABB = class AABB {
 
     /**
      * Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.
+     * 
      * @param {Lore.Vector3f} source - The source of the ray.
      * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
      * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
@@ -144,6 +148,7 @@ Lore.AABB = class AABB {
 
     /**
      * Returns the square distance of this axis-aligned bounding box to the point supplied as an argument.
+     * 
      * @param {number} x - The x component of the point coordinate.
      * @param {number} y - The y component of the point coordinate.
      * @param {number} z - The z component of the point coordinate.
@@ -154,7 +159,7 @@ Lore.AABB = class AABB {
         let sqDist = 0;
         let p = [x, y, z];
         // Add the distances for each axis
-        for (let i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
             if (p[i] < this.min[i])
                 sqDist += Math.pow(this.min[i] - p[i], 2);
             if (p[i] > this.max[i])
@@ -166,6 +171,7 @@ Lore.AABB = class AABB {
 
     /**
      * Returns the box that is closest to the point (measured from center).
+     * 
      * @param {number} x - The x component of the point coordinate.
      * @param {number} y - The y component of the point coordinate.
      * @param {number} z - The z component of the point coordinate.
@@ -174,18 +180,18 @@ Lore.AABB = class AABB {
     distanceFromCenterToPointSq(x, y, z) {
         let center = this.center.components;
 
-        return Math.pow(center[0] - x, 2) + Math.pow(center[1] - y, 2) +
-            Math.pow(center[2] - z, 2);
+        return Math.pow(center[0] - x, 2) + Math.pow(center[1] - y, 2) + Math.pow(center[2] - z, 2);
     }
 
     /**
      * Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
      * This method can also be used to assert whether or not two boxes are neighbours.
+     * 
      * @param {Lore.AABB} aabb - The axis-aligned bounding box to test against.
      * @returns {boolean} - Whether or not there is an overlap.
      */
     testAABB(aabb) {
-        for (let i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
             if (this.max[i] < aabb.min[i] || this.min[i] > aabb.max[i]) {
                 return false;
             }
@@ -196,6 +202,7 @@ Lore.AABB = class AABB {
 
     /**
      * Creates a axis-aligned bounding box surrounding a set of vertices.
+     * 
      * @param {Uint32Array} vertices - The vertices which will all be inside the axis-aligned bounding box.
      * @returns {Lore.AABB} An axis-aligned bounding box surrounding the vertices.
      */
@@ -210,7 +217,7 @@ Lore.AABB = class AABB {
         let minc = min.components;
         let maxc = max.components;
 
-        for (let i = 1; i < vertices.length / 3; i++) {
+        for (var i = 1; i < vertices.length / 3; i++) {
             if (vertices[i * 3 + 0] < minc[0]) minc[0] = vertices[i * 3 + 0];
             if (vertices[i * 3 + 1] < minc[1]) minc[1] = vertices[i * 3 + 1];
             if (vertices[i * 3 + 2] < minc[2]) minc[2] = vertices[i * 3 + 2];
@@ -236,6 +243,12 @@ Lore.AABB = class AABB {
         return new Lore.AABB(center, radius);
     }
 
+    /**
+     * Returns an array representing the 8 corners of the axis-aligned bounding box.
+     * 
+     * @param {Lore.AABB} aabb An axis-aligned bounding box.
+     * @returns {Array} An array containing the 8 corners of the axisa-aligned bunding box. E.g [[x, y, z], [x, y, z], ...]
+     */
     static getCorners(aabb) {
         let c = aabb.center.components;
         let x = c[0];
@@ -257,6 +270,7 @@ Lore.AABB = class AABB {
 
     /**
      * Clones an axis-aligned bounding box.
+     * 
      * @param {Lore.AABB} original - The axis-aligned bounding box to be cloned.
      * @returns {Lore.AABB} The cloned axis-aligned bounding box.
      */

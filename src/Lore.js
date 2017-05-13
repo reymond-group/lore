@@ -84,20 +84,7 @@ Lore.init = function(canvas, options) {
           z: { color: Lore.Color.fromHex('#222222') }
         }
     });
-    
-/*
-    var size = 1000;
-    var positions = new Float32Array(size * 3);
-    var colors = new Float32Array(size * 3)
 
-    for(var i = 0; i < size * 3; i++) {
-      positions[i] = Lore.Statistics.randomNormalScaled(0, 2000);
-      colors[i] = Math.random();
-    }
-
-    pointHelper.setPositions(positions);
-    pointHelper.setColors(colors);
-*/
     renderer.render = function(camera, geometries) {
         for(var key in geometries) {
             geometries[key].draw(renderer);

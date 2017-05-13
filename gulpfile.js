@@ -22,6 +22,7 @@ var files = [
     'src/Core/Effect.js',
     'src/Controls/ControlsBase.js',
     'src/Controls/OrbitalControls.js',
+    'src/Controls/FirstPersonControls.js',
     'src/Cameras/CameraBase.js',
     'src/Cameras/OrthographicCamera.js',
     'src/Math/Array2.js',

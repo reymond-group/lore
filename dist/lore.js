@@ -56,6 +56,8 @@ Lore.getShader = function (shaderName) {
 Lore.init = function (canvas, options) {
     this.opts = Lore.Utils.extend(true, Lore.defaults, options);
 
+    Lore.getGrakaInfo(canvas);
+
     // Init UI
     var ui = new Lore.UI(canvas);
 
@@ -92,19 +94,6 @@ Lore.init = function (canvas, options) {
         }
     });
 
-    /*
-        var size = 1000;
-        var positions = new Float32Array(size * 3);
-        var colors = new Float32Array(size * 3)
-    
-        for(var i = 0; i < size * 3; i++) {
-          positions[i] = Lore.Statistics.randomNormalScaled(0, 2000);
-          colors[i] = Math.random();
-        }
-    
-        pointHelper.setPositions(positions);
-        pointHelper.setColors(colors);
-    */
     renderer.render = function (camera, geometries) {
         for (var key in geometries) {
             geometries[key].draw(renderer);
@@ -112,6 +101,27 @@ Lore.init = function (canvas, options) {
     };
 
     return renderer;
+};
+
+Lore.getGrakaInfo = function (targetId) {
+    var canvas = document.getElementById(targetId);
+    var gl = canvas.getContext('webgl');
+
+    var info = {
+        renderer: '',
+        vendor: ''
+    };
+
+    var dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
+
+    if (dbgRenderInfo != null) {
+        info.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+        info.vendor = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
+    }
+
+    console.log(info);
+
+    return info;
 };
 
 Lore.defaults = {
@@ -1397,8 +1407,11 @@ Lore.ControlsBase = function () {
     /**
      * Creates an instance of ControlsBase.
      * @param {Renderer} renderer An instance of a Lore renderer.
+     * @param {boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
      */
     function ControlsBase(renderer) {
+        var enableVR = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
         _classCallCheck(this, ControlsBase);
 
         this.renderer = renderer;
@@ -1439,6 +1452,8 @@ Lore.ControlsBase = function () {
             ctrl: false,
             shift: false
         };
+
+        this.VR = {};
 
         var that = this;
         this.canvas.addEventListener('mousemove', function (e) {
@@ -1687,14 +1702,33 @@ Lore.ControlsBase = function () {
     }
 
     /**
-     * Adds an event listener to this controls instance.
+     * Initialiizes WebVR, if the API is available and the device suppports it.
      * 
-     * @param {String} eventName The name of the event that is to be listened for.
-     * @param {Function} callback A callback function to be called on the event being fired.
      */
 
 
     _createClass(ControlsBase, [{
+        key: 'initWebVR',
+        value: function initWebVR() {
+            if (navigator.getVRDevices) {
+                navigator.getVRDisplays().then(function (displays) {
+                    if (displays.length === 0) {
+                        return;
+                    }
+
+                    for (var i = 0; i < displays.length; ++i) {}
+                });
+            }
+        }
+
+        /**
+         * Adds an event listener to this controls instance.
+         * 
+         * @param {String} eventName The name of the event that is to be listened for.
+         * @param {Function} callback A callback function to be called on the event being fired.
+         */
+
+    }, {
         key: 'addEventListener',
         value: function addEventListener(eventName, callback) {
             if (!this.eventListeners[eventName]) {
@@ -2082,6 +2116,78 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
     return OrbitalControls;
 }(Lore.ControlsBase);
 
+/** A class representing orbital controls. */
+Lore.FirstPersonControls = function (_Lore$ControlsBase2) {
+    _inherits(FirstPersonControls, _Lore$ControlsBase2);
+
+    /**
+     * Creates an instance of FirstPersonControls.
+     * @param {Renderer} renderer An instance of a Lore renderer.
+     */
+    function FirstPersonControls(renderer, radius) {
+        _classCallCheck(this, FirstPersonControls);
+
+        var _this4 = _possibleConstructorReturn(this, (FirstPersonControls.__proto__ || Object.getPrototypeOf(FirstPersonControls)).call(this, renderer));
+
+        _this4.up = Lore.Vector3f.up();
+        _this4.renderer = renderer;
+        _this4.camera = renderer.camera;
+        _this4.canvas = renderer.canvas;
+
+        _this4.lookAt = lookAt || new Lore.Vector3f();
+
+        _this4.camera.position = new Lore.Vector3f(radius, radius, radius);
+        _this4.camera.updateProjectionMatrix();
+        _this4.camera.updateViewMatrix();
+
+        _this4.rotationLocked = false;
+
+        var that = _this4;
+
+        _this4.addEventListener('mousedrag', function (e) {
+            that.update(e.e, e.source);
+        });
+
+        // Initial update
+        _this4.update({
+            x: 0,
+            y: 0
+        }, 'left');
+        return _this4;
+    }
+
+    /**
+     * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
+     * 
+     * @param {any} e A mouse or touch events data.
+     * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
+     * @returns {FirstPersonControls} Returns itself.
+     */
+
+
+    _createClass(FirstPersonControls, [{
+        key: 'update',
+        value: function update(e, source) {
+            if (source === 'left') {}
+            // Move forward here
+
+
+            // Update the camera
+            var offset = this.camera.position.clone().subtract(this.lookAt);
+
+            this.camera.position.copyFrom(this.lookAt).add(offset);
+            this.camera.setLookAt(this.lookAt);
+            this.camera.updateViewMatrix();
+
+            this.raiseEvent('updated');
+
+            return this;
+        }
+    }]);
+
+    return FirstPersonControls;
+}(Lore.ControlsBase);
+
 /** An abstract class representing the base for camera implementations. */
 Lore.CameraBase = function (_Lore$Node2) {
     _inherits(CameraBase, _Lore$Node2);
@@ -2092,15 +2198,15 @@ Lore.CameraBase = function (_Lore$Node2) {
     function CameraBase() {
         _classCallCheck(this, CameraBase);
 
-        var _this4 = _possibleConstructorReturn(this, (CameraBase.__proto__ || Object.getPrototypeOf(CameraBase)).call(this));
+        var _this5 = _possibleConstructorReturn(this, (CameraBase.__proto__ || Object.getPrototypeOf(CameraBase)).call(this));
 
-        _this4.type = 'Lore.CameraBase';
-        _this4.renderer = null;
-        _this4.isProjectionMatrixStale = false;
-        _this4.isViewMatrixStale = false;
-        _this4.projectionMatrix = new Lore.ProjectionMatrix();
-        _this4.viewMatrix = new Lore.Matrix4f();
-        return _this4;
+        _this5.type = 'Lore.CameraBase';
+        _this5.renderer = null;
+        _this5.isProjectionMatrixStale = false;
+        _this5.isViewMatrixStale = false;
+        _this5.projectionMatrix = new Lore.ProjectionMatrix();
+        _this5.viewMatrix = new Lore.Matrix4f();
+        return _this5;
     }
 
     /**
@@ -2236,19 +2342,19 @@ Lore.OrthographicCamera = function (_Lore$CameraBase) {
     function OrthographicCamera(left, right, top, bottom, near, far) {
         _classCallCheck(this, OrthographicCamera);
 
-        var _this5 = _possibleConstructorReturn(this, (OrthographicCamera.__proto__ || Object.getPrototypeOf(OrthographicCamera)).call(this));
+        var _this6 = _possibleConstructorReturn(this, (OrthographicCamera.__proto__ || Object.getPrototypeOf(OrthographicCamera)).call(this));
 
-        _this5.type = 'Lore.OrthographicCamera';
-        _this5.zoom = 1.0;
-        _this5.left = left;
-        _this5.right = right;
-        _this5.top = top;
-        _this5.bottom = bottom;
-        _this5.near = near || 0.1;
-        _this5.far = far || 2500;
+        _this6.type = 'Lore.OrthographicCamera';
+        _this6.zoom = 1.0;
+        _this6.left = left;
+        _this6.right = right;
+        _this6.top = top;
+        _this6.bottom = bottom;
+        _this6.near = near || 0.1;
+        _this6.far = far || 2500;
 
-        _this5.updateProjectionMatrix();
-        return _this5;
+        _this6.updateProjectionMatrix();
+        return _this6;
     }
 
     /**
@@ -5162,12 +5268,12 @@ Lore.HelperBase = function (_Lore$Node3) {
     function HelperBase(renderer, geometryName, shaderName) {
         _classCallCheck(this, HelperBase);
 
-        var _this7 = _possibleConstructorReturn(this, (HelperBase.__proto__ || Object.getPrototypeOf(HelperBase)).call(this));
+        var _this8 = _possibleConstructorReturn(this, (HelperBase.__proto__ || Object.getPrototypeOf(HelperBase)).call(this));
 
-        _this7.renderer = renderer;
-        _this7.shader = Lore.Shaders[shaderName];
-        _this7.geometry = _this7.renderer.createGeometry(geometryName, shaderName);
-        return _this7;
+        _this8.renderer = renderer;
+        _this8.shader = Lore.Shaders[shaderName];
+        _this8.geometry = _this8.renderer.createGeometry(geometryName, shaderName);
+        return _this8;
     }
 
     _createClass(HelperBase, [{
@@ -5220,7 +5326,7 @@ Lore.PointHelper = function (_Lore$HelperBase) {
     function PointHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, PointHelper);
 
-        var _this8 = _possibleConstructorReturn(this, (PointHelper.__proto__ || Object.getPrototypeOf(PointHelper)).call(this, renderer, geometryName, shaderName));
+        var _this9 = _possibleConstructorReturn(this, (PointHelper.__proto__ || Object.getPrototypeOf(PointHelper)).call(this, renderer, geometryName, shaderName));
 
         var defaults = {
             octree: true,
@@ -5230,14 +5336,14 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             maxPointSize: 100.0
         };
 
-        _this8.opts = Lore.Utils.extend(true, defaults, options);
-        _this8.indices = null;
-        _this8.octree = null;
-        _this8.geometry.setMode(Lore.DrawModes.points);
-        _this8.initPointSize();
-        _this8.filters = {};
-        _this8.pointSize = 1.0 * _this8.opts.pointScale;
-        return _this8;
+        _this9.opts = Lore.Utils.extend(true, defaults, options);
+        _this9.indices = null;
+        _this9.octree = null;
+        _this9.geometry.setMode(Lore.DrawModes.points);
+        _this9.initPointSize();
+        _this9.filters = {};
+        _this9.pointSize = 1.0 * _this9.opts.pointScale;
+        return _this9;
     }
 
     _createClass(PointHelper, [{
@@ -5463,19 +5569,19 @@ Lore.TreeHelper = function (_Lore$HelperBase2) {
     function TreeHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, TreeHelper);
 
-        var _this9 = _possibleConstructorReturn(this, (TreeHelper.__proto__ || Object.getPrototypeOf(TreeHelper)).call(this, renderer, geometryName, shaderName));
+        var _this10 = _possibleConstructorReturn(this, (TreeHelper.__proto__ || Object.getPrototypeOf(TreeHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this9.defaults = {
+        _this10.defaults = {
             pointScale: 1.0,
             maxPointSize: 100.0
         };
 
-        _this9.opts = Lore.Utils.extend(true, _this9.defaults, options);
-        _this9.indices = null;
-        _this9.geometry.setMode(Lore.DrawModes.lines);
-        _this9.initPointSize();
-        _this9.filters = {};
-        return _this9;
+        _this10.opts = Lore.Utils.extend(true, _this10.defaults, options);
+        _this10.indices = null;
+        _this10.geometry.setMode(Lore.DrawModes.lines);
+        _this10.initPointSize();
+        _this10.filters = {};
+        return _this10;
     }
 
     _createClass(TreeHelper, [{
@@ -5607,9 +5713,9 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
     function CoordinatesHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, CoordinatesHelper);
 
-        var _this10 = _possibleConstructorReturn(this, (CoordinatesHelper.__proto__ || Object.getPrototypeOf(CoordinatesHelper)).call(this, renderer, geometryName, shaderName));
+        var _this11 = _possibleConstructorReturn(this, (CoordinatesHelper.__proto__ || Object.getPrototypeOf(CoordinatesHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this10.defaults = {
+        _this11.defaults = {
             position: new Lore.Vector3f(),
             axis: {
                 x: {
@@ -5660,11 +5766,11 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
             }
         };
 
-        _this10.opts = Lore.Utils.extend(true, _this10.defaults, options);
+        _this11.opts = Lore.Utils.extend(true, _this11.defaults, options);
 
-        _this10.geometry.setMode(Lore.DrawModes.lines);
-        _this10.init();
-        return _this10;
+        _this11.geometry.setMode(Lore.DrawModes.lines);
+        _this11.init();
+        return _this11;
     }
 
     _createClass(CoordinatesHelper, [{
@@ -5778,22 +5884,22 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
     function OctreeHelper(renderer, geometryName, shaderName, target, options) {
         _classCallCheck(this, OctreeHelper);
 
-        var _this11 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
+        var _this12 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this11.defaults = {
+        _this12.defaults = {
             visualize: false
         };
 
-        _this11.opts = Lore.Utils.extend(true, _this11.defaults, options);
-        _this11.eventListeners = {};
-        _this11.target = target;
-        _this11.renderer = renderer;
-        _this11.octree = _this11.target.octree;
-        _this11.raycaster = new Lore.Raycaster();
-        _this11.hovered = null;
-        _this11.selected = [];
+        _this12.opts = Lore.Utils.extend(true, _this12.defaults, options);
+        _this12.eventListeners = {};
+        _this12.target = target;
+        _this12.renderer = renderer;
+        _this12.octree = _this12.target.octree;
+        _this12.raycaster = new Lore.Raycaster();
+        _this12.hovered = null;
+        _this12.selected = [];
 
-        var that = _this11;
+        var that = _this12;
 
         renderer.controls.addEventListener('dblclick', function (e) {
             if (e.e.mouse.state.middle || e.e.mouse.state.right) {
@@ -5854,8 +5960,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             that.raiseEvent('updated');
         });
 
-        _this11.init();
-        return _this11;
+        _this12.init();
+        return _this12;
     }
 
     _createClass(OctreeHelper, [{
@@ -6267,11 +6373,11 @@ Lore.InRangeFilter = function (_Lore$FilterBase) {
     function InRangeFilter(attribute, attributeIndex, min, max) {
         _classCallCheck(this, InRangeFilter);
 
-        var _this12 = _possibleConstructorReturn(this, (InRangeFilter.__proto__ || Object.getPrototypeOf(InRangeFilter)).call(this, attribute, attributeIndex));
+        var _this13 = _possibleConstructorReturn(this, (InRangeFilter.__proto__ || Object.getPrototypeOf(InRangeFilter)).call(this, attribute, attributeIndex));
 
-        _this12.min = min;
-        _this12.max = max;
-        return _this12;
+        _this13.min = min;
+        _this13.max = max;
+        return _this13;
     }
 
     _createClass(InRangeFilter, [{
@@ -6383,18 +6489,18 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     function CsvFileReader(elementId, options) {
         _classCallCheck(this, CsvFileReader);
 
-        var _this13 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+        var _this14 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
 
-        _this13.defaults = {
+        _this14.defaults = {
             separator: ',',
             cols: [],
             types: [],
             header: true
         };
 
-        _this13.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
-        _this13.columns = [];
-        return _this13;
+        _this14.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
+        _this14.columns = [];
+        return _this14;
     }
 
     _createClass(CsvFileReader, [{

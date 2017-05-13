@@ -4,8 +4,9 @@ Lore.ControlsBase = class ControlsBase {
     /**
      * Creates an instance of ControlsBase.
      * @param {Renderer} renderer An instance of a Lore renderer.
+     * @param {boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
      */
-    constructor(renderer) {
+    constructor(renderer, enableVR = false) {
         this.renderer = renderer;
         this.canvas = renderer.canvas;
         this.lowFps = 15;
@@ -43,7 +44,9 @@ Lore.ControlsBase = class ControlsBase {
             alt: false,
             ctrl: false,
             shift: false
-        }
+        };
+
+        this.VR = {};
 
         let that = this;
         this.canvas.addEventListener('mousemove', function (e) {
@@ -294,6 +297,26 @@ Lore.ControlsBase = class ControlsBase {
                 source: that.canvas
             });
         });
+
+
+    }
+
+    /**
+     * Initialiizes WebVR, if the API is available and the device suppports it.
+     * 
+     */
+    initWebVR() {
+        if (navigator.getVRDevices) {
+            navigator.getVRDisplays().then(function (displays) {
+                if (displays.length === 0) {
+                    return;
+                }
+                
+                for (var i = 0; i < displays.length; ++i) {
+                    
+                }
+            });
+        }
     }
 
     /**
