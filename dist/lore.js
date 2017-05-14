@@ -6357,6 +6357,9 @@ Lore.FilterBase = function () {
     }, {
         key: 'filter',
         value: function filter() {}
+    }, {
+        key: 'reset',
+        value: function reset() {}
     }], [{
         key: 'isVisible',
         value: function isVisible(geometry, index) {
@@ -6444,6 +6447,10 @@ Lore.FileReaderBase = function () {
 
         var that = this;
 
+        this.element.addEventListener('click', function () {
+            this.value = null;
+        });
+
         this.element.addEventListener('change', function () {
             var fileReader = new FileReader();
 
@@ -6498,8 +6505,11 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
             header: true
         };
 
-        _this14.opts = Lore.Utils.extend(true, Lore.CsvFileReader.defaults, options);
-        _this14.columns = [];
+        _this14.opts = Lore.Utils.extend(true, _this14.defaults, options);
+        _this14.columns = {};
+        _this14.headers = [];
+        _this14.types = _this14.opts.types;
+        _this14.cols = _this14.opts.cols;
         return _this14;
     }
 
@@ -6512,26 +6522,61 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
             var lines = data.split('\n');
             var length = lines.length;
             var init = true;
-            var loadCols = this.opts.cols;
             var h = this.opts.header ? 1 : 0;
 
-            for (var i = h; i < length; i++) {
-                var values = lines[i].split(this.opts.separator);
+            if (this.cols.length !== 0) {
+                if (this.types.length !== this.cols.length) {
+                    throw 'Types and cols must have the same number of elements.';
+                }
+            } else {
+                if (this.types.length !== this.cols.length) {
+                    var values = lines[0].split(this.opts.separator);
 
-                if (loadCols.length == 0) for (var j = 0; j < values.length; j++) {
-                    loadCols.push[j];
+                    this.types = [];
+
+                    for (var i = 0; i < values.length; i++) {
+                        this.types.push('Float32Array');
+                    }
+                }
+            }
+
+            if (this.cols.length === 0) {
+                var _values = lines[0].split(this.opts.separator);
+
+                for (var _i10 = 0; _i10 < _values.length; _i10++) {
+                    this.cols.push(_i10);
+                }
+            }
+
+            if (h) {
+                var headerNames = lines[0].split(this.opts.separator);
+
+                for (var j = 0; j < this.cols.length; j++) {
+                    this.headers[j] = headerNames[this.cols[j]];
+                }
+            } else {
+                for (var _j = 0; _j < this.cols.length; _j++) {
+                    this.headers[_j] = _j;
+                }
+            }
+
+            for (var _i11 = h; _i11 < length; _i11++) {
+                var _values2 = lines[_i11].split(this.opts.separator);
+
+                if (this.cols.length == 0) for (var _j2 = 0; _j2 < _values2.length; _j2++) {
+                    this.cols.push[_j2];
                 }
 
                 if (init) {
-                    for (var _j = 0; _j < loadCols.length; _j++) {
-                        this.createArray(_j, this.opts.types[_j], length - h);
+                    for (var _j3 = 0; _j3 < this.cols.length; _j3++) {
+                        this.createArray(this.headers[_j3], this.opts.types[_j3], length - h);
                     }
 
                     init = false;
                 }
 
-                for (var _j2 = 0; _j2 < loadCols.length; _j2++) {
-                    this.columns[_j2][i - h] = values[loadCols[_j2]];
+                for (var _j4 = 0; _j4 < this.cols.length; _j4++) {
+                    this.columns[this.headers[_j4]][_i11 - h] = _values2[this.cols[_j4]];
                 }
             }
 
@@ -6780,47 +6825,47 @@ Lore.Octree = function () {
             var childPointCounts = new Uint32Array(8);
             var codes = new Float32Array(pointIndices.length);
 
-            for (var _i10 = 0; _i10 < pointIndices.length; _i10++) {
+            for (var i = 0; i < pointIndices.length; i++) {
                 // Points are indices to the vertices array
                 // which stores x,y,z coordinates linear
-                var k = pointIndices[_i10] * 3;
+                var _k = pointIndices[i] * 3;
 
                 // Assign point to subtree, this gives a code
                 // 000, 001, 010, 011, 100, 101, 110, 111
                 // (-> 8 possible subtrees)
-                if (vertices[k + 0] >= aabb.center.components[0]) codes[_i10] |= 4;
-                if (vertices[k + 1] >= aabb.center.components[1]) codes[_i10] |= 2;
-                if (vertices[k + 2] >= aabb.center.components[2]) codes[_i10] |= 1;
+                if (vertices[_k + 0] >= aabb.center.components[0]) codes[i] |= 4;
+                if (vertices[_k + 1] >= aabb.center.components[1]) codes[i] |= 2;
+                if (vertices[_k + 2] >= aabb.center.components[2]) codes[i] |= 1;
 
-                childPointCounts[codes[_i10]]++;
+                childPointCounts[codes[i]]++;
             }
 
             var nextPoints = new Array(8);
             var nextAabb = new Array(8);
 
-            for (var _i11 = 0; _i11 < 8; _i11++) {
-                if (childPointCounts[_i11] == 0) continue;
-                nextPoints[_i11] = new Uint32Array(childPointCounts[_i11]);
+            for (var i = 0; i < 8; i++) {
+                if (childPointCounts[i] == 0) continue;
+                nextPoints[i] = new Uint32Array(childPointCounts[i]);
 
-                for (var j = 0, _k = 0; j < pointIndices.length; j++) {
-                    if (codes[j] == _i11) {
-                        nextPoints[_i11][_k++] = pointIndices[j];
+                for (var j = 0, k = 0; j < pointIndices.length; j++) {
+                    if (codes[j] == i) {
+                        nextPoints[i][k++] = pointIndices[j];
                     }
                 }
 
-                var o = this.offsets[_i11];
+                var o = this.offsets[i];
                 var offset = new Lore.Vector3f(o[0], o[1], o[2]);
                 offset.multiplyScalar(aabb.radius);
-                nextAabb[_i11] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
+                nextAabb[i] = new Lore.AABB(aabb.center.clone().add(offset), 0.5 * aabb.radius);
             }
 
-            for (var _i12 = 0; _i12 < 8; _i12++) {
-                if (childPointCounts[_i12] == 0) {
+            for (var i = 0; i < 8; i++) {
+                if (childPointCounts[i] == 0) {
                     continue;
                 }
 
-                var nextLocCode = this.generateLocCode(locCode, _i12);
-                this.build(nextPoints[_i12], vertices, nextAabb[_i12], nextLocCode);
+                var nextLocCode = this.generateLocCode(locCode, i);
+                this.build(nextPoints[i], vertices, nextAabb[i], nextLocCode);
             }
 
             return this;
@@ -6983,9 +7028,9 @@ Lore.Octree = function () {
                     return;
                 }
 
-                for (var _i13 = 0; _i13 < points.length; _i13++) {
+                for (var i = 0; i < points.length; i++) {
                     result.push({
-                        index: points[_i13],
+                        index: points[i],
                         locCode: locCode
                     });
                 }
@@ -7086,6 +7131,7 @@ Lore.Octree = function () {
                     }
 
                     var dist = this.aabbs[next].distanceFromCenterToPointSq(point.components[0], point.components[1], point.components[2]);
+
                     if (dist < minDist) {
                         minDist = dist;
                         closest = next;
@@ -7365,9 +7411,9 @@ Lore.Octree = function () {
                 return indices;
             }
 
-            for (var _i14 = 0; _i14 < sortedCellDistances.array.length; _i14++) {
+            for (var i = 0; i < sortedCellDistances.array.length; i++) {
                 // Get the points from the cell and merge them with the already found ones
-                var _locCode = cellDistances.locCodes[sortedCellDistances.indices[_i14]];
+                var _locCode = cellDistances.locCodes[sortedCellDistances.indices[i]];
                 var newPointDistances = this.pointDistancesSq(p.x, p.y, p.z, _locCode, positions);
 
                 pointDistances = Lore.Octree.mergePointDistances(pointDistances, newPointDistances);
@@ -7376,7 +7422,7 @@ Lore.Octree = function () {
                 var sortedNewPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
                 for (var j = pointOffset; indexCount < k && j < sortedNewPointDistances.array.length; j++) {
-                    if (sortedNewPointDistances.array[j] > sortedCellDistances.array[_i14 + 1]) {
+                    if (sortedNewPointDistances.array[j] > sortedCellDistances.array[i + 1]) {
                         pointOffset = j;
                         break;
                     }
@@ -7467,8 +7513,8 @@ Lore.Octree = function () {
 
             var dists = new Float32Array(l1 - l2);
 
-            for (var _i15 = l2, c = 0; _i15 < l1; _i15++, c++) {
-                dists[c] = this.aabbs[locCodes[_i15]].distanceToPointSq(x, y, z);
+            for (var i = l2, c = 0; i < l1; i++, c++) {
+                dists[c] = this.aabbs[locCodes[i]].distanceToPointSq(x, y, z);
             }
 
             cellDistances.distancesSq = Lore.Utils.concatTypedArrays(distancesSq, dists);
@@ -7688,6 +7734,7 @@ Lore.AABB = function () {
 
         /**
          * Sets the location code of this axis-aligned bounding box.
+         * 
          * @param {number} locCode - The location code.
          */
 
@@ -7701,6 +7748,7 @@ Lore.AABB = function () {
 
         /**
          * Gets the location code of this axis-aligned bounding box.
+         * 
          * @returns {number} The location code.
          */
 
@@ -7712,6 +7760,7 @@ Lore.AABB = function () {
 
         /**
          * Tests whether or not this axis-aligned bounding box is intersected by a ray.
+         * 
          * @param {Lore.Vector3f} source - The source of the ray.
          * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
          * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
@@ -7754,6 +7803,7 @@ Lore.AABB = function () {
 
         /**
          * Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.
+         * 
          * @param {Lore.Vector3f} source - The source of the ray.
          * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
          * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
@@ -7780,6 +7830,7 @@ Lore.AABB = function () {
 
         /**
          * Returns the square distance of this axis-aligned bounding box to the point supplied as an argument.
+         * 
          * @param {number} x - The x component of the point coordinate.
          * @param {number} y - The y component of the point coordinate.
          * @param {number} z - The z component of the point coordinate.
@@ -7803,6 +7854,7 @@ Lore.AABB = function () {
 
         /**
          * Returns the box that is closest to the point (measured from center).
+         * 
          * @param {number} x - The x component of the point coordinate.
          * @param {number} y - The y component of the point coordinate.
          * @param {number} z - The z component of the point coordinate.
@@ -7820,6 +7872,7 @@ Lore.AABB = function () {
         /**
          * Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
          * This method can also be used to assert whether or not two boxes are neighbours.
+         * 
          * @param {Lore.AABB} aabb - The axis-aligned bounding box to test against.
          * @returns {boolean} - Whether or not there is an overlap.
          */
@@ -7838,6 +7891,7 @@ Lore.AABB = function () {
 
         /**
          * Creates a axis-aligned bounding box surrounding a set of vertices.
+         * 
          * @param {Uint32Array} vertices - The vertices which will all be inside the axis-aligned bounding box.
          * @returns {Lore.AABB} An axis-aligned bounding box surrounding the vertices.
          */
@@ -7880,6 +7934,14 @@ Lore.AABB = function () {
 
             return new Lore.AABB(center, radius);
         }
+
+        /**
+         * Returns an array representing the 8 corners of the axis-aligned bounding box.
+         * 
+         * @param {Lore.AABB} aabb An axis-aligned bounding box.
+         * @returns {Array} An array containing the 8 corners of the axisa-aligned bunding box. E.g [[x, y, z], [x, y, z], ...]
+         */
+
     }, {
         key: 'getCorners',
         value: function getCorners(aabb) {
@@ -7894,6 +7956,7 @@ Lore.AABB = function () {
 
         /**
          * Clones an axis-aligned bounding box.
+         * 
          * @param {Lore.AABB} original - The axis-aligned bounding box to be cloned.
          * @returns {Lore.AABB} The cloned axis-aligned bounding box.
          */

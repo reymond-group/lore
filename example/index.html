@@ -5,50 +5,92 @@
     <title></title>
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/css/materialize.min.css">
+
     <script src="https://unpkg.com/vue"></script>
+
+    <style>
+        html, body, .container, #row-main {
+            height: 100%;
+        }
+
+        .left-col {
+            height: 100%;
+        }
+
+        .right-col {
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <div style="width: 100%; height: 500px">
-            <canvas id="loreCanvas" style="height:100%; width:100%">
-            </canvas>
+    <div class="container">
+        <div id="row-main" class="row">
+            <div class="left-col col s8">
+                <div style="width: 100%; height: 100%">
+                    <canvas id="loreCanvas" style="height:100%; width:100%">
+                    </canvas>
+                </div>
+            </div>
+            <div class="right-col col s4">
+                <h3>Lore.js Demo</h3>
+                <input id="csv" type="file"></input>
+                <p id="fps"></p>
+                <div id="app">
+                    <div class="row">
+                        <div class="col s12">
+                            <input id="radius" type="text"></input>
+                            <input id="radius-button" type="button" value="Set Radius"></input>
+                            <input id="fog" type="text"></input>
+                            <input id="fog-button" type="button" value="Set Fog Distance"></input>
+                            <input id="cutoff" type="text"></input>
+                            <input id="cutoff-button" type="button" value="Set Cutoff"></input>
+
+                            <p class="range-field">
+                                <input id="filter" type="range" min="0.0" max="1.0" step="0.05" v-on:input="filter"></input>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <select onchange="app.changeView(this.value);">
+                                <option value="" disabled selected>Select a View Option</option>
+                                <option value="top">Top View</option>
+                                <option value="front">Front View</option>
+                                <option value="back">Back View</option>
+                                <option value="left">Left View</option>
+                                <option value="right">Right View</option>
+                                <option value="free">Free View</option>
+                            </select>
+                            <label>View</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12">
+                            <a class="waves-effect waves-light btn-flat" v-on:click="zoomIn">Zoom In</a>
+                            <a class="waves-effect waves-light btn-flat" v-on:click="zoomOut">Zoom Out</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12">
+                            <input id="setLookAt" type="text"></input>
+                            <input id="setLookAt-button" type="button" value="Set LookAt"></input>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <p id="fps"></p>
-        <input id="csv" type="file"></input>
-        <br />
-        <input id="radius" type="text"></input>
-        <input id="radius-button" type="button" value="Set Radius"></input>
-        <br />
-        <input id="fog" type="text"></input>
-        <input id="fog-button" type="button" value="Set Fog Distance"></input>
-        <br />
-        <input id="cutoff" type="text"></input>
-        <input id="cutoff-button" type="button" value="Set Cutoff"></input>
-        <br />
-        <input id="filter" type="range" min="0.02" max="0.98" step="0.01"></input>
-        <br />
-        <input id="topview-button" type="button" value="Top View"></input>
-        <br />
-        <input id="frontview-button" type="button" value="Front View"></input>
-        <br />
-        <input v-on:click="setBackView" type="button" value="Back View"></input>
-        <br />
-        <input id="leftview-button" type="button" value="Left View"></input>
-        <br />
-        <input id="rightview-button" type="button" value="Right View"></input>
-        <br />
-        <input id="freeview-button" type="button" value="Free View"></input>
-        <br />
-        <input id="zoomin-button" type="button" value="Zoom In"></input>
-        <br />
-        <input id="zoomout-button" type="button" value="Zoom Out"></input>
-        <br />
-        <input id="setLookAt" type="text"></input>
-        <input id="setLookAt-button" type="button" value="Set LookAt"></input>
-        <br />
     </div>
 
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
     <script src="../dist/lore.js"></script>
     <script src="app.js"></script>
+
+    <script>
+        // Initialize materialize elements
+        $(document).ready(function() {
+            $('select').material_select();
+        });
+    </script>
 </body>
 </html>

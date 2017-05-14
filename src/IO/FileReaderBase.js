@@ -6,7 +6,11 @@ Lore.FileReaderBase = class FileReaderBase {
         this.eventListeners = {};
         
         let that = this;
-        
+
+        this.element.addEventListener('click', function() {
+            this.value = null;
+        });
+
         this.element.addEventListener('change', function() {
             let fileReader = new FileReader();
 

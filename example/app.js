@@ -1,9 +1,9 @@
 var lore = Lore.init('loreCanvas');
 
 var csvReader = new Lore.CsvFileReader('csv', {
-    header: false,
+    header: true,
     //cols: [0, 1, 2, 3, 4, 5],
-    cols: [0, 1, 2],
+    //cols: ['reclat', 'mass', 'reclong'],
     //types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array', 'Uint16Array'],
     types: ['Float32Array', 'Float32Array', 'Float32Array'],
     separator: ','
@@ -11,27 +11,24 @@ var csvReader = new Lore.CsvFileReader('csv', {
 
 var first = true;
 var pointHelper = null;
-csvReader.addEventListener('loaded', function(e) {
-    if(first) {
-        pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'default');
-        pointHelper.geometry.isVisible = true;
-        pointHelper.setPositionsXYZHSS(e[0], e[1], e[2], 0.25, 1, 1);
-        
-        var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
-        octreeHelper.addEventListener('selectedchanged', function(e) {
-            console.log(e);
-        });
-        octreeHelper.addEventListener('hoveredchanged', function(e) {
-            console.log(e);
-        });
 
-        pointHelper.addFilter('hueRange', new Lore.InRangeFilter('color', 0, 0.22, 0.25));
-
-        first = false;
-    } else {
-        pointHelper.updateRGB(e[0], e[1], e[2]);
-        pointHelper.getFilter('hueRange').filter();
+csvReader.addEventListener('loaded', function(data) {
+    pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'sphere');
+    pointHelper.geometry.isVisible = true;
+    for (var i = 0; i < data['mass'].length; i++) {
+        data['mass'][i] = Math.sqrt(data['mass'][i]);
     }
+    pointHelper.setPositionsXYZHSS(data['reclat'], data['mass'], data['reclong'], 0.6, 1.0, 1.0);
+    
+    var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
+    octreeHelper.addEventListener('selectedchanged', function(e) {
+        console.log(e);
+    });
+    octreeHelper.addEventListener('hoveredchanged', function(e) {
+        console.log(e);
+    });
+
+    pointHelper.addFilter('hueRange', new Lore.InRangeFilter('color', 0, 0.22, 0.25));
 });
 
 document.getElementById('radius-button').addEventListener('click', function() {
@@ -46,36 +43,7 @@ document.getElementById('cutoff-button').addEventListener('click', function() {
     var val = document.getElementById('cutoff').value;
     pointHelper.setCutoff(val);
 });
-document.getElementById('filter').addEventListener('input', function() {
-    var val = parseFloat(document.getElementById('filter').value);
-    var filter = pointHelper.getFilter('hueRange');
 
-    val = Lore.Color.gdbHueShift(val);
-    filter.setMin(val - 0.002);
-    filter.setMax(val + 0.002);
-    filter.filter();
-});
-document.getElementById('topview-button').addEventListener('click', function() {
-    lore.controls.setTopView();
-});
-document.getElementById('frontview-button').addEventListener('click', function() {
-    lore.controls.setFrontView();
-});
-document.getElementById('leftview-button').addEventListener('click', function() {
-    lore.controls.setLeftView();
-});
-document.getElementById('rightview-button').addEventListener('click', function() {
-    lore.controls.setRightView();
-});
-document.getElementById('freeview-button').addEventListener('click', function() {
-    lore.controls.setFreeView();
-});
-document.getElementById('zoomin-button').addEventListener('click', function() {
-    lore.controls.zoomIn();
-});
-document.getElementById('zoomout-button').addEventListener('click', function() {
-    lore.controls.zoomOut();
-});
 document.getElementById('setLookAt-button').addEventListener('click', function() {
     var val = parseFloat(document.getElementById('setLookAt').value);
     
@@ -88,8 +56,54 @@ var app = new Vue({
         message: 'Hello Vue!'
     },
     methods: {
-        setBackView: function() {
-            lore.controls.setBackView();
+        changeView: function(value) {
+            switch(value) {
+                case 'front':
+                    lore.controls.setFrontView();
+                    break;
+                case 'top':
+                    lore.controls.setTopView();
+                    break;
+                case 'back':
+                    lore.controls.setBackView();
+                    break;
+                case 'left':
+                    lore.controls.setLeftView();
+                    break;
+                case 'right':
+                    lore.controls.setRightView();
+                    break;
+                case 'free':
+                    lore.controls.setFreeView();
+                    break;
+            };
+        },
+        zoomIn: function() {
+            lore.controls.zoomIn();
+        },
+        zoomOut: function() {
+            lore.controls.zoomOut();
+        },
+        filter: function(e) {
+            if (!pointHelper) {
+                return;
+            }
+
+            let value = e.target.value;
+            let filter = pointHelper.getFilter('hueRange');
+
+            if (value < 0.025) {
+                filter.reset();
+                return;
+            }
+
+            value = Lore.Color.gdbHueShift(value);
+
+            filter.setMin(value - 0.025);
+            filter.setMax(value + 0.025);
+
+            console.log('filtering', value - 0.025, value + 0.025);
+            filter.filter();
         }
     }
 });

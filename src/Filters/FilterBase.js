@@ -20,6 +20,10 @@ Lore.FilterBase = class FilterBase {
 
     }
 
+    reset() {
+        
+    }
+
     static isVisible(geometry, index) {
         return geometry.attributes['color'].data[index * 3 + 2] > 0.0;
     }
