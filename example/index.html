@@ -38,15 +38,37 @@
                 <div id="app">
                     <div class="row">
                         <div class="col s12">
-                            <input id="radius" type="text"></input>
-                            <input id="radius-button" type="button" value="Set Radius"></input>
-                            <input id="fog" type="text"></input>
-                            <input id="fog-button" type="button" value="Set Fog Distance"></input>
-                            <input id="cutoff" type="text"></input>
+                            <div id="hovered">{{hoveredValue}}</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12">
                             <input id="cutoff-button" type="button" value="Set Cutoff"></input>
-
+                            <label>Filter by Color</label>
                             <p class="range-field">
-                                <input id="filter" type="range" min="0.0" max="1.0" step="0.05" v-on:input="filter"></input>
+                                <input id="filter" type="range" min="0.0" max="1.0" step="0.05" value="0" v-on:input="filter"></input>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12">
+                            <label>Distance to LookAt</label>
+                            <p class="range-field">
+                                <input id="radius" type="range" min="0" max="5000" step="1" v-model="radius" v-on:input="updateRadius"></input>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s6">
+                            <label>Fog Start Distance</label>
+                            <p class="range-field">
+                                <input id="fogStart" type="range" min="0" max="5000" step="1" v-model="fogStart" v-on:input="updateFog"></input>
+                            </p>
+                        </div>
+                        <div class="col s6">
+                            <label>Fog End Distance</label>
+                            <p class="range-field">
+                                <input id="fogEnd" type="range" min="0" max="5000" step="1" v-model="fogEnd" v-on:input="updateFog"></input>
                             </p>
                         </div>
                     </div>

@@ -31,12 +31,17 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
             }
         } else {
             if (this.types.length !== this.cols.length) {
-                let values = lines[0].split(this.opts.separator);
+                let values = lines[h].split(this.opts.separator);
                 
                 this.types = [];
-
                 for (let i = 0; i < values.length; i++) {
-                    this.types.push('Float32Array');
+                    if(Lore.Utils.isFloat(parseFloat(values[i], 10))) {
+                        this.types.push('Float32Array');
+                    } else if (Lore.Utils.isInt(parseFloat(values[i], 10))) {
+                        this.types.push('Int32Array');
+                    } else {
+                        this.types.push('StringArray');
+                    }
                 }
             }
         }
@@ -52,12 +57,12 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
         if (h) {
             let headerNames = lines[0].split(this.opts.separator);
 
-            for (let j = 0; j < this.cols.length; j++) {
-                this.headers[j] = headerNames[this.cols[j]];
+            for (let i = 0; i < this.cols.length; i++) {
+                this.headers[i] = headerNames[this.cols[i]];
             }
         } else {
-            for (let j = 0; j < this.cols.length; j++) {
-                this.headers[j] = j;
+            for (let i = 0; i < this.cols.length; i++) {
+                this.headers[i] = i;
             }
         }
         
@@ -71,7 +76,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
 
             if (init) {
                 for (let j = 0; j < this.cols.length; j++) {
-                    this.createArray(this.headers[j], this.opts.types[j], length - h);
+                    this.createArray(this.headers[j], this.types[j], length - h);
                 }
 
                 init = false;

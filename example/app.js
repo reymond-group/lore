@@ -11,34 +11,33 @@ var csvReader = new Lore.CsvFileReader('csv', {
 
 var first = true;
 var pointHelper = null;
+var names = [];
 
 csvReader.addEventListener('loaded', function(data) {
     pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'sphere');
     pointHelper.geometry.isVisible = true;
+    console.log(data);
+    names = data['name'];
+
     for (var i = 0; i < data['mass'].length; i++) {
         data['mass'][i] = Math.sqrt(data['mass'][i]);
     }
-    pointHelper.setPositionsXYZHSS(data['reclat'], data['mass'], data['reclong'], 0.6, 1.0, 1.0);
+
+    pointHelper.setPositionsXYZHSS(data['reclat'], data['mass'], data['reclong'], data['year'], 1.0, 1.0);
     
     var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
     octreeHelper.addEventListener('selectedchanged', function(e) {
         console.log(e);
     });
     octreeHelper.addEventListener('hoveredchanged', function(e) {
-        console.log(e);
+        if (e.e !== null) {
+            app.hoveredValue = names[e.e.index];
+        }
     });
 
     pointHelper.addFilter('hueRange', new Lore.InRangeFilter('color', 0, 0.22, 0.25));
 });
 
-document.getElementById('radius-button').addEventListener('click', function() {
-    var val = document.getElementById('radius').value;
-    lore.controls.setRadius(val);
-});
-document.getElementById('fog-button').addEventListener('click', function() {
-    var val = document.getElementById('fog').value;
-    pointHelper.setFogDistance(val);
-});
 document.getElementById('cutoff-button').addEventListener('click', function() {
     var val = document.getElementById('cutoff').value;
     pointHelper.setCutoff(val);
@@ -53,7 +52,10 @@ document.getElementById('setLookAt-button').addEventListener('click', function()
 var app = new Vue({
     el: '#app',
     data: {
-        message: 'Hello Vue!'
+        hoveredValue: '',
+        fogStart: 0,
+        fogEnd: 500,
+        radius: 500
     },
     methods: {
         changeView: function(value) {
@@ -101,9 +103,23 @@ var app = new Vue({
 
             filter.setMin(value - 0.025);
             filter.setMax(value + 0.025);
-
-            console.log('filtering', value - 0.025, value + 0.025);
             filter.filter();
+        },
+        updateFog: function(e) {
+            if (!pointHelper) {
+                return;
+            }
+
+            pointHelper.setFogDistance(this.fogStart, this.fogEnd);
+        },
+        updateRadius: function(e) {
+            if (!pointHelper) {
+                return;
+            }
+
+            let value = e.target.value;
+
+            lore.controls.setRadius(value);
         }
     }
 });

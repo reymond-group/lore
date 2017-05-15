@@ -1,6 +1,10 @@
 'use strict';
 
+var _ref, _ref2;
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -5395,7 +5399,32 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             var length = this.getMaxLength(x, y, z);
 
             this.setPositionsXYZ(x, y, z, length);
-            this.setHSS(hue, saturation, size, length);
+
+            if (typeof hue === 'number' && typeof saturation === 'number' && typeof size === 'number') {
+                this.setHSS(hue, saturation, size, length);
+            } else if (typeof hue !== 'number' && typeof saturation !== 'number' && typeof size !== 'number') {
+                this.setHSSFromArrays(hue, saturation, size, length);
+            } else {
+                if (typeof hue === 'number') {
+                    var hueTmp = new Float32Array(length);
+                    hueTmp.fill(hue);
+                    hue = hueTmp;
+                }
+
+                if (typeof saturation === 'number') {
+                    var saturationTmp = new Float32Array(length);
+                    saturationTmp.fill(saturation);
+                    saturation = saturationTmp;
+                }
+
+                if (typeof size === 'number') {
+                    var sizeTmp = new Float32Array(length);
+                    sizeTmp.fill(size);
+                    size = sizeTmp;
+                }
+
+                this.setHSSFromArrays(hue, saturation, size, length);
+            }
 
             // TODO: Check why the projection matrix update is needed
             this.renderer.camera.updateProjectionMatrix();
@@ -5487,8 +5516,9 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         }
     }, {
         key: 'setFogDistance',
-        value: function setFogDistance(fogDistance) {
-            this.geometry.shader.uniforms.fogDistance.value = fogDistance;
+        value: function setFogDistance(fogStart, fogEnd) {
+            this.geometry.shader.uniforms.fogStart.value = fogStart;
+            this.geometry.shader.uniforms.fogEnd.value = fogEnd;
 
             return this;
         }
@@ -5534,6 +5564,26 @@ Lore.PointHelper = function (_Lore$HelperBase) {
                 c[i] = hue;
                 c[i + 1] = saturation;
                 c[i + 2] = size;
+            }
+
+            this.setColors(c);
+        }
+    }, {
+        key: 'setHSSFromArrays',
+        value: function setHSSFromArrays(hue, saturation, size, length) {
+            var c = new Float32Array(length * 3);
+            var index = 0;
+
+            if (hue.length !== length && saturation.length !== length && size.length !== length) {
+                throw 'Hue, saturation and size have to be arrays of length "length" (' + length + ').';
+            }
+
+            for (var i = 0; i < length * 3; i += 3) {
+                c[i] = hue[index];
+                c[i + 1] = saturation[index];
+                c[i + 2] = size[index];
+
+                index++;
             }
 
             this.setColors(c);
@@ -5648,8 +5698,9 @@ Lore.TreeHelper = function (_Lore$HelperBase2) {
         }
     }, {
         key: 'setFogDistance',
-        value: function setFogDistance(fogDistance) {
-            this.geometry.shader.uniforms.fogDistance.value = fogDistance;
+        value: function setFogDistance(fogStart, fogEnd) {
+            this.geometry.shader.uniforms.fogStart.value = fogStart;
+            this.geometry.shader.uniforms.fogEnd.value = fogEnd;
         }
     }, {
         key: 'initPointSize',
@@ -6530,12 +6581,17 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
                 }
             } else {
                 if (this.types.length !== this.cols.length) {
-                    var values = lines[0].split(this.opts.separator);
+                    var values = lines[h].split(this.opts.separator);
 
                     this.types = [];
-
                     for (var i = 0; i < values.length; i++) {
-                        this.types.push('Float32Array');
+                        if (Lore.Utils.isFloat(parseFloat(values[i], 10))) {
+                            this.types.push('Float32Array');
+                        } else if (Lore.Utils.isInt(parseFloat(values[i], 10))) {
+                            this.types.push('Int32Array');
+                        } else {
+                            this.types.push('StringArray');
+                        }
                     }
                 }
             }
@@ -6551,32 +6607,32 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
             if (h) {
                 var headerNames = lines[0].split(this.opts.separator);
 
-                for (var j = 0; j < this.cols.length; j++) {
-                    this.headers[j] = headerNames[this.cols[j]];
+                for (var _i11 = 0; _i11 < this.cols.length; _i11++) {
+                    this.headers[_i11] = headerNames[this.cols[_i11]];
                 }
             } else {
-                for (var _j = 0; _j < this.cols.length; _j++) {
-                    this.headers[_j] = _j;
+                for (var _i12 = 0; _i12 < this.cols.length; _i12++) {
+                    this.headers[_i12] = _i12;
                 }
             }
 
-            for (var _i11 = h; _i11 < length; _i11++) {
-                var _values2 = lines[_i11].split(this.opts.separator);
+            for (var _i13 = h; _i13 < length; _i13++) {
+                var _values2 = lines[_i13].split(this.opts.separator);
 
-                if (this.cols.length == 0) for (var _j2 = 0; _j2 < _values2.length; _j2++) {
-                    this.cols.push[_j2];
+                if (this.cols.length == 0) for (var j = 0; j < _values2.length; j++) {
+                    this.cols.push[j];
                 }
 
                 if (init) {
-                    for (var _j3 = 0; _j3 < this.cols.length; _j3++) {
-                        this.createArray(this.headers[_j3], this.opts.types[_j3], length - h);
+                    for (var _j = 0; _j < this.cols.length; _j++) {
+                        this.createArray(this.headers[_j], this.types[_j], length - h);
                     }
 
                     init = false;
                 }
 
-                for (var _j4 = 0; _j4 < this.cols.length; _j4++) {
-                    this.columns[this.headers[_j4]][_i11 - h] = _values2[this.cols[_j4]];
+                for (var _j2 = 0; _j2 < this.cols.length; _j2++) {
+                    this.columns[this.headers[_j2]][_i13 - h] = _values2[this.cols[_j2]];
                 }
             }
 
@@ -6689,30 +6745,41 @@ Lore.Utils = function () {
 
             return newObj;
         }
+    }, {
+        key: 'isInt',
+        value: function isInt(n) {
+            return Number(n) === n && n % 1 === 0;
+        }
+    }, {
+        key: 'isFloat',
+        value: function isFloat(n) {
+            return Number(n) === n && n % 1 !== 0;
+        }
     }]);
 
     return Utils;
 }();
 
-Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
+Lore.Shaders['default'] = new Lore.Shader('Default', (_ref = { size: new Lore.Uniform('size', 5.0, 'float'),
     type: new Lore.Uniform('type', 0.0, 'float'),
-    fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'hsv.g = 0.5 + 0.4 * rand(position.xy);', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+    fogStart: new Lore.Uniform('fogStart', 0.0, 'float')
+}, _defineProperty(_ref, 'fogStart', new Lore.Uniform('fogEnd', 0.0, 'float')), _defineProperty(_ref, 'cutoff', new Lore.Uniform('cutoff', 0.0, 'float')), _ref), ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float dist = abs(mv_pos.z - fogStart);', 'gl_PointSize = size;', 'if(fogEnd > 0.0) {', 'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);', '}', 'hsv.g = 0.5 + 0.4 * rand(position.xy);', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
-Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-    time: new Lore.Uniform('time', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'uniform float time;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'hsv.g *= max(0.15, abs(sin(time * 0.002)));', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', (_ref2 = { size: new Lore.Uniform('size', 5.0, 'float'),
+    fogStart: new Lore.Uniform('fogStart', 0.0, 'float')
+}, _defineProperty(_ref2, 'fogStart', new Lore.Uniform('fogEnd', 0.0, 'float')), _defineProperty(_ref2, 'cutoff', new Lore.Uniform('cutoff', 0.0, 'float')), _defineProperty(_ref2, 'time', new Lore.Uniform('time', 0.0, 'float')), _ref2), ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'uniform float time;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float dist = abs(mv_pos.z - fogStart);', 'gl_PointSize = size;', 'if(fogEnd > 0.0) {', 'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);', '}', 'hsv.g *= max(0.15, abs(sin(time * 0.002)));', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
 Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', {}, ['attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'void main() {', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'gl_PointSize = 1.0;', 'vColor = color;', '}'], ['varying vec3 vColor;', 'void main() {', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
 Lore.Shaders['tree'] = new Lore.Shader('Tree', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 0.75);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 0.5);', '}']);
+    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
+    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 0.75);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float dist = abs(mv_pos.z - fogStart);', 'gl_PointSize = size;', 'if(fogEnd > 0.0) {', 'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 0.5);', '}']);
 
 Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogDistance: new Lore.Uniform('fogDistance', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogDistance;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float fog_start = cutoff;', 'float fog_end = fogDistance + cutoff;', 'float dist = abs(mv_pos.z - fog_start);', 'gl_PointSize = size;', 'if(fogDistance > 0.0) {', 'hsv.b = clamp((fog_end - dist) / (fog_end - fog_start), 0.0, 1.0);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'gl_FragColor = vec4(vColor * diffuse + specular * 0.5, 1.0);', '}']);
+    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
+    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float dist = max(0.0, length(mv_pos) - fogStart);', 'gl_PointSize = point_size * size;', 'if(fogEnd > 0.0) {', 'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'gl_FragColor = vec4(vColor * diffuse + specular * 0.5, 1.0);', '}']);
 
 Lore.Shaders['defaultEffect'] = new Lore.Shader('DefaultEffect', {}, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], ['uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main(void) {', 'vec4 color = texture2D(fbo_texture, f_texcoord);', 'gl_FragColor = color;', '}']);
 
@@ -6721,7 +6788,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_SPAN_MAX     8.0',
-                                                                                                                                                                                                                                                                                                                                                                          'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                                         'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
                                                                                                                                                                                                                                                                                                                                                                         '{',
                                                                                                                                                                                                                                                                                                                                                                             'fragCoord = fragCoord * resolution;',
                                                                                                                                                                                                                                                                                                                                                                             'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -6740,23 +6807,23 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                             'float lumaM  = dot(rgbM,  luma);',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                              'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                                             'vec2 dir;',
                                                                                                                                                                                                                                                                                                                                                                             'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
                                                                                                                                                                                                                                                                                                                                                                             'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                              'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                                             'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
                                                                                                                                                                                                                                                                                                                                                                             'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-                                                                                                                                                                                                                                                                                                                                                                              'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                             'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                              'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                                             'float lumaB = dot(rgbB, luma);',
                                                                                                                                                                                                                                                                                                                                                                             'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbA, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                             'else',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbB, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                         '}',
-                                                                                                                                                                                                                                                                                                                                                                          'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                                         'uniform sampler2D fbo_texture;',
                                                                                                                                                                                                                                                                                                                                                                         'varying vec2 f_texcoord;',
                                                                                                                                                                                                                                                                                                                                                                         'void main(void) {',
                                                                                                                                                                                                                                                                                                                                                                             'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',

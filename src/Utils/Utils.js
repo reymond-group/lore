@@ -61,4 +61,12 @@ Lore.Utils = class Utils {
         
         return newObj;
     }
+
+    static isInt(n){
+        return Number(n) === n && n % 1 === 0;
+    }
+
+    static isFloat(n){
+        return Number(n) === n && n % 1 !== 0;
+    }
 }

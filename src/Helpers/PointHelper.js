@@ -63,7 +63,32 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         let length = this.getMaxLength(x, y, z);
 
         this.setPositionsXYZ(x, y, z, length);
-        this.setHSS(hue, saturation, size, length);
+        
+        if (typeof hue === 'number' && typeof saturation === 'number' && typeof size === 'number') {
+            this.setHSS(hue, saturation, size, length);
+        } else if (typeof hue !== 'number' && typeof saturation !== 'number' && typeof size !== 'number') {
+            this.setHSSFromArrays(hue, saturation, size, length);
+        } else {
+            if (typeof hue === 'number') {
+                let hueTmp = new Float32Array(length);
+                hueTmp.fill(hue);
+                hue = hueTmp;
+            }
+
+            if (typeof saturation === 'number') {
+                let saturationTmp = new Float32Array(length);
+                saturationTmp.fill(saturation);
+                saturation = saturationTmp;
+            }
+
+            if (typeof size === 'number') {
+                let sizeTmp = new Float32Array(length);
+                sizeTmp.fill(size);
+                size = sizeTmp;
+            }
+
+            this.setHSSFromArrays(hue, saturation, size, length);
+        }
 
         // TODO: Check why the projection matrix update is needed
         this.renderer.camera.updateProjectionMatrix();
@@ -145,8 +170,9 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this.opts.pointScale;
     }
 
-    setFogDistance(fogDistance) {
-        this.geometry.shader.uniforms.fogDistance.value = fogDistance;
+    setFogDistance(fogStart, fogEnd) {
+        this.geometry.shader.uniforms.fogStart.value = fogStart;
+        this.geometry.shader.uniforms.fogEnd.value = fogEnd;
 
         return this;
     }
@@ -187,6 +213,25 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
             c[i] = hue;
             c[i + 1] = saturation;
             c[i + 2] = size;
+        }
+
+        this.setColors(c);
+    }
+
+    setHSSFromArrays(hue, saturation, size, length) {
+        let c = new Float32Array(length * 3);
+        let index = 0;
+
+        if (hue.length !== length && saturation.length !== length && size.length !== length) {
+            throw 'Hue, saturation and size have to be arrays of length "length" (' + length +').';
+        }
+
+        for (let i = 0; i < length * 3; i += 3) {
+            c[i] = hue[index];
+            c[i + 1] = saturation[index];
+            c[i + 2] = size[index];
+
+            index++;
         }
 
         this.setColors(c);

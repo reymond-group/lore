@@ -68,8 +68,9 @@ Lore.TreeHelper = class TreeHelper extends Lore.HelperBase {
         return this.geometry.shader.uniforms.size.value;
     }
 
-    setFogDistance(fogDistance) {
-        this.geometry.shader.uniforms.fogDistance.value = fogDistance;
+    setFogDistance(fogStart, fogEnd) {
+        this.geometry.shader.uniforms.fogStart.value = fogStart;
+        this.geometry.shader.uniforms.fogEnd.value = fogEnd;
     }
 
     initPointSize() {
