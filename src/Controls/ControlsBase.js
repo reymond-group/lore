@@ -4,16 +4,19 @@ Lore.ControlsBase = class ControlsBase {
     /**
      * Creates an instance of ControlsBase.
      * @param {Renderer} renderer An instance of a Lore renderer.
+     * @param {boolean} [lookAt=new Lore.Vector3f()] The look at vector of the controls.
      * @param {boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
      */
-    constructor(renderer, enableVR = false) {
+    constructor(renderer, lookAt = new Lore.Vector3f(), enableVR = false) {
         this.renderer = renderer;
+        this.camera = renderer.camera;
         this.canvas = renderer.canvas;
         this.lowFps = 15;
         this.highFps = 30;
         this.eventListeners = {};
         this.renderer.setMaxFps(this.lowFps);
         this.touchMode = 'drag';
+        this.lookAt = lookAt;
 
         this.mouse = {
             previousPosition: {
@@ -345,5 +348,39 @@ Lore.ControlsBase = class ControlsBase {
                 this.eventListeners[eventName][i](data);
             }
         }
+    }
+
+    /**
+     * Returns the current look at vector associated with this controls.
+     * 
+     * @returns {Lore.Vector3f} The current look at vector.
+     */
+    getLookAt() {
+        return this.lookAt;
+    }
+
+    /**
+     * Sets the lookat vector, which is the center of the orbital camera sphere.
+     * 
+     * @param {Vector3f} lookAt The lookat vector.
+     * @returns {OrbitalControls} Returns itself.
+     */
+    setLookAt(lookAt) {
+        //this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
+        this.lookAt = lookAt.clone();
+        this.update();
+        
+        return this;
+    }
+
+    /**
+     * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
+     * 
+     * @param {any} e A mouse or touch events data.
+     * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
+     * @returns {Lore.ControlsBase} Returns itself.
+     */
+    update(e, source) {
+        return this;
     }
 }

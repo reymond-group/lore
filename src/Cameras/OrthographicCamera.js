@@ -9,7 +9,7 @@ Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
      * @param {Number} near Near extend of the viewing volume.
      * @param {Number} far Far extend of the viewing volume.
      */ 
-    constructor(left, right, top, bottom, near, far) {
+    constructor(left, right, top, bottom, near = 0.1, far = 2500) {
         super();
 
         this.type = 'Lore.OrthographicCamera';
@@ -18,8 +18,8 @@ Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
         this.right = right;
         this.top = top;
         this.bottom = bottom;
-        this.near = near || 0.1;
-        this.far = far || 2500;
+        this.near = near;
+        this.far = far;
 
         this.updateProjectionMatrix();
     }
@@ -41,5 +41,18 @@ Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
 
         this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
         this.isProjectionMatrixStale = true;
+    }
+
+    /**
+     * Has to be called when the viewport size changes (e.g. window resize).
+     * 
+     * @param {Number} width The width of the viewport.
+     * @param {Number} height The height of the viewport.
+     */
+    updateViewport(width, height) {
+        this.left = -width / 2.0;
+        this.right = width / 2.0;
+        this.top = height / 2.0;
+        this.bottom = -height / 2.0;
     }
 }

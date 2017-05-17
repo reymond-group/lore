@@ -14,11 +14,23 @@
             height: 100%;
         }
 
+        #row-main {
+            margin: 0px;
+        }
+
         .left-col {
             height: 100%;
         }
 
         .right-col {
+            height: 100%;
+            overflow: hidden;
+            overflow-y: auto;
+        }
+
+        .range-field {
+            margin-top: 2px;
+            margin-bottom: 2px;
         }
     </style>
 </head>
@@ -73,6 +85,26 @@
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col s4">
+                            <label>LookAt (X)</label>
+                            <p class="range-field">
+                                <input id="lookAtX" type="range" min="-500" max="500" step="1" v-model="lookAtX" v-on:input="updateLookAt"></input>
+                            </p>
+                        </div>
+                        <div class="col s4">
+                            <label>LookAt (Y)</label>
+                            <p class="range-field">
+                                <input id="lookAtY" type="range" min="-500" max="500" step="1" v-model="lookAtY" v-on:input="updateLookAt"></input>
+                            </p>
+                        </div>
+                        <div class="col s4">
+                            <label>LookAt (Z)</label>
+                            <p class="range-field">
+                                <input id="lookAtZ" type="range" min="-500" max="500" step="1" v-model="lookAtZ" v-on:input="updateLookAt"></input>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="input-field col s12">
                             <select onchange="app.changeView(this.value);">
                                 <option value="" disabled selected>Select a View Option</option>
@@ -90,12 +122,6 @@
                         <div class="col s12">
                             <a class="waves-effect waves-light btn-flat" v-on:click="zoomIn">Zoom In</a>
                             <a class="waves-effect waves-light btn-flat" v-on:click="zoomOut">Zoom Out</a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s12">
-                            <input id="setLookAt" type="text"></input>
-                            <input id="setLookAt-button" type="button" value="Set LookAt"></input>
                         </div>
                     </div>
                 </div>

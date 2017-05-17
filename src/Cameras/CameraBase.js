@@ -41,6 +41,16 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
     }
 
     /**
+     * Has to be called when the viewport size changes (e.g. window resize).
+     * 
+     * @param {Number} width The width of the viewport.
+     * @param {Number} height The height of the viewport.
+     */
+    updateViewport(width, height) {
+        return this;
+    }
+
+    /**
      * Virtual Method
      * 
      * @returns {Vector3f} Returns itself.

@@ -43,19 +43,16 @@ document.getElementById('cutoff-button').addEventListener('click', function() {
     pointHelper.setCutoff(val);
 });
 
-document.getElementById('setLookAt-button').addEventListener('click', function() {
-    var val = parseFloat(document.getElementById('setLookAt').value);
-    
-    lore.controls.setLookAt(pointHelper.getPosition(val));
-});
-
 var app = new Vue({
     el: '#app',
     data: {
         hoveredValue: '',
         fogStart: 0,
         fogEnd: 500,
-        radius: 500
+        radius: 500,
+        lookAtX: lore.controls.getLookAt().getX(),
+        lookAtY: lore.controls.getLookAt().getY(),
+        lookAtZ: lore.controls.getLookAt().getZ()
     },
     methods: {
         changeView: function(value) {
@@ -120,6 +117,17 @@ var app = new Vue({
             let value = e.target.value;
 
             lore.controls.setRadius(value);
+        },
+        updateLookAt: function(e) {
+            lore.controls.setLookAt(new Lore.Vector3f(this.lookAtX, this.lookAtY, this.lookAtZ));
         }
     }
+});
+
+lore.controls.addEventListener('updated', function() {
+    let lookAt = lore.controls.getLookAt();
+
+    app.lookAtX = lookAt.getX();
+    app.lookAtY = lookAt.getY();
+    app.lookAtZ = lookAt.getZ();
 });

@@ -7,14 +7,11 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
      * @param {Number} radius The distance of the camera to the lookat vector.
      * @param {Vector3f} lookAt The lookat vector.
      */
-    constructor(renderer, radius, lookAt) {
-        super(renderer);
+    constructor(renderer, radius, lookAt = new Lore.Vector3f()) {
+        super(renderer, lookAt);
 
         this.up = Lore.Vector3f.up();
         this.radius = radius;
-        this.renderer = renderer;
-        this.camera = renderer.camera;
-        this.canvas = renderer.canvas;
         
         this.yRotationLimit = Math.PI;
 
@@ -23,7 +20,6 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
         this.dPan = new Lore.Vector3f();
 
         this.spherical = new Lore.SphericalCoords();
-        this.lookAt = lookAt || new Lore.Vector3f();
 
         this.scale = 0.95;
 
@@ -87,20 +83,6 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     }
 
     /**
-     * Sets the lookat vector, which is the center of the orbital camera sphere.
-     * 
-     * @param {Vector3f} lookAt The lookat vector.
-     * @returns {OrbitalControls} Returns itself.
-     */
-    setLookAt(lookAt) {
-        this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
-        this.lookAt = lookAt.clone();
-        this.update();
-
-        return this;
-    }
-
-    /**
      * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
      * 
      * @param {any} e A mouse or touch events data.
@@ -110,8 +92,8 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     update(e, source) {
         if (source == 'left' && !this.rotationLocked) {
             // Rotate
-            this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * 0.5 * this.camera.zoom);
-            this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * 0.5 * this.camera.zoom);
+            this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
+            this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
             
             // It's just to fast like this ...
             // this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;

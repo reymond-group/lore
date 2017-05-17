@@ -19,8 +19,8 @@ Lore.Renderer = class Renderer {
         this.fpsCount = 0;
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
-        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2,
-            this.getHeight() / 2, this.getHeight() / -2);
+        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
+        // this.camera = new Lore.PerspectiveCamera(45.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
@@ -164,11 +164,7 @@ Lore.Renderer = class Renderer {
         this.canvas.height = height;
         this.gl.viewport(x, y, width, height);
 
-        this.camera.left = -width / 2;
-        this.camera.right = width / 2;
-        this.camera.top = height / 2;
-        this.camera.bottom = -height / 2;
-
+        this.camera.updateViewport(width, height);
         this.camera.updateProjectionMatrix();
 
         // Also reinit the buffers and textures for the effect(s)

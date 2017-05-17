@@ -374,6 +374,7 @@ Lore.Renderer = function () {
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
         this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
+        // this.camera = new Lore.PerspectiveCamera(45.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
@@ -520,11 +521,7 @@ Lore.Renderer = function () {
             this.canvas.height = height;
             this.gl.viewport(x, y, width, height);
 
-            this.camera.left = -width / 2;
-            this.camera.right = width / 2;
-            this.camera.top = height / 2;
-            this.camera.bottom = -height / 2;
-
+            this.camera.updateViewport(width, height);
             this.camera.updateProjectionMatrix();
 
             // Also reinit the buffers and textures for the effect(s)
@@ -1047,6 +1044,8 @@ Lore.Geometry = function (_Lore$Node) {
 
             // Update the modelView and projection matrices
             if (renderer.camera.isProjectionMatrixStale) {
+                console.log(renderer.camera.getProjectionMatrix());
+                console.log(renderer.camera.viewMatrix);
                 this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
             }
 
@@ -1411,20 +1410,24 @@ Lore.ControlsBase = function () {
     /**
      * Creates an instance of ControlsBase.
      * @param {Renderer} renderer An instance of a Lore renderer.
+     * @param {boolean} [lookAt=new Lore.Vector3f()] The look at vector of the controls.
      * @param {boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
      */
     function ControlsBase(renderer) {
-        var enableVR = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        var lookAt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Lore.Vector3f();
+        var enableVR = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
         _classCallCheck(this, ControlsBase);
 
         this.renderer = renderer;
+        this.camera = renderer.camera;
         this.canvas = renderer.canvas;
         this.lowFps = 15;
         this.highFps = 30;
         this.eventListeners = {};
         this.renderer.setMaxFps(this.lowFps);
         this.touchMode = 'drag';
+        this.lookAt = lookAt;
 
         this.mouse = {
             previousPosition: {
@@ -1758,6 +1761,49 @@ Lore.ControlsBase = function () {
                 }
             }
         }
+
+        /**
+         * Returns the current look at vector associated with this controls.
+         * 
+         * @returns {Lore.Vector3f} The current look at vector.
+         */
+
+    }, {
+        key: 'getLookAt',
+        value: function getLookAt() {
+            return this.lookAt;
+        }
+
+        /**
+         * Sets the lookat vector, which is the center of the orbital camera sphere.
+         * 
+         * @param {Vector3f} lookAt The lookat vector.
+         * @returns {OrbitalControls} Returns itself.
+         */
+
+    }, {
+        key: 'setLookAt',
+        value: function setLookAt(lookAt) {
+            //this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
+            this.lookAt = lookAt.clone();
+            this.update();
+
+            return this;
+        }
+
+        /**
+         * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
+         * 
+         * @param {any} e A mouse or touch events data.
+         * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
+         * @returns {Lore.ControlsBase} Returns itself.
+         */
+
+    }, {
+        key: 'update',
+        value: function update(e, source) {
+            return this;
+        }
     }]);
 
     return ControlsBase;
@@ -1773,16 +1819,15 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
      * @param {Number} radius The distance of the camera to the lookat vector.
      * @param {Vector3f} lookAt The lookat vector.
      */
-    function OrbitalControls(renderer, radius, lookAt) {
+    function OrbitalControls(renderer, radius) {
+        var lookAt = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new Lore.Vector3f();
+
         _classCallCheck(this, OrbitalControls);
 
-        var _this3 = _possibleConstructorReturn(this, (OrbitalControls.__proto__ || Object.getPrototypeOf(OrbitalControls)).call(this, renderer));
+        var _this3 = _possibleConstructorReturn(this, (OrbitalControls.__proto__ || Object.getPrototypeOf(OrbitalControls)).call(this, renderer, lookAt));
 
         _this3.up = Lore.Vector3f.up();
         _this3.radius = radius;
-        _this3.renderer = renderer;
-        _this3.camera = renderer.camera;
-        _this3.canvas = renderer.canvas;
 
         _this3.yRotationLimit = Math.PI;
 
@@ -1791,7 +1836,6 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         _this3.dPan = new Lore.Vector3f();
 
         _this3.spherical = new Lore.SphericalCoords();
-        _this3.lookAt = lookAt || new Lore.Vector3f();
 
         _this3.scale = 0.95;
 
@@ -1863,23 +1907,6 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         }
 
         /**
-         * Sets the lookat vector, which is the center of the orbital camera sphere.
-         * 
-         * @param {Vector3f} lookAt The lookat vector.
-         * @returns {OrbitalControls} Returns itself.
-         */
-
-    }, {
-        key: 'setLookAt',
-        value: function setLookAt(lookAt) {
-            this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
-            this.lookAt = lookAt.clone();
-            this.update();
-
-            return this;
-        }
-
-        /**
          * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
          * 
          * @param {any} e A mouse or touch events data.
@@ -1892,8 +1919,8 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         value: function update(e, source) {
             if (source == 'left' && !this.rotationLocked) {
                 // Rotate
-                this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * 0.5 * this.camera.zoom);
-                this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * 0.5 * this.camera.zoom);
+                this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
+                this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
 
                 // It's just to fast like this ...
                 // this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
@@ -2247,6 +2274,19 @@ Lore.CameraBase = function (_Lore$Node2) {
         }
 
         /**
+         * Has to be called when the viewport size changes (e.g. window resize).
+         * 
+         * @param {Number} width The width of the viewport.
+         * @param {Number} height The height of the viewport.
+         */
+
+    }, {
+        key: 'updateViewport',
+        value: function updateViewport(width, height) {
+            return this;
+        }
+
+        /**
          * Virtual Method
          * 
          * @returns {Vector3f} Returns itself.
@@ -2343,7 +2383,10 @@ Lore.OrthographicCamera = function (_Lore$CameraBase) {
      * @param {Number} near Near extend of the viewing volume.
      * @param {Number} far Far extend of the viewing volume.
      */
-    function OrthographicCamera(left, right, top, bottom, near, far) {
+    function OrthographicCamera(left, right, top, bottom) {
+        var near = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0.1;
+        var far = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 2500;
+
         _classCallCheck(this, OrthographicCamera);
 
         var _this6 = _possibleConstructorReturn(this, (OrthographicCamera.__proto__ || Object.getPrototypeOf(OrthographicCamera)).call(this));
@@ -2354,8 +2397,8 @@ Lore.OrthographicCamera = function (_Lore$CameraBase) {
         _this6.right = right;
         _this6.top = top;
         _this6.bottom = bottom;
-        _this6.near = near || 0.1;
-        _this6.far = far || 2500;
+        _this6.near = near;
+        _this6.far = far;
 
         _this6.updateProjectionMatrix();
         return _this6;
@@ -2383,9 +2426,84 @@ Lore.OrthographicCamera = function (_Lore$CameraBase) {
             this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
             this.isProjectionMatrixStale = true;
         }
+
+        /**
+         * Has to be called when the viewport size changes (e.g. window resize).
+         * 
+         * @param {Number} width The width of the viewport.
+         * @param {Number} height The height of the viewport.
+         */
+
+    }, {
+        key: 'updateViewport',
+        value: function updateViewport(width, height) {
+            this.left = -width / 2.0;
+            this.right = width / 2.0;
+            this.top = height / 2.0;
+            this.bottom = -height / 2.0;
+        }
     }]);
 
     return OrthographicCamera;
+}(Lore.CameraBase);
+
+/** A class representing an perspective camera. */
+Lore.PerspectiveCamera = function (_Lore$CameraBase2) {
+    _inherits(PerspectiveCamera, _Lore$CameraBase2);
+
+    /**
+     * Creates an instance of PerspectiveCamera.
+     * @param {Number} fov The field of view.
+     * @param {Number} aspect The aspect ration (width / height).
+     * @param {Number} near Near extend of the viewing volume.
+     * @param {Number} far Far extend of the viewing volume.
+     */
+    function PerspectiveCamera(fov, aspect) {
+        var near = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.1;
+        var far = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 2500;
+
+        _classCallCheck(this, PerspectiveCamera);
+
+        var _this7 = _possibleConstructorReturn(this, (PerspectiveCamera.__proto__ || Object.getPrototypeOf(PerspectiveCamera)).call(this));
+
+        _this7.type = 'Lore.PerspectiveCamera';
+        _this7.fov = fov;
+        _this7.aspect = aspect;
+        _this7.near = near;
+        _this7.far = far;
+
+        _this7.updateProjectionMatrix();
+        return _this7;
+    }
+
+    /**
+     * Updates the projection matrix of this perspective camera.
+     * 
+     */
+
+
+    _createClass(PerspectiveCamera, [{
+        key: 'updateProjectionMatrix',
+        value: function updateProjectionMatrix() {
+            this.projectionMatrix.setPerspective(this.fov, this.aspect, this.near, this.far);
+            this.isProjectionMatrixStale = true;
+        }
+
+        /**
+         * Has to be called when the viewport size changes (e.g. window resize).
+         * 
+         * @param {Number} width The width of the viewport.
+         * @param {Number} height The height of the viewport.
+         */
+
+    }, {
+        key: 'updateViewport',
+        value: function updateViewport(width, height) {
+            this.aspect = width / height;
+        }
+    }]);
+
+    return PerspectiveCamera;
 }(Lore.CameraBase);
 
 /** A class representing 3D float vector. */
@@ -4815,6 +4933,59 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
 
             return this;
         }
+
+        /**
+         * Set the projection matrix to a perspective projection.
+         *
+         * @param {number} fov The field of view.
+         * @param {number} aspect The aspect ratio (width / height).
+         * @param {number} near The near-cutoff value.
+         * @param {number} far The far-cutoff value.
+         * @returns {ProjectionMatrix} Returns this projection matrix.
+         */
+
+    }, {
+        key: 'setPerspective',
+        value: function setPerspective(fov, aspect, near, far) {
+            var range = near - far;
+            var tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * fov / 2.0);
+
+            var top = near * tanHalfFov;
+            var height = 2.0 * top;
+            var width = aspect * height;
+            var left = -width / 2.0;
+            var right = left + width;
+            var bottom = top - height;
+
+            var x = 2.0 * near / (right - left);
+            var y = 2.0 * near / (top - bottom);
+
+            var a = (right + left) / (right - left);
+            var b = (top + bottom) / (top - bottom);
+            var c = (far + near) / (far - near);
+            var d = -2 * far * near / (far - near);
+
+            this.set();
+
+            this.entries[0] = x;
+            this.entries[4] = 0;
+            this.entries[8] = a;
+            this.entries[12] = 0;
+            this.entries[1] = 0;
+            this.entries[5] = y;
+            this.entries[9] = b;
+            this.entries[13] = 0;
+            this.entries[2] = 0;
+            this.entries[6] = 0;
+            this.entries[10] = c;
+            this.entries[14] = d;
+            this.entries[3] = 0;
+            this.entries[7] = 0;
+            this.entries[11] = -1;
+            this.entries[15] = 0;
+
+            return this;
+        }
     }]);
 
     return ProjectionMatrix;
@@ -5272,12 +5443,12 @@ Lore.HelperBase = function (_Lore$Node3) {
     function HelperBase(renderer, geometryName, shaderName) {
         _classCallCheck(this, HelperBase);
 
-        var _this8 = _possibleConstructorReturn(this, (HelperBase.__proto__ || Object.getPrototypeOf(HelperBase)).call(this));
+        var _this9 = _possibleConstructorReturn(this, (HelperBase.__proto__ || Object.getPrototypeOf(HelperBase)).call(this));
 
-        _this8.renderer = renderer;
-        _this8.shader = Lore.Shaders[shaderName];
-        _this8.geometry = _this8.renderer.createGeometry(geometryName, shaderName);
-        return _this8;
+        _this9.renderer = renderer;
+        _this9.shader = Lore.Shaders[shaderName];
+        _this9.geometry = _this9.renderer.createGeometry(geometryName, shaderName);
+        return _this9;
     }
 
     _createClass(HelperBase, [{
@@ -5330,7 +5501,7 @@ Lore.PointHelper = function (_Lore$HelperBase) {
     function PointHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, PointHelper);
 
-        var _this9 = _possibleConstructorReturn(this, (PointHelper.__proto__ || Object.getPrototypeOf(PointHelper)).call(this, renderer, geometryName, shaderName));
+        var _this10 = _possibleConstructorReturn(this, (PointHelper.__proto__ || Object.getPrototypeOf(PointHelper)).call(this, renderer, geometryName, shaderName));
 
         var defaults = {
             octree: true,
@@ -5340,14 +5511,14 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             maxPointSize: 100.0
         };
 
-        _this9.opts = Lore.Utils.extend(true, defaults, options);
-        _this9.indices = null;
-        _this9.octree = null;
-        _this9.geometry.setMode(Lore.DrawModes.points);
-        _this9.initPointSize();
-        _this9.filters = {};
-        _this9.pointSize = 1.0 * _this9.opts.pointScale;
-        return _this9;
+        _this10.opts = Lore.Utils.extend(true, defaults, options);
+        _this10.indices = null;
+        _this10.octree = null;
+        _this10.geometry.setMode(Lore.DrawModes.points);
+        _this10.initPointSize();
+        _this10.filters = {};
+        _this10.pointSize = 1.0 * _this10.opts.pointScale;
+        return _this10;
     }
 
     _createClass(PointHelper, [{
@@ -5619,19 +5790,19 @@ Lore.TreeHelper = function (_Lore$HelperBase2) {
     function TreeHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, TreeHelper);
 
-        var _this10 = _possibleConstructorReturn(this, (TreeHelper.__proto__ || Object.getPrototypeOf(TreeHelper)).call(this, renderer, geometryName, shaderName));
+        var _this11 = _possibleConstructorReturn(this, (TreeHelper.__proto__ || Object.getPrototypeOf(TreeHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this10.defaults = {
+        _this11.defaults = {
             pointScale: 1.0,
             maxPointSize: 100.0
         };
 
-        _this10.opts = Lore.Utils.extend(true, _this10.defaults, options);
-        _this10.indices = null;
-        _this10.geometry.setMode(Lore.DrawModes.lines);
-        _this10.initPointSize();
-        _this10.filters = {};
-        return _this10;
+        _this11.opts = Lore.Utils.extend(true, _this11.defaults, options);
+        _this11.indices = null;
+        _this11.geometry.setMode(Lore.DrawModes.lines);
+        _this11.initPointSize();
+        _this11.filters = {};
+        return _this11;
     }
 
     _createClass(TreeHelper, [{
@@ -5764,9 +5935,9 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
     function CoordinatesHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, CoordinatesHelper);
 
-        var _this11 = _possibleConstructorReturn(this, (CoordinatesHelper.__proto__ || Object.getPrototypeOf(CoordinatesHelper)).call(this, renderer, geometryName, shaderName));
+        var _this12 = _possibleConstructorReturn(this, (CoordinatesHelper.__proto__ || Object.getPrototypeOf(CoordinatesHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this11.defaults = {
+        _this12.defaults = {
             position: new Lore.Vector3f(),
             axis: {
                 x: {
@@ -5817,11 +5988,11 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
             }
         };
 
-        _this11.opts = Lore.Utils.extend(true, _this11.defaults, options);
+        _this12.opts = Lore.Utils.extend(true, _this12.defaults, options);
 
-        _this11.geometry.setMode(Lore.DrawModes.lines);
-        _this11.init();
-        return _this11;
+        _this12.geometry.setMode(Lore.DrawModes.lines);
+        _this12.init();
+        return _this12;
     }
 
     _createClass(CoordinatesHelper, [{
@@ -5935,22 +6106,22 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
     function OctreeHelper(renderer, geometryName, shaderName, target, options) {
         _classCallCheck(this, OctreeHelper);
 
-        var _this12 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
+        var _this13 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
 
-        _this12.defaults = {
+        _this13.defaults = {
             visualize: false
         };
 
-        _this12.opts = Lore.Utils.extend(true, _this12.defaults, options);
-        _this12.eventListeners = {};
-        _this12.target = target;
-        _this12.renderer = renderer;
-        _this12.octree = _this12.target.octree;
-        _this12.raycaster = new Lore.Raycaster();
-        _this12.hovered = null;
-        _this12.selected = [];
+        _this13.opts = Lore.Utils.extend(true, _this13.defaults, options);
+        _this13.eventListeners = {};
+        _this13.target = target;
+        _this13.renderer = renderer;
+        _this13.octree = _this13.target.octree;
+        _this13.raycaster = new Lore.Raycaster();
+        _this13.hovered = null;
+        _this13.selected = [];
 
-        var that = _this12;
+        var that = _this13;
 
         renderer.controls.addEventListener('dblclick', function (e) {
             if (e.e.mouse.state.middle || e.e.mouse.state.right) {
@@ -6011,8 +6182,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             that.raiseEvent('updated');
         });
 
-        _this12.init();
-        return _this12;
+        _this13.init();
+        return _this13;
     }
 
     _createClass(OctreeHelper, [{
@@ -6427,11 +6598,11 @@ Lore.InRangeFilter = function (_Lore$FilterBase) {
     function InRangeFilter(attribute, attributeIndex, min, max) {
         _classCallCheck(this, InRangeFilter);
 
-        var _this13 = _possibleConstructorReturn(this, (InRangeFilter.__proto__ || Object.getPrototypeOf(InRangeFilter)).call(this, attribute, attributeIndex));
+        var _this14 = _possibleConstructorReturn(this, (InRangeFilter.__proto__ || Object.getPrototypeOf(InRangeFilter)).call(this, attribute, attributeIndex));
 
-        _this13.min = min;
-        _this13.max = max;
-        return _this13;
+        _this14.min = min;
+        _this14.max = max;
+        return _this14;
     }
 
     _createClass(InRangeFilter, [{
@@ -6547,21 +6718,21 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     function CsvFileReader(elementId, options) {
         _classCallCheck(this, CsvFileReader);
 
-        var _this14 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+        var _this15 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
 
-        _this14.defaults = {
+        _this15.defaults = {
             separator: ',',
             cols: [],
             types: [],
             header: true
         };
 
-        _this14.opts = Lore.Utils.extend(true, _this14.defaults, options);
-        _this14.columns = {};
-        _this14.headers = [];
-        _this14.types = _this14.opts.types;
-        _this14.cols = _this14.opts.cols;
-        return _this14;
+        _this15.opts = Lore.Utils.extend(true, _this15.defaults, options);
+        _this15.columns = {};
+        _this15.headers = [];
+        _this15.types = _this15.opts.types;
+        _this15.cols = _this15.opts.cols;
+        return _this15;
     }
 
     _createClass(CsvFileReader, [{
@@ -6760,6 +6931,7 @@ Lore.Utils = function () {
     return Utils;
 }();
 
+Lore.Utils.DEG2RAD = Math.PI / 180.0;
 Lore.Shaders['default'] = new Lore.Shader('Default', (_ref = { size: new Lore.Uniform('size', 5.0, 'float'),
     type: new Lore.Uniform('type', 0.0, 'float'),
     fogStart: new Lore.Uniform('fogStart', 0.0, 'float')

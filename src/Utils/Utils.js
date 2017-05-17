@@ -70,3 +70,5 @@ Lore.Utils = class Utils {
         return Number(n) === n && n % 1 !== 0;
     }
 }
+
+Lore.Utils.DEG2RAD = Math.PI / 180.0; 

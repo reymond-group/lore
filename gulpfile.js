@@ -25,6 +25,7 @@ var files = [
     'src/Controls/FirstPersonControls.js',
     'src/Cameras/CameraBase.js',
     'src/Cameras/OrthographicCamera.js',
+    'src/Cameras/PerspectiveCamera.js',
     'src/Math/Array2.js',
     'src/Math/Array3.js',
     'src/Math/Vector2f.js',
