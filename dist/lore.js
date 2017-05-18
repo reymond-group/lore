@@ -5241,7 +5241,7 @@ var RadixSort = function () {
      * Sorts a 32-bit float array using radix sort.
      * 
      * @param {Float32Array} arr The array to be sorted.
-     * @param {Boolean} copyArray A boolean indicating whether to perform the sorting directly on the array or copy it.
+     * @param {Boolean} [copyArray=false] A boolean indicating whether to perform the sorting directly on the array or copy it.
      * @returns {Object} The result in the form { array: sortedArray, indices: sortedIndices }.
      * 
      */
@@ -5249,7 +5249,9 @@ var RadixSort = function () {
 
     _createClass(RadixSort, [{
         key: 'sort',
-        value: function sort(arr, copyArray) {
+        value: function sort(arr) {
+            var copyArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
             var array = null;
 
             if (copyArray) {
@@ -5518,6 +5520,11 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         _this10.initPointSize();
         _this10.filters = {};
         _this10.pointSize = 1.0 * _this10.opts.pointScale;
+
+        _this10.dimensions = {
+            min: new Lore.Vector3f(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
+            max: new Lore.Vector3f(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY)
+        };
         return _this10;
     }
 
@@ -5525,12 +5532,23 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         key: 'getMaxLength',
         value: function getMaxLength(x, y, z) {
             return Math.max(x.length, Math.max(y.length, z.length));
-
-            return this;
+        }
+    }, {
+        key: 'getDimensions',
+        value: function getDimensions() {
+            return this.dimensions;
+        }
+    }, {
+        key: 'getCenter',
+        value: function getCenter() {
+            return new Lore.Vector3f((this.dimensions.max.getX() + this.dimensions.min.getX()) / 2.0, (this.dimensions.max.getY() + this.dimensions.min.getY()) / 2.0, (this.dimensions.max.getZ() + this.dimensions.min.getZ()) / 2.0);
         }
     }, {
         key: 'setPositions',
         value: function setPositions(positions) {
+            // Min, max will NOT be calculated as of now!
+            // TODO?
+
             this.setAttribute('position', positions);
 
             return this;
@@ -5546,14 +5564,38 @@ Lore.PointHelper = function (_Lore$HelperBase) {
                 positions[j] = x[i] || 0;
                 positions[j + 1] = y[i] || 0;
                 positions[j + 2] = z[i] || 0;
+
+                if (x[i] > this.dimensions.max.getX()) {
+                    this.dimensions.max.setX(x[i]);
+                }
+
+                if (x[i] < this.dimensions.min.getX()) {
+                    this.dimensions.min.setX(x[i]);
+                }
+
+                if (y[i] > this.dimensions.max.getY()) {
+                    this.dimensions.max.setY(y[i]);
+                }
+
+                if (y[i] < this.dimensions.min.getY()) {
+                    this.dimensions.min.setY(y[i]);
+                }
+
+                if (z[i] > this.dimensions.max.getZ()) {
+                    this.dimensions.max.setZ(z[i]);
+                }
+
+                if (z[i] < this.dimensions.min.getZ()) {
+                    this.dimensions.min.setZ(z[i]);
+                }
             }
 
             if (this.opts.octree) {
                 var initialBounds = Lore.AABB.fromPoints(positions);
                 var indices = new Uint32Array(length);
 
-                for (var _i3 = 0; _i3 < length; _i3++) {
-                    indices[_i3] = _i3;
+                for (var i = 0; i < length; i++) {
+                    indices[i] = i;
                 }
 
                 this.octree = new Lore.Octree(this.opts.octreeThreshold, this.opts.octreeMaxDepth);
@@ -5618,14 +5660,14 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             }
 
             // Convert to HOS (Hue, Opacity, Size)
-            for (var _i4 = 0; _i4 < c.length; _i4 += 3) {
-                var _r = c[_i4];
-                var _g = c[_i4 + 1];
-                var _b = c[_i4 + 2];
+            for (var _i3 = 0; _i3 < c.length; _i3 += 3) {
+                var _r = c[_i3];
+                var _g = c[_i3 + 1];
+                var _b = c[_i3 + 2];
 
-                c[_i4] = Lore.Color.rgbToHsl(_r, _g, _b)[0];
-                c[_i4 + 1] = colors[1];
-                c[_i4 + 2] = colors[2];
+                c[_i3] = Lore.Color.rgbToHsl(_r, _g, _b)[0];
+                c[_i3 + 1] = colors[1];
+                c[_i3 + 2] = colors[2];
             }
 
             this.updateColors(c);
@@ -6044,7 +6086,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
 
                 pos = p[0];
 
-                for (var _i5 = 0; _i5 < xTicks.count - 1; _i5++) {
+                for (var _i4 = 0; _i4 < xTicks.count - 1; _i4++) {
                     pos += xTickOffset;
                     // From
                     positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
@@ -6055,7 +6097,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
                 pos = p[1];
                 col = yTicks.color.components;
 
-                for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
+                for (var _i5 = 0; _i5 < yTicks.count - 1; _i5++) {
                     pos += yTickOffset;
                     // From
                     positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
@@ -6064,7 +6106,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
 
                 pos = p[1];
 
-                for (var _i7 = 0; _i7 < yTicks.count - 1; _i7++) {
+                for (var _i6 = 0; _i6 < yTicks.count - 1; _i6++) {
                     pos += yTickOffset;
                     // From
                     positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
@@ -6075,7 +6117,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
                 pos = p[2];
                 col = zTicks.color.components;
 
-                for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
+                for (var _i7 = 0; _i7 < zTicks.count - 1; _i7++) {
                     pos += zTickOffset;
                     // From
                     positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
@@ -6084,7 +6126,7 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
 
                 pos = p[2];
 
-                for (var _i9 = 0; _i9 < zTicks.count - 1; _i9++) {
+                for (var _i8 = 0; _i8 < zTicks.count - 1; _i8++) {
                     pos += zTickOffset;
                     // From
                     positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
@@ -6770,25 +6812,25 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
             if (this.cols.length === 0) {
                 var _values = lines[0].split(this.opts.separator);
 
-                for (var _i10 = 0; _i10 < _values.length; _i10++) {
-                    this.cols.push(_i10);
+                for (var _i9 = 0; _i9 < _values.length; _i9++) {
+                    this.cols.push(_i9);
                 }
             }
 
             if (h) {
                 var headerNames = lines[0].split(this.opts.separator);
 
-                for (var _i11 = 0; _i11 < this.cols.length; _i11++) {
-                    this.headers[_i11] = headerNames[this.cols[_i11]];
+                for (var _i10 = 0; _i10 < this.cols.length; _i10++) {
+                    this.headers[_i10] = headerNames[this.cols[_i10]];
                 }
             } else {
-                for (var _i12 = 0; _i12 < this.cols.length; _i12++) {
-                    this.headers[_i12] = _i12;
+                for (var _i11 = 0; _i11 < this.cols.length; _i11++) {
+                    this.headers[_i11] = _i11;
                 }
             }
 
-            for (var _i13 = h; _i13 < length; _i13++) {
-                var _values2 = lines[_i13].split(this.opts.separator);
+            for (var _i12 = h; _i12 < length; _i12++) {
+                var _values2 = lines[_i12].split(this.opts.separator);
 
                 if (this.cols.length == 0) for (var j = 0; j < _values2.length; j++) {
                     this.cols.push[j];
@@ -6803,7 +6845,7 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
                 }
 
                 for (var _j2 = 0; _j2 < this.cols.length; _j2++) {
-                    this.columns[this.headers[_j2]][_i13 - h] = _values2[this.cols[_j2]];
+                    this.columns[this.headers[_j2]][_i12 - h] = _values2[this.cols[_j2]];
                 }
             }
 

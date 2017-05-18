@@ -24,6 +24,8 @@ csvReader.addEventListener('loaded', function(data) {
     }
 
     pointHelper.setPositionsXYZHSS(data['reclat'], data['mass'], data['reclong'], data['year'], 1.0, 1.0);
+    lore.controls.setLookAt(pointHelper.getCenter());
+    console.log(pointHelper.getCenter(), pointHelper.getDimensions());
     
     var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
     octreeHelper.addEventListener('selectedchanged', function(e) {

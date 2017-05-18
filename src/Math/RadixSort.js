@@ -16,11 +16,11 @@ class RadixSort {
      * Sorts a 32-bit float array using radix sort.
      * 
      * @param {Float32Array} arr The array to be sorted.
-     * @param {Boolean} copyArray A boolean indicating whether to perform the sorting directly on the array or copy it.
+     * @param {Boolean} [copyArray=false] A boolean indicating whether to perform the sorting directly on the array or copy it.
      * @returns {Object} The result in the form { array: sortedArray, indices: sortedIndices }.
      * 
      */
-    sort(arr, copyArray) {
+    sort(arr, copyArray = false) {
         let array = null;
 
         if (copyArray) {

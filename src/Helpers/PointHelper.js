@@ -17,15 +17,31 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         this.initPointSize();
         this.filters = {};
         this.pointSize = 1.0 * this.opts.pointScale;
+
+        this.dimensions = {
+            min: new Lore.Vector3f(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
+            max: new Lore.Vector3f(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY)
+        };
     }
 
     getMaxLength(x, y, z) {
         return Math.max(x.length, Math.max(y.length, z.length));
+    }
 
-        return this;
+    getDimensions() {
+        return this.dimensions;
+    }
+
+    getCenter() {
+        return new Lore.Vector3f((this.dimensions.max.getX() + this.dimensions.min.getX()) / 2.0, 
+            (this.dimensions.max.getY() + this.dimensions.min.getY()) / 2.0,
+            (this.dimensions.max.getZ() + this.dimensions.min.getZ()) / 2.0);
     }
 
     setPositions(positions) {
+        // Min, max will NOT be calculated as of now!
+        // TODO?
+
         this.setAttribute('position', positions);
 
         return this;
@@ -34,19 +50,43 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
     setPositionsXYZ(x, y, z, length) {
         let positions = new Float32Array(length * 3);
         
-        for (let i = 0; i < length; i++) {
+        for (var i = 0; i < length; i++) {
             let j = 3 * i;
             
             positions[j] = x[i] || 0;
             positions[j + 1] = y[i] || 0;
             positions[j + 2] = z[i] || 0;
+
+            if (x[i] > this.dimensions.max.getX()) {
+                this.dimensions.max.setX(x[i]);
+            }
+
+            if (x[i] < this.dimensions.min.getX()) {
+                this.dimensions.min.setX(x[i]);
+            }
+
+            if (y[i] > this.dimensions.max.getY()) {
+                this.dimensions.max.setY(y[i]);
+            }
+
+            if (y[i] < this.dimensions.min.getY()) {
+                this.dimensions.min.setY(y[i]);
+            }
+
+            if (z[i] > this.dimensions.max.getZ()) {
+                this.dimensions.max.setZ(z[i]);
+            }
+
+            if (z[i] < this.dimensions.min.getZ()) {
+                this.dimensions.min.setZ(z[i]);
+            }
         }
 
         if (this.opts.octree) {
             let initialBounds = Lore.AABB.fromPoints(positions);
             let indices = new Uint32Array(length);
             
-            for (let i = 0; i < length; i++) {
+            for (var i = 0; i < length; i++) {
                 indices[i] = i;
             }
 
