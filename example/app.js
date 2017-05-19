@@ -11,20 +11,16 @@ var csvReader = new Lore.CsvFileReader('csv', {
 
 var first = true;
 var pointHelper = null;
-var names = [];
+var _data = [];
 
 csvReader.addEventListener('loaded', function(data) {
     pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'sphere');
     pointHelper.geometry.isVisible = true;
-    console.log(data);
-    names = data['name'];
+    _data = data;
 
-    for (var i = 0; i < data['mass'].length; i++) {
-        data['mass'][i] = Math.sqrt(data['mass'][i]);
-    }
-
-    pointHelper.setPositionsXYZHSS(data['reclat'], data['mass'], data['reclong'], data['year'], 1.0, 1.0);
-    lore.controls.setLookAt(pointHelper.getCenter());
+    pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['ci'], 1.0, data['absmag']);
+    // lore.controls.setLookAt(pointHelper.getCenter());
+    lore.controls.setLookAt(new Lore.Vector3f());
     console.log(pointHelper.getCenter(), pointHelper.getDimensions());
     
     var octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'default', pointHelper);
@@ -33,7 +29,7 @@ csvReader.addEventListener('loaded', function(data) {
     });
     octreeHelper.addEventListener('hoveredchanged', function(e) {
         if (e.e !== null) {
-            app.hoveredValue = names[e.e.index];
+            app.hoveredValue = _data['hd'][e.e.index] + ' (' + _data['proper'][e.e.index] + ') ' + ' [' + _data['con'][e.e.index] + ']';
         }
     });
 
@@ -52,9 +48,9 @@ var app = new Vue({
         fogStart: 0,
         fogEnd: 500,
         radius: 500,
-        lookAtX: lore.controls.getLookAt().getX(),
-        lookAtY: lore.controls.getLookAt().getY(),
-        lookAtZ: lore.controls.getLookAt().getZ()
+        lookAtX: 0,
+        lookAtY: 0,
+        lookAtZ: 0
     },
     methods: {
         changeView: function(value) {
