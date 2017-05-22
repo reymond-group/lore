@@ -1,4 +1,10 @@
+/** A utility class containing static methods. */
 Lore.Utils = class Utils {
+    /**
+     * Merges two objects, overriding probierties set in both objects in the first one.
+     * 
+     * @returns {object} The merged object.
+     */
     static extend() {
         let extended = {};
         let deep = false;
@@ -30,6 +36,13 @@ Lore.Utils = class Utils {
         return extended;
     }
 
+    /**
+     * Checks whether or not an array contains a given value.
+     * 
+     * @param {Array} array An array.
+     * @param {object} value An object.
+     * @returns {boolean} A boolean whether or not the array contains the value.
+     */
     static arrayContains(array, value) {
         for(let i = 0; i < array.length; i++) {
             if(array[i] === value) {
@@ -40,19 +53,40 @@ Lore.Utils = class Utils {
         return false;
     }
 
-    static concatTypedArrays(a, b) {
-        let c = new a.constructor(a.length + b.length);
+    /**
+     * Concatinate two typed arrays.
+     * 
+     * @param {TypedArray} arrA A typed array.
+     * @param {TypedArray} arrB A typed array.
+     * @returns {TypedArray} The concatinated typed array.
+     */
+    static concatTypedArrays(arrA, arrB) {
+        let arrC = new a.constructor(arrA.length + arrB.length);
         
-        c.set(a);
-        c.set(b, a.length);
+        arrC.set(arrA);
+        arrC.set(arrB, arrA.length);
 
-        return c;
+        return arrC;
     };
 
+    /**
+     * Get the most significant bit (MSB) of a number.
+     * 
+     * @param {Number} n A number. 
+     * @returns {Number} The most significant bit (0 or 1).
+     */
     static msb(n) {
         return (n & 0x80000000) ? 31 : Lore.Utils.msb((n << 1) | 1) - 1;
     }
 
+    /**
+     *  An utility method to merge two point distance objects containing arrays of indices and squared distances.
+     * 
+     * @static
+     * @param {object} a An object in the form of { indices: TypedArray, distancesSq: TypedArray }.
+     * @param {object} b An object in the form of { indices: TypedArray, distancesSq: TypedArray }.
+     * @returns  {object} The object with merged indices and squared distances.
+     */
     static mergePointDistances(a, b) {
         let newObj = {};
 
@@ -62,10 +96,22 @@ Lore.Utils = class Utils {
         return newObj;
     }
 
+    /**
+     * Checks whether or not the number is an integer.
+     * 
+     * @param {number} n A number.
+     * @returns A boolean whether or not the number is an integer.
+     */
     static isInt(n){
         return Number(n) === n && n % 1 === 0;
     }
 
+    /**
+     * Checks whether or not the number is a float.
+     * 
+     * @param {number} n A number.
+     * @returns A boolean whether or not the number is a float.
+     */
     static isFloat(n){
         return Number(n) === n && n % 1 !== 0;
     }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>ProjectionMatrix - Documentation</title>
+    <title>OctreeHelper - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,7 +27,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">ProjectionMatrix</h1>
+    <h1 class="page-title">OctreeHelper</h1>
     
 
     
@@ -40,10 +40,10 @@
 <header>
     
         <h2>
-        ProjectionMatrix
+        OctreeHelper
         </h2>
         
-            <div class="class-description"><p>A class representing a projection matrix</p></div>
+            <div class="class-description"><p>A helper class to create an octree associated with vertex data.</p></div>
         
     
 </header>
@@ -57,7 +57,7 @@
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="ProjectionMatrix"><span class="type-signature"></span>new ProjectionMatrix<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="OctreeHelper"><span class="type-signature"></span>new OctreeHelper<span class="signature">(renderer, geometryName, shaderName, target, options)</span><span class="type-signature"></span></h4>
 
     
 
@@ -69,7 +69,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line2">line 2</a>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line2">line 2</a>
     </li></ul></dd>
     
 
@@ -108,6 +108,9 @@
 
 
 
+<div class="description">
+    <p>Creates an instance of OctreeHelper.</p>
+</div>
 
 
 
@@ -116,6 +119,148 @@
 
 
 
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>renderer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.Renderer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A Lore.Renderer object.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>geometryName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of this geometry.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>shaderName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of the shader used to render this octree.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>target</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Lore.PointHelper</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Lore.PointHelper object from which this octree is constructed.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The options used to draw this octree.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -155,7 +300,7 @@
 
     
 
-    <h4 class="name" id="setOrthographic"><span class="type-signature"></span>setOrthographic<span class="signature">(left, right, top, bottom, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
+    <h4 class="name" id="addEventListener"><span class="type-signature"></span>addEventListener<span class="signature">(eventName, callback)</span><span class="type-signature"></span></h4>
 
     
 
@@ -167,7 +312,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line14">line 14</a>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line303">line 303</a>
     </li></ul></dd>
     
 
@@ -207,7 +352,7 @@
 
 
 <div class="description">
-    <p>Set the projection matrix to an orthographic projection.</p>
+    <p>Add an event listener to this Lore.OctreeHelper object.</p>
 </div>
 
 
@@ -245,13 +390,13 @@
 
         <tr>
             
-                <td class="name"><code>left</code></td>
+                <td class="name"><code>eventName</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">number</span>
+<span class="param-type">string</span>
 
 
             
@@ -261,20 +406,20 @@
 
             
 
-            <td class="description last"><p>The left edge.</p></td>
+            <td class="description last"><p>The name of the event to listen for.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>right</code></td>
+                <td class="name"><code>callback</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">number</span>
+<span class="param-type">function</span>
 
 
             
@@ -284,99 +429,7 @@
 
             
 
-            <td class="description last"><p>The right edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>top</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The top edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>bottom</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The bottom edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
+            <td class="description last"><p>A callback function called when an event is fired.</p></td>
         </tr>
 
     
@@ -396,28 +449,6 @@
 
 
 
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns this projection matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ProjectionMatrix</span>
-
-
-    </dd>
-</dl>
-
-    
 
 
         
@@ -425,7 +456,7 @@
 
     
 
-    <h4 class="name" id="setPerspective"><span class="type-signature"></span>setPerspective<span class="signature">(fov, aspect, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
+    <h4 class="name" id="addSelected"><span class="type-signature"></span>addSelected<span class="signature">(item)</span><span class="type-signature"></span></h4>
 
     
 
@@ -437,7 +468,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line54">line 54</a>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line138">line 138</a>
     </li></ul></dd>
     
 
@@ -477,7 +508,7 @@
 
 
 <div class="description">
-    <p>Set the projection matrix to a perspective projection.</p>
+    <p>Adds an object to the selected collection of this Lore.OctreeHelper object.</p>
 </div>
 
 
@@ -515,12 +546,15 @@
 
         <tr>
             
-                <td class="name"><code>fov</code></td>
+                <td class="name"><code>item</code></td>
             
 
             <td class="type">
             
                 
+<span class="param-type">object</span>
+|
+
 <span class="param-type">number</span>
 
 
@@ -531,20 +565,382 @@
 
             
 
-            <td class="description last"><p>The field of view.</p></td>
+            <td class="description last"><p>Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.</p></td>
         </tr>
 
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="clearSelected"><span class="type-signature"></span>clearSelected<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line178">line 178</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Clear the selected collection of this Lore.OctreeHelper object.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="drawBoxes"><span class="type-signature"></span>drawBoxes<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line362">line 362</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Draw the axis-aligned bounding boxes of this octree.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="drawCenters"><span class="type-signature"></span>drawCenters<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line330">line 330</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Draw the centers of the axis-aligned bounding boxes of this octree.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getIntersections"><span class="type-signature"></span>getIntersections<span class="signature">(mouse)</span><span class="type-signature"> &rarr; {object}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line284">line 284</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Get the indices and distances of the vertices currently intersected by the ray sent from the mouse position.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
     
 
         <tr>
             
-                <td class="name"><code>aspect</code></td>
+                <td class="name"><code>mouse</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">number</span>
+<span class="param-type">object</span>
 
 
             
@@ -554,53 +950,7 @@
 
             
 
-            <td class="description last"><p>The aspect ratio (width / height).</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
+            <td class="description last"><p>A mouse object containing x and y properties.</p></td>
         </tr>
 
     
@@ -624,7 +974,7 @@
 
         
 <div class="param-desc">
-    <p>Returns this projection matrix.</p>
+    <p>A distance-sorted (ASC) array containing the interesected vertices.</p>
 </div>
 
 
@@ -635,13 +985,1586 @@
     </dt>
     <dd>
         
-<span class="param-type">ProjectionMatrix</span>
+<span class="param-type">object</span>
 
 
     </dd>
 </dl>
 
     
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getScreenPosition"><span class="type-signature"></span>getScreenPosition<span class="signature">(index)</span><span class="type-signature"> &rarr; {array}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line125">line 125</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Get the screen position of a vertex by its index.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>index</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The index of a vertex.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An array containing the screen position. E.g. [122, 290].</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="hide"><span class="type-signature"></span>hide<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line270">line 270</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Hide the centers or cubes of the axis-aligned bounding boxes associated with this octree.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="init"><span class="type-signature"></span>init<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line96">line 96</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Initialize this octree.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="raiseEvent"><span class="type-signature"></span>raiseEvent<span class="signature">(eventName, data)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line317">line 317</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Raise an event with a given name and send the data to the functions listening for this event.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>eventName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of the event to be rised.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">any</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Data to be sent to the listening functions.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rayIntersections"><span class="type-signature"></span>rayIntersections<span class="signature">(indices)</span><span class="type-signature"> &rarr; {array}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line478">line 478</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Execute a ray intersection search within this octree.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>indices</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The indices of the octree nodes that are intersected by the ray.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An array containing the vertices intersected by the ray.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="removeSelected"><span class="type-signature"></span>removeSelected<span class="signature">(index)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line167">line 167</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Remove an item from the selected collection of this Lore.OctreeHelper object.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>index</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The index of the item in the selected collection.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="selectedContains"><span class="type-signature"></span>selectedContains<span class="signature">(index)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line192">line 192</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Check whether or not the selected collection of this Lore.OctreeHelper object contains a vertex with a given index.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>index</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The index of a vertex in the associated Lore.PointHelper object.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="selectHovered"><span class="type-signature"></span>selectHovered<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line235">line 235</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Add the currently hovered vertex to the collection of selected vertices.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setHovered"><span class="type-signature"></span>setHovered<span class="signature">(index)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line207">line 207</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Adds a vertex with a given index to the currently hovered vertex of this Lore.OctreeHelper object.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>index</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">any</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The index of a vertex in the associated Lore.PointHelper object.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setPointSizeFromZoom"><span class="type-signature"></span>setPointSizeFromZoom<span class="signature">(zoom)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line113">line 113</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Sets the point size of the associated Lore.PointHelper object as well as the threshold for the associated raycaster used for vertex picking.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>zoom</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The current zoom value of the orthographic view.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setThreshold"><span class="type-signature"></span>setThreshold<span class="signature">(threshold)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line468">line 468</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Set the threshold of the raycaster associated with this Lore.OctreeHelper object.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>threshold</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The threshold (maximum distance to the ray) of the raycaster.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="showCenters"><span class="type-signature"></span>showCenters<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line252">line 252</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Show the centers of the axis-aligned bounding boxes of this octree.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="showCubes"><span class="type-signature"></span>showCubes<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_OctreeHelper.js.html">Helpers/OctreeHelper.js</a>, <a href="Helpers_OctreeHelper.js.html#line261">line 261</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Show the axis-aligned boudning boxes of this octree as cubes.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         

@@ -1,5 +1,15 @@
+/** A helper class to create an octree associated with vertex data. */
 Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
+    /**
+     * Creates an instance of OctreeHelper.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {string} geometryName The name of this geometry.
+     * @param {string} shaderName The name of the shader used to render this octree.
+     * @param {Lore.PointHelper} target The Lore.PointHelper object from which this octree is constructed.
+     * @param {object} options The options used to draw this octree.
+     */
     constructor(renderer, geometryName, shaderName, target, options) {
         super(renderer, geometryName, shaderName);
 
@@ -80,6 +90,9 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         this.init();
     }
 
+    /**
+     * Initialize this octree.
+     */
     init() {
         if (this.opts.visualize === 'centers') {
             this.drawCenters();
@@ -92,12 +105,23 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         this.setPointSizeFromZoom(1.0);
     }
 
+    /**
+     * Sets the point size of the associated Lore.PointHelper object as well as the threshold for the associated raycaster used for vertex picking.
+     * 
+     * @param {number} zoom The current zoom value of the orthographic view.
+     */
     setPointSizeFromZoom(zoom) {
         let threshold = this.target.setPointSize(zoom + 0.1);
 
         this.setThreshold(threshold);
     }
 
+    /**
+     * Get the screen position of a vertex by its index.
+     * 
+     * @param {number} index The index of a vertex.
+     * @returns {array} An array containing the screen position. E.g. [122, 290].
+     */
     getScreenPosition(index) {
         let positions = this.target.geometry.attributes['position'].data;
         let k = index * 3;
@@ -106,6 +130,11 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         return this.renderer.camera.sceneToScreen(p, this.renderer);
     }
 
+    /**
+     * Adds an object to the selected collection of this Lore.OctreeHelper object.
+     * 
+     * @param {object|number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
+     */
     addSelected(item) {
         // If item is only the index, create a dummy item
         if (!isNaN(parseFloat(item))) {
@@ -130,20 +159,36 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         });
     }
 
+    /**
+     * Remove an item from the selected collection of this Lore.OctreeHelper object.
+     * 
+     * @param {number} index The index of the item in the selected collection.
+     */
     removeSelected(index) {
         this.selected.splice(index, 1);
+
         this.raiseEvent('selectedchanged', {
             e: this.selected
         });
     }
 
+    /**
+     * Clear the selected collection of this Lore.OctreeHelper object.
+     */
     clearSelected() {
         this.selected = [];
+
         this.raiseEvent('selectedchanged', {
             e: this.selected
         });
     }
 
+    /**
+     * Check whether or not the selected collection of this Lore.OctreeHelper object contains a vertex with a given index.
+     * 
+     * @param {number} index The index of a vertex in the associated Lore.PointHelper object.
+     * @returns {boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
+     */
     selectedContains(index) {
         for (let i = 0; i < this.selected.length; i++) {
             if (this.selected[i].index === index) {
@@ -154,6 +199,11 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         return false;
     }
 
+    /**
+     * Adds a vertex with a given index to the currently hovered vertex of this Lore.OctreeHelper object.
+     * 
+     * @param {any} index The index of a vertex in the associated Lore.PointHelper object.
+     */
     setHovered(index) {
         if (that.hovered && that.hovered.index === result[0].index) {
             return;
@@ -179,6 +229,9 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         });
     }
 
+    /**
+     * Add the currently hovered vertex to the collection of selected vertices. 
+     */
     selectHovered() {
         if (!this.hovered || this.selectedContains(this.hovered.index)) {
             return;
@@ -193,18 +246,27 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         });
     }
 
+    /**
+     * Show the centers of the axis-aligned bounding boxes of this octree. 
+     */
     showCenters() {
         this.opts.visualize = 'centers';
         this.drawCenters();
         this.geometry.isVisible = true;
     }
 
+    /**
+     * Show the axis-aligned boudning boxes of this octree as cubes. 
+     */
     showCubes() {
         this.opts.visualize = 'cubes';
         this.drawBoxes();
         this.geometry.isVisible = true;
     }
 
+    /**
+     * Hide the centers or cubes of the axis-aligned bounding boxes associated with this octree.
+     */
     hide() {
         this.opts.visualize = false;
         this.geometry.isVisible = false;
@@ -213,6 +275,12 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         this.setAttribute('color', new Float32Array([]));
     }
 
+    /**
+     * Get the indices and distances of the vertices currently intersected by the ray sent from the mouse position.
+     * 
+     * @param {object} mouse A mouse object containing x and y properties.
+     * @returns {object} A distance-sorted (ASC) array containing the interesected vertices.
+     */
     getIntersections(mouse) {
         this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
 
@@ -226,6 +294,12 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         return result;
     }
 
+    /**
+     * Add an event listener to this Lore.OctreeHelper object.
+     * 
+     * @param {string} eventName The name of the event to listen for.
+     * @param {function} callback A callback function called when an event is fired.
+     */
     addEventListener(eventName, callback) {
         if (!this.eventListeners[eventName]) {
             this.eventListeners[eventName] = [];
@@ -234,6 +308,12 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         this.eventListeners[eventName].push(callback);
     }
 
+    /**
+     * Raise an event with a given name and send the data to the functions listening for this event.
+     * 
+     * @param {string} eventName The name of the event to be rised.
+     * @param {any} data Data to be sent to the listening functions.
+     */
     raiseEvent(eventName, data) {
         if (!this.eventListeners[eventName]) {
             return;
@@ -244,6 +324,9 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         }
     }
 
+    /**
+     * Draw the centers of the axis-aligned bounding boxes of this octree.
+     */
     drawCenters() {
         this.geometry.setMode(Lore.DrawModes.points);
 
@@ -273,6 +356,9 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         this.setAttribute('color', new Float32Array(colors));
     }
 
+    /**
+     * Draw the axis-aligned bounding boxes of this octree.
+     */
     drawBoxes() {
         this.geometry.setMode(Lore.DrawModes.lines);
 
@@ -374,10 +460,21 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         this.setAttribute('color', c);
     }
 
+    /**
+     * Set the threshold of the raycaster associated with this Lore.OctreeHelper object.
+     * 
+     * @param {number} threshold The threshold (maximum distance to the ray) of the raycaster.
+     */
     setThreshold(threshold) {
         this.raycaster.threshold = threshold;
     }
 
+    /**
+     * Execute a ray intersection search within this octree.
+     * 
+     * @param {array} indices The indices of the octree nodes that are intersected by the ray.
+     * @returns {array} An array containing the vertices intersected by the ray.
+     */
     rayIntersections(indices) {
         let result = [];
         let inverseMatrix = Lore.Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change

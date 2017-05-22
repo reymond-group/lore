@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>ProjectionMatrix - Documentation</title>
+    <title>Helpers/CoordinatesHelper.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,632 +27,224 @@
 
 <div id="main">
     
-    <h1 class="page-title">ProjectionMatrix</h1>
+    <h1 class="page-title">Helpers/CoordinatesHelper.js</h1>
     
 
     
 
 
 
-
-<section>
-
-<header>
     
-        <h2>
-        ProjectionMatrix
-        </h2>
-        
-            <div class="class-description"><p>A class representing a projection matrix</p></div>
-        
-    
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** A helper class for drawing coordinate system indicators. For example, a grid cube. */
+Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
 
-<article>
-    <div class="container-overview">
-    
-        
-
-    
-    <h2>Constructor</h2>
-    
-
-    <h4 class="name" id="ProjectionMatrix"><span class="type-signature"></span>new ProjectionMatrix<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line2">line 2</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
+    /**
+     * Creates an instance of CoordinatesHelper.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {string} geometryName The name of this geometry.
+     * @param {string} shaderName The name of the shader used to render the coordinates.
+     * @param {object} options Options for drawing the coordinates. See documentation for details.
+     */
+    constructor(renderer, geometryName, shaderName, options) {
+        super(renderer, geometryName, shaderName);
 
         
+        this.defaults = {
+            position: new Lore.Vector3f(),
+            axis: {
+                x: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                },
+                y: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                },
+                z: {
+                    length: 50.0,
+                    color: Lore.Color.fromHex('#222222')
+                }
+            },
+            ticks: {
+                enabled: true,
+                x: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#1f1f1f')
+                },
+                y: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#1f1f1f')
+                },
+                z: {
+                    count: 10,
+                    length: 5.0,
+                    offset: new Lore.Vector3f(),
+                    color: Lore.Color.fromHex('#1f1f1f')
+                }
+            },
+            box: {
+                enabled: true,
+                x: {
+                    color: Lore.Color.fromHex('#222222')
+                },
+                y: {
+                    color: Lore.Color.fromHex('#222222')
+                },
+                z: {
+                    color: Lore.Color.fromHex('#222222')
+                }
+            },
+        }
+
+        this.opts = Lore.Utils.extend(true, this.defaults, options);
+
+        this.geometry.setMode(Lore.DrawModes.lines);
+        this.init();
+    }
+
+    /**
+     * Initializes the coordinates system.
+     */
+    init() {
+        let p = this.opts.position.components;
+        let ao = this.opts.axis;
+
+        // Setting the origin position of the axes
+        let positions = [
+            p[0], p[1], p[2], p[0] + ao.x.length, p[1], p[2],
+            p[0], p[1], p[2], p[0], p[1] + ao.y.length, p[2],
+            p[0], p[1], p[2], p[0], p[1], p[2] + ao.z.length
+        ];
+
+        // Setting the colors of the axes
+        let cx = ao.x.color.components;
+        let cy = ao.y.color.components;
+        let cz = ao.z.color.components;
+
+        let colors = [
+            cx[0], cx[1], cx[2], cx[0], cx[1], cx[2],
+            cy[0], cy[1], cy[2], cy[0], cy[1], cy[2],
+            cz[0], cz[1], cz[2], cz[0], cz[1], cz[2]
+        ];
+
+        // Adding the box
+        if (this.opts.box.enabled) {
+            let bx = this.opts.box.x.color.components;
+            let by = this.opts.box.y.color.components;
+            let bz = this.opts.box.z.color.components;
+
+            positions.push(
+                p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2] + ao.z.length,
+                p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0], p[1], p[2] + ao.z.length,
+                p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0], p[1] + ao.y.length, p[2],
+                p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2] + ao.z.length,
+                p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1], p[2] + ao.z.length,
+                p[0] + ao.x.length, p[1] + ao.y.length, p[2], p[0] + ao.x.length, p[1], p[2],
+                p[0] + ao.x.length, p[1] + ao.y.length, p[2] + ao.z.length, p[0] + ao.x.length, p[1] + ao.y.length, p[2],
+                p[0], p[1] + ao.y.length, p[2] + ao.z.length, p[0], p[1] + ao.y.length, p[2],
+                p[0] + ao.x.length, p[1], p[2] + ao.z.length, p[0] + ao.x.length, p[1], p[2]
+            );
+
+            colors.push(
+                bx[0], bx[1], bx[2], bx[0], bx[1], bx[2],
+                bx[0], bx[1], bx[2], bx[0], bx[1], bx[2],
+                bx[0], bx[1], bx[2], bx[0], bx[1], bx[2],
+                by[0], by[1], by[2], by[0], by[1], by[2],
+                by[0], by[1], by[2], by[0], by[1], by[2],
+                by[0], by[1], by[2], by[0], by[1], by[2],
+                bz[0], bz[1], bz[2], bz[0], bz[1], bz[2],
+                bz[0], bz[1], bz[2], bz[0], bz[1], bz[2],
+                bz[0], bz[1], bz[2], bz[0], bz[1], bz[2]
+            );
+        }
+
+        // Adding the ticks
+        if (this.opts.ticks.enabled) {
+            let xTicks = this.opts.ticks.x, xTickOffset = ao.x.length / xTicks.count;
+            let yTicks = this.opts.ticks.y, yTickOffset = ao.y.length / yTicks.count;
+            let zTicks = this.opts.ticks.z, zTickOffset = ao.z.length / zTicks.count;
+
+            // X ticks
+            let pos = p[0];
+            let col = xTicks.color.components;
+
+            for (let i = 0; i &lt; xTicks.count - 1; i++) {
+                pos += xTickOffset;
+                // From
+                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, p[2] + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            pos = p[0];
+
+            for (let i = 0; i &lt; xTicks.count - 1; i++) {
+                pos += xTickOffset;
+                // From
+                positions.push(pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            pos + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            // Y ticks
+            pos = p[1];
+            col = yTicks.color.components;
+
+            for (let i = 0; i &lt; yTicks.count - 1; i++) {
+                pos += yTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            pos = p[1];
+
+            for (let i = 0; i &lt; yTicks.count - 1; i++) {
+                pos += yTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+
+            // Z ticks
+            pos = p[2];
+            col = zTicks.color.components;
             
+            for (let i = 0; i &lt; zTicks.count - 1; i++) {
+                pos += zTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
 
-    
-
-    <h4 class="name" id="setOrthographic"><span class="type-signature"></span>setOrthographic<span class="signature">(left, right, top, bottom, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line14">line 14</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the projection matrix to an orthographic projection.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
+            pos = p[2];
             
-                <td class="name"><code>left</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The left edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>right</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The right edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>top</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The top edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>bottom</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The bottom edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns this projection matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ProjectionMatrix</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setPerspective"><span class="type-signature"></span>setPerspective<span class="signature">(fov, aspect, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line54">line 54</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the projection matrix to a perspective projection.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fov</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The field of view.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>aspect</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The aspect ratio (width / height).</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns this projection matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ProjectionMatrix</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-    
-
-    
-
-    
-</article>
-
-</section>
+            for (let i = 0; i &lt; zTicks.count - 1; i++) {
+                pos += zTickOffset;
+                // From
+                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
+                            p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
+                colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+            }
+        }
+
+        this.setAttribute('position', new Float32Array(positions));
+        this.setAttribute('color', new Float32Array(colors));
+    }
+}
+</code></pre>
+        </article>
+    </section>
 
 
 

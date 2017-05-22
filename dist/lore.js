@@ -5439,9 +5439,19 @@ var RadixSort = function () {
     return RadixSort;
 }();
 
+/** The base class for helper classes. */
+
+
 Lore.HelperBase = function (_Lore$Node3) {
     _inherits(HelperBase, _Lore$Node3);
 
+    /**
+     * Creates an instance of HelperBase.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {string} geometryName The name of this geometry.
+     * @param {string} shaderName The name of the shader used to render the geometry.
+     */
     function HelperBase(renderer, geometryName, shaderName) {
         _classCallCheck(this, HelperBase);
 
@@ -5453,16 +5463,41 @@ Lore.HelperBase = function (_Lore$Node3) {
         return _this9;
     }
 
+    /**
+     * Set the value (a typed array) of an attribute.
+     * 
+     * @param {string} name The name of the attribute. 
+     * @param {TypedArray} data A typed array containing the attribute values.
+     */
+
+
     _createClass(HelperBase, [{
         key: 'setAttribute',
         value: function setAttribute(name, data) {
             this.geometry.addAttribute(name, data);
         }
+
+        /**
+         * Get the value of an attribute (usually a typed array).
+         * 
+         * @param {string} name The name of the attribute.
+         * @returns {any} Usually, a typed array containing the attribute values.
+         */
+
     }, {
         key: 'getAttribute',
         value: function getAttribute(name) {
             return this.geometry.attributes[name].data;
         }
+
+        /**
+         * Update a the value of an attribute at a specific index and marks the attribute as stale.
+         * 
+         * @param {string} name The name of the attribute.
+         * @param {number} index The index of the value to be updated.
+         * @param {any} value Usually, a typed array or array with the length of the attribute values (3 for x, y, z coordinates) containing the new values.
+         */
+
     }, {
         key: 'updateAttribute',
         value: function updateAttribute(name, index, value) {
@@ -5476,6 +5511,14 @@ Lore.HelperBase = function (_Lore$Node3) {
 
             attr.stale = true;
         }
+
+        /**
+         * Updates all the values in the attribute and marks the attribute as stale.
+         * 
+         * @param {string} name The name of the attribute.
+         * @param {TypedArray} values A typed array containing the new attribute values.
+         */
+
     }, {
         key: 'updateAttributeAll',
         value: function updateAttributeAll(name, values) {
@@ -5487,6 +5530,11 @@ Lore.HelperBase = function (_Lore$Node3) {
 
             attr.stale = true;
         }
+
+        /**
+         * Calls the draw method of the underlying geometry.
+         */
+
     }, {
         key: 'draw',
         value: function draw() {
@@ -5971,9 +6019,18 @@ Lore.TreeHelper = function (_Lore$HelperBase2) {
     return TreeHelper;
 }(Lore.HelperBase);
 
+/** A helper class for drawing coordinate system indicators. For example, a grid cube. */
 Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
     _inherits(CoordinatesHelper, _Lore$HelperBase3);
 
+    /**
+     * Creates an instance of CoordinatesHelper.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {string} geometryName The name of this geometry.
+     * @param {string} shaderName The name of the shader used to render the coordinates.
+     * @param {object} options Options for drawing the coordinates. See documentation for details.
+     */
     function CoordinatesHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, CoordinatesHelper);
 
@@ -6036,6 +6093,11 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
         _this12.init();
         return _this12;
     }
+
+    /**
+     * Initializes the coordinates system.
+     */
+
 
     _createClass(CoordinatesHelper, [{
         key: 'init',
@@ -6142,9 +6204,19 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
     return CoordinatesHelper;
 }(Lore.HelperBase);
 
+/** A helper class to create an octree associated with vertex data. */
 Lore.OctreeHelper = function (_Lore$HelperBase4) {
     _inherits(OctreeHelper, _Lore$HelperBase4);
 
+    /**
+     * Creates an instance of OctreeHelper.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {string} geometryName The name of this geometry.
+     * @param {string} shaderName The name of the shader used to render this octree.
+     * @param {Lore.PointHelper} target The Lore.PointHelper object from which this octree is constructed.
+     * @param {object} options The options used to draw this octree.
+     */
     function OctreeHelper(renderer, geometryName, shaderName, target, options) {
         _classCallCheck(this, OctreeHelper);
 
@@ -6228,6 +6300,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         return _this13;
     }
 
+    /**
+     * Initialize this octree.
+     */
+
+
     _createClass(OctreeHelper, [{
         key: 'init',
         value: function init() {
@@ -6241,6 +6318,13 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
             this.setPointSizeFromZoom(1.0);
         }
+
+        /**
+         * Sets the point size of the associated Lore.PointHelper object as well as the threshold for the associated raycaster used for vertex picking.
+         * 
+         * @param {number} zoom The current zoom value of the orthographic view.
+         */
+
     }, {
         key: 'setPointSizeFromZoom',
         value: function setPointSizeFromZoom(zoom) {
@@ -6248,6 +6332,14 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
             this.setThreshold(threshold);
         }
+
+        /**
+         * Get the screen position of a vertex by its index.
+         * 
+         * @param {number} index The index of a vertex.
+         * @returns {array} An array containing the screen position. E.g. [122, 290].
+         */
+
     }, {
         key: 'getScreenPosition',
         value: function getScreenPosition(index) {
@@ -6257,6 +6349,13 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
             return this.renderer.camera.sceneToScreen(p, this.renderer);
         }
+
+        /**
+         * Adds an object to the selected collection of this Lore.OctreeHelper object.
+         * 
+         * @param {object|number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
+         */
+
     }, {
         key: 'addSelected',
         value: function addSelected(item) {
@@ -6282,22 +6381,44 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
                 e: this.selected
             });
         }
+
+        /**
+         * Remove an item from the selected collection of this Lore.OctreeHelper object.
+         * 
+         * @param {number} index The index of the item in the selected collection.
+         */
+
     }, {
         key: 'removeSelected',
         value: function removeSelected(index) {
             this.selected.splice(index, 1);
+
             this.raiseEvent('selectedchanged', {
                 e: this.selected
             });
         }
+
+        /**
+         * Clear the selected collection of this Lore.OctreeHelper object.
+         */
+
     }, {
         key: 'clearSelected',
         value: function clearSelected() {
             this.selected = [];
+
             this.raiseEvent('selectedchanged', {
                 e: this.selected
             });
         }
+
+        /**
+         * Check whether or not the selected collection of this Lore.OctreeHelper object contains a vertex with a given index.
+         * 
+         * @param {number} index The index of a vertex in the associated Lore.PointHelper object.
+         * @returns {boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
+         */
+
     }, {
         key: 'selectedContains',
         value: function selectedContains(index) {
@@ -6309,6 +6430,13 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
             return false;
         }
+
+        /**
+         * Adds a vertex with a given index to the currently hovered vertex of this Lore.OctreeHelper object.
+         * 
+         * @param {any} index The index of a vertex in the associated Lore.PointHelper object.
+         */
+
     }, {
         key: 'setHovered',
         value: function setHovered(index) {
@@ -6335,6 +6463,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
                 e: that.hovered
             });
         }
+
+        /**
+         * Add the currently hovered vertex to the collection of selected vertices. 
+         */
+
     }, {
         key: 'selectHovered',
         value: function selectHovered() {
@@ -6350,6 +6483,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
                 color: this.hovered.color
             });
         }
+
+        /**
+         * Show the centers of the axis-aligned bounding boxes of this octree. 
+         */
+
     }, {
         key: 'showCenters',
         value: function showCenters() {
@@ -6357,6 +6495,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             this.drawCenters();
             this.geometry.isVisible = true;
         }
+
+        /**
+         * Show the axis-aligned boudning boxes of this octree as cubes. 
+         */
+
     }, {
         key: 'showCubes',
         value: function showCubes() {
@@ -6364,6 +6507,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             this.drawBoxes();
             this.geometry.isVisible = true;
         }
+
+        /**
+         * Hide the centers or cubes of the axis-aligned bounding boxes associated with this octree.
+         */
+
     }, {
         key: 'hide',
         value: function hide() {
@@ -6373,6 +6521,14 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             this.setAttribute('position', new Float32Array([]));
             this.setAttribute('color', new Float32Array([]));
         }
+
+        /**
+         * Get the indices and distances of the vertices currently intersected by the ray sent from the mouse position.
+         * 
+         * @param {object} mouse A mouse object containing x and y properties.
+         * @returns {object} A distance-sorted (ASC) array containing the interesected vertices.
+         */
+
     }, {
         key: 'getIntersections',
         value: function getIntersections(mouse) {
@@ -6387,6 +6543,14 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
             return result;
         }
+
+        /**
+         * Add an event listener to this Lore.OctreeHelper object.
+         * 
+         * @param {string} eventName The name of the event to listen for.
+         * @param {function} callback A callback function called when an event is fired.
+         */
+
     }, {
         key: 'addEventListener',
         value: function addEventListener(eventName, callback) {
@@ -6396,6 +6560,14 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
             this.eventListeners[eventName].push(callback);
         }
+
+        /**
+         * Raise an event with a given name and send the data to the functions listening for this event.
+         * 
+         * @param {string} eventName The name of the event to be rised.
+         * @param {any} data Data to be sent to the listening functions.
+         */
+
     }, {
         key: 'raiseEvent',
         value: function raiseEvent(eventName, data) {
@@ -6407,6 +6579,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
                 this.eventListeners[eventName][i](data);
             }
         }
+
+        /**
+         * Draw the centers of the axis-aligned bounding boxes of this octree.
+         */
+
     }, {
         key: 'drawCenters',
         value: function drawCenters() {
@@ -6437,6 +6614,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             this.setAttribute('position', new Float32Array(positions));
             this.setAttribute('color', new Float32Array(colors));
         }
+
+        /**
+         * Draw the axis-aligned bounding boxes of this octree.
+         */
+
     }, {
         key: 'drawBoxes',
         value: function drawBoxes() {
@@ -6539,11 +6721,26 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             this.setAttribute('position', p);
             this.setAttribute('color', c);
         }
+
+        /**
+         * Set the threshold of the raycaster associated with this Lore.OctreeHelper object.
+         * 
+         * @param {number} threshold The threshold (maximum distance to the ray) of the raycaster.
+         */
+
     }, {
         key: 'setThreshold',
         value: function setThreshold(threshold) {
             this.raycaster.threshold = threshold;
         }
+
+        /**
+         * Execute a ray intersection search within this octree.
+         * 
+         * @param {array} indices The indices of the octree nodes that are intersected by the ray.
+         * @returns {array} An array containing the vertices intersected by the ray.
+         */
+
     }, {
         key: 'rayIntersections',
         value: function rayIntersections(indices) {
@@ -6885,6 +7082,7 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     return CsvFileReader;
 }(Lore.FileReaderBase);
 
+/** A utility class containing static methods. */
 Lore.Utils = function () {
     function Utils() {
         _classCallCheck(this, Utils);
@@ -6892,6 +7090,12 @@ Lore.Utils = function () {
 
     _createClass(Utils, null, [{
         key: 'extend',
+
+        /**
+         * Merges two objects, overriding probierties set in both objects in the first one.
+         * 
+         * @returns {object} The merged object.
+         */
         value: function extend() {
             var extended = {};
             var deep = false;
@@ -6922,6 +7126,15 @@ Lore.Utils = function () {
 
             return extended;
         }
+
+        /**
+         * Checks whether or not an array contains a given value.
+         * 
+         * @param {Array} array An array.
+         * @param {object} value An object.
+         * @returns {boolean} A boolean whether or not the array contains the value.
+         */
+
     }, {
         key: 'arrayContains',
         value: function arrayContains(array, value) {
@@ -6933,21 +7146,48 @@ Lore.Utils = function () {
 
             return false;
         }
+
+        /**
+         * Concatinate two typed arrays.
+         * 
+         * @param {TypedArray} arrA A typed array.
+         * @param {TypedArray} arrB A typed array.
+         * @returns {TypedArray} The concatinated typed array.
+         */
+
     }, {
         key: 'concatTypedArrays',
-        value: function concatTypedArrays(a, b) {
-            var c = new a.constructor(a.length + b.length);
+        value: function concatTypedArrays(arrA, arrB) {
+            var arrC = new a.constructor(arrA.length + arrB.length);
 
-            c.set(a);
-            c.set(b, a.length);
+            arrC.set(arrA);
+            arrC.set(arrB, arrA.length);
 
-            return c;
+            return arrC;
         }
     }, {
         key: 'msb',
+
+
+        /**
+         * Get the most significant bit (MSB) of a number.
+         * 
+         * @param {Number} n A number. 
+         * @returns {Number} The most significant bit (0 or 1).
+         */
         value: function msb(n) {
             return n & 0x80000000 ? 31 : Lore.Utils.msb(n << 1 | 1) - 1;
         }
+
+        /**
+         *  An utility method to merge two point distance objects containing arrays of indices and squared distances.
+         * 
+         * @static
+         * @param {object} a An object in the form of { indices: TypedArray, distancesSq: TypedArray }.
+         * @param {object} b An object in the form of { indices: TypedArray, distancesSq: TypedArray }.
+         * @returns  {object} The object with merged indices and squared distances.
+         */
+
     }, {
         key: 'mergePointDistances',
         value: function mergePointDistances(a, b) {
@@ -6958,11 +7198,27 @@ Lore.Utils = function () {
 
             return newObj;
         }
+
+        /**
+         * Checks whether or not the number is an integer.
+         * 
+         * @param {number} n A number.
+         * @returns A boolean whether or not the number is an integer.
+         */
+
     }, {
         key: 'isInt',
         value: function isInt(n) {
             return Number(n) === n && n % 1 === 0;
         }
+
+        /**
+         * Checks whether or not the number is a float.
+         * 
+         * @param {number} n A number.
+         * @returns A boolean whether or not the number is a float.
+         */
+
     }, {
         key: 'isFloat',
         value: function isFloat(n) {

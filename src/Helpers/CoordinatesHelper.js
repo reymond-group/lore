@@ -1,5 +1,14 @@
+/** A helper class for drawing coordinate system indicators. For example, a grid cube. */
 Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
 
+    /**
+     * Creates an instance of CoordinatesHelper.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {string} geometryName The name of this geometry.
+     * @param {string} shaderName The name of the shader used to render the coordinates.
+     * @param {object} options Options for drawing the coordinates. See documentation for details.
+     */
     constructor(renderer, geometryName, shaderName, options) {
         super(renderer, geometryName, shaderName);
 
@@ -61,6 +70,9 @@ Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
         this.init();
     }
 
+    /**
+     * Initializes the coordinates system.
+     */
     init() {
         let p = this.opts.position.components;
         let ao = this.opts.axis;

@@ -1,5 +1,13 @@
+/** A helper class for drawing axis aligned bounding boxes. */
 Lore.AABBHelper = class AABBHelper extends Lore.HelperBase {
-
+    /**
+     * Creates an instance of AABBHelper.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {array} aabbs An array containing axis-aligned bounding boxes.
+     * @param {string} shaderName The name of the shader used to render the axis-aligned bounding boxes.
+     * @param {object} options Options for drawing the axis-aligned bounding boxes.
+     */
     constructor(renderer, aabbs, shaderName, options) {
         super(renderer, geometryName, shaderName);
 

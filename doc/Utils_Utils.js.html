@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>ProjectionMatrix - Documentation</title>
+    <title>Utils/Utils.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,632 +27,138 @@
 
 <div id="main">
     
-    <h1 class="page-title">ProjectionMatrix</h1>
+    <h1 class="page-title">Utils/Utils.js</h1>
     
 
     
 
 
 
-
-<section>
-
-<header>
     
-        <h2>
-        ProjectionMatrix
-        </h2>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** A utility class containing static methods. */
+Lore.Utils = class Utils {
+    /**
+     * Merges two objects, overriding probierties set in both objects in the first one.
+     * 
+     * @returns {object} The merged object.
+     */
+    static extend() {
+        let extended = {};
+        let deep = false;
+        let i = 0;
+        let length = arguments.length;
+
+        if (Object.prototype.toString.call(arguments[0]) === '[object Boolean]') {
+            deep = arguments[0];
+            i++;
+        }
+
+        let merge = function (obj) {
+            for (let prop in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                    if (deep &amp;&amp; Object.prototype.toString.call(obj[prop]) === '[object Object]') {
+                        extended[prop] = Lore.Utils.extend(true, extended[prop], obj[prop]);
+                    } else {
+                        extended[prop] = obj[prop];
+                    }
+                }
+            }
+        };
+
+        for ( ; i &lt; length; i++) {
+            let obj = arguments[i];
+            merge(obj);
+        }
+
+        return extended;
+    }
+
+    /**
+     * Checks whether or not an array contains a given value.
+     * 
+     * @param {Array} array An array.
+     * @param {object} value An object.
+     * @returns {boolean} A boolean whether or not the array contains the value.
+     */
+    static arrayContains(array, value) {
+        for(let i = 0; i &lt; array.length; i++) {
+            if(array[i] === value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Concatinate two typed arrays.
+     * 
+     * @param {TypedArray} arrA A typed array.
+     * @param {TypedArray} arrB A typed array.
+     * @returns {TypedArray} The concatinated typed array.
+     */
+    static concatTypedArrays(arrA, arrB) {
+        let arrC = new a.constructor(arrA.length + arrB.length);
         
-            <div class="class-description"><p>A class representing a projection matrix</p></div>
+        arrC.set(arrA);
+        arrC.set(arrB, arrA.length);
+
+        return arrC;
+    };
+
+    /**
+     * Get the most significant bit (MSB) of a number.
+     * 
+     * @param {Number} n A number. 
+     * @returns {Number} The most significant bit (0 or 1).
+     */
+    static msb(n) {
+        return (n &amp; 0x80000000) ? 31 : Lore.Utils.msb((n &lt;&lt; 1) | 1) - 1;
+    }
+
+    /**
+     *  An utility method to merge two point distance objects containing arrays of indices and squared distances.
+     * 
+     * @static
+     * @param {object} a An object in the form of { indices: TypedArray, distancesSq: TypedArray }.
+     * @param {object} b An object in the form of { indices: TypedArray, distancesSq: TypedArray }.
+     * @returns  {object} The object with merged indices and squared distances.
+     */
+    static mergePointDistances(a, b) {
+        let newObj = {};
+
+        newObj.indices = Lore.Utils.concatTypedArrays(a.indices, b.indices);
+        newObj.distancesSq = Lore.Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
         
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-    
-    <h2>Constructor</h2>
-    
-
-    <h4 class="name" id="ProjectionMatrix"><span class="type-signature"></span>new ProjectionMatrix<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line2">line 2</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    <h4 class="name" id="setOrthographic"><span class="type-signature"></span>setOrthographic<span class="signature">(left, right, top, bottom, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line14">line 14</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the projection matrix to an orthographic projection.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>left</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The left edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>right</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The right edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>top</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The top edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>bottom</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The bottom edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns this projection matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ProjectionMatrix</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setPerspective"><span class="type-signature"></span>setPerspective<span class="signature">(fov, aspect, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line54">line 54</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the projection matrix to a perspective projection.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fov</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The field of view.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>aspect</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The aspect ratio (width / height).</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns this projection matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ProjectionMatrix</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-    
-
-    
-
-    
-</article>
-
-</section>
+        return newObj;
+    }
+
+    /**
+     * Checks whether or not the number is an integer.
+     * 
+     * @param {number} n A number.
+     * @returns A boolean whether or not the number is an integer.
+     */
+    static isInt(n){
+        return Number(n) === n &amp;&amp; n % 1 === 0;
+    }
+
+    /**
+     * Checks whether or not the number is a float.
+     * 
+     * @param {number} n A number.
+     * @returns A boolean whether or not the number is a float.
+     */
+    static isFloat(n){
+        return Number(n) === n &amp;&amp; n % 1 !== 0;
+    }
+}
+
+Lore.Utils.DEG2RAD = Math.PI / 180.0; </code></pre>
+        </article>
+    </section>
 
 
 

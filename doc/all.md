@@ -9,7 +9,7 @@ A class wrapping a radix sort for floats.
 
 * [RadixSort](#RadixSort)
     * [new RadixSort()](#new_RadixSort_new)
-    * [.sort(arr, copyArray)](#RadixSort+sort) ⇒ <code>Object</code>
+    * [.sort(arr, [copyArray])](#RadixSort+sort) ⇒ <code>Object</code>
     * [.lsbPass(arr, aux)](#RadixSort+lsbPass)
     * [.pass(arr, aux)](#RadixSort+pass)
     * [.msbPass(arr, aux)](#RadixSort+msbPass)
@@ -22,16 +22,16 @@ Creates an instance of RadixSort.
 
 <a name="RadixSort+sort"></a>
 
-### radixSort.sort(arr, copyArray) ⇒ <code>Object</code>
+### radixSort.sort(arr, [copyArray]) ⇒ <code>Object</code>
 Sorts a 32-bit float array using radix sort.
 
 **Kind**: instance method of <code>[RadixSort](#RadixSort)</code>  
 **Returns**: <code>Object</code> - The result in the form { array: sortedArray, indices: sortedIndices }.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| arr | <code>Float32Array</code> | The array to be sorted. |
-| copyArray | <code>Boolean</code> | A boolean indicating whether to perform the sorting directly on the array or copy it. |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| arr | <code>Float32Array</code> |  | The array to be sorted. |
+| [copyArray] | <code>Boolean</code> | <code>false</code> | A boolean indicating whether to perform the sorting directly on the array or copy it. |
 
 <a name="RadixSort+lsbPass"></a>
 

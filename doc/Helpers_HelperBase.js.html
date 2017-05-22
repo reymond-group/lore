@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>ProjectionMatrix - Documentation</title>
+    <title>Helpers/HelperBase.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,632 +27,97 @@
 
 <div id="main">
     
-    <h1 class="page-title">ProjectionMatrix</h1>
-    
-
-    
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-        ProjectionMatrix
-        </h2>
-        
-            <div class="class-description"><p>A class representing a projection matrix</p></div>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-    
-    <h2>Constructor</h2>
-    
-
-    <h4 class="name" id="ProjectionMatrix"><span class="type-signature"></span>new ProjectionMatrix<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line2">line 2</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    <h4 class="name" id="setOrthographic"><span class="type-signature"></span>setOrthographic<span class="signature">(left, right, top, bottom, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line14">line 14</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the projection matrix to an orthographic projection.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>left</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The left edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>right</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The right edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>top</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The top edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>bottom</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The bottom edge.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns this projection matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ProjectionMatrix</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setPerspective"><span class="type-signature"></span>setPerspective<span class="signature">(fov, aspect, near, far)</span><span class="type-signature"> &rarr; {ProjectionMatrix}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_ProjectionMatrix.js.html">Math/ProjectionMatrix.js</a>, <a href="Math_ProjectionMatrix.js.html#line54">line 54</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the projection matrix to a perspective projection.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fov</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The field of view.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>aspect</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The aspect ratio (width / height).</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>near</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The near-cutoff value.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>far</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The far-cutoff value.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns this projection matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ProjectionMatrix</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-    
-
-    
-
-    
-</article>
-
-</section>
+    <h1 class="page-title">Helpers/HelperBase.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** The base class for helper classes. */
+Lore.HelperBase = class HelperBase extends Lore.Node {
+    /**
+     * Creates an instance of HelperBase.
+     * 
+     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {string} geometryName The name of this geometry.
+     * @param {string} shaderName The name of the shader used to render the geometry.
+     */
+    constructor(renderer, geometryName, shaderName) {
+        super();
+        this.renderer = renderer;
+        this.shader = Lore.Shaders[shaderName];
+        this.geometry = this.renderer.createGeometry(geometryName, shaderName);
+    }
+
+    /**
+     * Set the value (a typed array) of an attribute.
+     * 
+     * @param {string} name The name of the attribute. 
+     * @param {TypedArray} data A typed array containing the attribute values.
+     */
+    setAttribute(name, data) {
+        this.geometry.addAttribute(name, data);
+    }
+
+    /**
+     * Get the value of an attribute (usually a typed array).
+     * 
+     * @param {string} name The name of the attribute.
+     * @returns {any} Usually, a typed array containing the attribute values.
+     */
+    getAttribute(name) {
+        return this.geometry.attributes[name].data;
+    }
+
+    /**
+     * Update a the value of an attribute at a specific index and marks the attribute as stale.
+     * 
+     * @param {string} name The name of the attribute.
+     * @param {number} index The index of the value to be updated.
+     * @param {any} value Usually, a typed array or array with the length of the attribute values (3 for x, y, z coordinates) containing the new values.
+     */
+    updateAttribute(name, index, value) {
+        let attr = this.geometry.attributes[name];
+
+        let j = index * attr.attributeLength;
+
+        for (let i = 0; i &lt; attr.attributeLength; i++) {
+            attr.data[j + i] = value[i] || attr.data[j + i];
+        }
+
+        attr.stale = true;
+    }
+
+    /**
+     * Updates all the values in the attribute and marks the attribute as stale.
+     * 
+     * @param {string} name The name of the attribute.
+     * @param {TypedArray} values A typed array containing the new attribute values.
+     */
+    updateAttributeAll(name, values) {
+        let attr = this.geometry.attributes[name];
+
+        for (let i = 0; i &lt; attr.data.length; i++) {
+            attr.data[i] = values[i];
+        }
+
+        attr.stale = true;
+    }
+
+    /**
+     * Calls the draw method of the underlying geometry.
+     */
+    draw() {
+        this.geometry.draw(this.renderer);
+    }
+}
+</code></pre>
+        </article>
+    </section>
 
 
 
