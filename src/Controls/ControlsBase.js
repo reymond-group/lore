@@ -1,4 +1,8 @@
-/** An abstract class representing the base for controls implementations. */
+/** 
+ * An abstract class representing the base for controls implementations. 
+ * 
+ * 
+ * */
 Lore.ControlsBase = class ControlsBase {
 
     /**

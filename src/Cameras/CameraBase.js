@@ -1,4 +1,12 @@
-/** An abstract class representing the base for camera implementations. */
+/** 
+ * An abstract class representing the base for camera implementations. 
+ * 
+ * @property {string} type The type name of this object (Lore.CameraBase).
+ * @property {Lore.Renderer} renderer A Lore.Renderer object.
+ * @property {boolean} isProjectionMatrixStale A boolean indicating whether or not the projection matrix was changed and has to be updated.
+ * @property {Lore.ProjectionMatrix} projectionMatrix A Lore.ProjectionMatrix object.
+ * @property {Lore.Matrix4f} viewMatrix A Lore.Matrix4f object representing the view matrix for this camera.
+ * */
 Lore.CameraBase = class CameraBase extends Lore.Node {
     /**
      * Creates an instance of CameraBase.

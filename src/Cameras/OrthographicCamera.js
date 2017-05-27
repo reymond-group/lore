@@ -1,4 +1,14 @@
-/** A class representing an orthographic camera. */
+/** 
+ * A class representing an orthographic camera. 
+ * 
+ * @property {number} [zoom=1.0] The zoom value of this camera.
+ * @property {number} left The left border of the frustum.
+ * @property {number} right The right border of the frustum.
+ * @property {number} top The top border of the frustum.
+ * @property {number} bottom The bottom border of the frustum.
+ * @property {number} near The near plane distance of the frustum.
+ * @property {number} far The far plane distance of the frustum.
+ * */
 Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
     /**
      * Creates an instance of OrthographicCamera.
