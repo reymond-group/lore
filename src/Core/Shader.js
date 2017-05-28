@@ -1,3 +1,10 @@
+/**
+ * A class representing a shader.
+ * 
+ * @property {String} name The name of the shader.
+ * @property {Object} uniforms A map mapping uniform names to Lore.Uniform instances.
+ * 
+ */
 Lore.Shader = class Shader {
     constructor(name, uniforms, vertexShader, fragmentShader) {
         this.name = name;

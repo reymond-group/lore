@@ -1,4 +1,18 @@
+/**
+ * A class representing a uniform.
+ * 
+ * @property {String} name The name of this uniform. Also the variable name in the shader.
+ * @property {Number} value The value of this uniform.
+ * @property {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
+ * @property {Boolean} stale A boolean indicating whether or not this uniform is stale and needs to be updated.
+ */
 Lore.Uniform = class Uniform {
+    /**
+     * Creates an instance of Uniform.
+     * @param {String} name The name of this uniform. Also the variable name in the shader.
+     * @param {Number} value The value of this uniform.
+     * @param {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
+     */
     constructor(name, value, type) {
         this.name = name;
         this.value = value;
@@ -6,11 +20,23 @@ Lore.Uniform = class Uniform {
         this.stale = true;
     }
 
+    /**
+     * Set the value of this uniform.
+     * 
+     * @param {Number} value A number which is valid for the specified type.
+     */
     setValue(value) {
         this.value = value;
         this.stale = true;
     }
 
+    /**
+     * Pushes the uniform to the GPU.
+     * 
+     * @param {WebGLRenderingContext} gl A WebGL rendering context.
+     * @param {WebGLUniformLocation} program 
+     * @param {Lore.Uniform} uniform 
+     */
     static Set(gl, program, uniform) {
         let location = gl.getUniformLocation(program, uniform.name);
 
