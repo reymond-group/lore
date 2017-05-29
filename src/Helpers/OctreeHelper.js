@@ -1,14 +1,24 @@
-/** A helper class to create an octree associated with vertex data. */
+/** 
+ * A helper class to create an octree associated with vertex data. 
+ * 
+ * @property {*} opts An object containing options.
+ * @property {Lore.PointHelper} target The Lore.PointHelper object from which this octree is constructed.
+ * @property {Lore.Renderer} renderer An instance of Lore.Renderer.
+ * @property {Lore.Octree} octree The octree associated with the target.
+ * @property {Lore.Raycaster} raycaster An instance of Lore.Raycaster.
+ * @property {Object} hovered The currently hovered item.
+ * @property {Object[]} selected The currently selected items.
+ */
 Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
     /**
      * Creates an instance of OctreeHelper.
      * 
      * @param {Lore.Renderer} renderer A Lore.Renderer object.
-     * @param {string} geometryName The name of this geometry.
-     * @param {string} shaderName The name of the shader used to render this octree.
+     * @param {String} geometryName The name of this geometry.
+     * @param {String} shaderName The name of the shader used to render this octree.
      * @param {Lore.PointHelper} target The Lore.PointHelper object from which this octree is constructed.
-     * @param {object} options The options used to draw this octree.
+     * @param {Object} options The options used to draw this octree.
      */
     constructor(renderer, geometryName, shaderName, target, options) {
         super(renderer, geometryName, shaderName);
@@ -18,7 +28,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         }
 
         this.opts = Lore.Utils.extend(true, this.defaults, options);
-        this.eventListeners = {};
+        this._eventListeners = {};
         this.target = target;
         this.renderer = renderer;
         this.octree = this.target.octree;
@@ -108,7 +118,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Sets the point size of the associated Lore.PointHelper object as well as the threshold for the associated raycaster used for vertex picking.
      * 
-     * @param {number} zoom The current zoom value of the orthographic view.
+     * @param {Number} zoom The current zoom value of the orthographic view.
      */
     setPointSizeFromZoom(zoom) {
         let threshold = this.target.setPointSize(zoom + 0.1);
@@ -119,8 +129,8 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Get the screen position of a vertex by its index.
      * 
-     * @param {number} index The index of a vertex.
-     * @returns {array} An array containing the screen position. E.g. [122, 290].
+     * @param {Number} index The index of a vertex.
+     * @returns {Number[]} An array containing the screen position. E.g. [122, 290].
      */
     getScreenPosition(index) {
         let positions = this.target.geometry.attributes['position'].data;
@@ -133,7 +143,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Adds an object to the selected collection of this Lore.OctreeHelper object.
      * 
-     * @param {object|number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
+     * @param {Object|Number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
      */
     addSelected(item) {
         // If item is only the index, create a dummy item
@@ -162,7 +172,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Remove an item from the selected collection of this Lore.OctreeHelper object.
      * 
-     * @param {number} index The index of the item in the selected collection.
+     * @param {Number} index The index of the item in the selected collection.
      */
     removeSelected(index) {
         this.selected.splice(index, 1);
@@ -186,8 +196,8 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Check whether or not the selected collection of this Lore.OctreeHelper object contains a vertex with a given index.
      * 
-     * @param {number} index The index of a vertex in the associated Lore.PointHelper object.
-     * @returns {boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
+     * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
+     * @returns {Boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
      */
     selectedContains(index) {
         for (let i = 0; i < this.selected.length; i++) {
@@ -202,7 +212,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Adds a vertex with a given index to the currently hovered vertex of this Lore.OctreeHelper object.
      * 
-     * @param {any} index The index of a vertex in the associated Lore.PointHelper object.
+     * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
      */
     setHovered(index) {
         if (that.hovered && that.hovered.index === result[0].index) {
@@ -278,8 +288,8 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Get the indices and distances of the vertices currently intersected by the ray sent from the mouse position.
      * 
-     * @param {object} mouse A mouse object containing x and y properties.
-     * @returns {object} A distance-sorted (ASC) array containing the interesected vertices.
+     * @param {Object} mouse A mouse object containing x and y properties.
+     * @returns {Object[]} A distance-sorted (ASC) array containing the interesected vertices.
      */
     getIntersections(mouse) {
         this.raycaster.set(this.renderer.camera, mouse.x, mouse.y);
@@ -297,30 +307,30 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Add an event listener to this Lore.OctreeHelper object.
      * 
-     * @param {string} eventName The name of the event to listen for.
-     * @param {function} callback A callback function called when an event is fired.
+     * @param {String} eventName The name of the event to listen for.
+     * @param {Function} callback A callback function called when an event is fired.
      */
     addEventListener(eventName, callback) {
-        if (!this.eventListeners[eventName]) {
-            this.eventListeners[eventName] = [];
+        if (!this._eventListeners[eventName]) {
+            this._eventListeners[eventName] = [];
         }
 
-        this.eventListeners[eventName].push(callback);
+        this._eventListeners[eventName].push(callback);
     }
 
     /**
      * Raise an event with a given name and send the data to the functions listening for this event.
      * 
-     * @param {string} eventName The name of the event to be rised.
-     * @param {any} data Data to be sent to the listening functions.
+     * @param {String} eventName The name of the event to be rised.
+     * @param {*} data Data to be sent to the listening functions.
      */
     raiseEvent(eventName, data) {
-        if (!this.eventListeners[eventName]) {
+        if (!this._eventListeners[eventName]) {
             return;
         }
 
-        for (let i = 0; i < this.eventListeners[eventName].length; i++) {
-            this.eventListeners[eventName][i](data);
+        for (let i = 0; i < this._eventListeners[eventName].length; i++) {
+            this._eventListeners[eventName][i](data);
         }
     }
 
@@ -463,7 +473,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Set the threshold of the raycaster associated with this Lore.OctreeHelper object.
      * 
-     * @param {number} threshold The threshold (maximum distance to the ray) of the raycaster.
+     * @param {Number} threshold The threshold (maximum distance to the ray) of the raycaster.
      */
     setThreshold(threshold) {
         this.raycaster.threshold = threshold;
@@ -472,8 +482,8 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
     /**
      * Execute a ray intersection search within this octree.
      * 
-     * @param {array} indices The indices of the octree nodes that are intersected by the ray.
-     * @returns {array} An array containing the vertices intersected by the ray.
+     * @param {Number[]} indices The indices of the octree nodes that are intersected by the ray.
+     * @returns {Number[]} An array containing the vertices intersected by the ray.
      */
     rayIntersections(indices) {
         let result = [];

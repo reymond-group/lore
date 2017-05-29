@@ -1,11 +1,17 @@
-/** The base class for helper classes. */
+/** 
+ * The base class for helper classes.
+ * 
+ * @property {Lore.Renderer} renderer An instance of Lore.Renderer.
+ * @property {Lore.Shader} shader The shader associated with this helper.
+ * @property {Lore.Geometry} geometry The geometry associated with this helper.
+ */
 Lore.HelperBase = class HelperBase extends Lore.Node {
     /**
      * Creates an instance of HelperBase.
      * 
      * @param {Lore.Renderer} renderer A Lore.Renderer object.
-     * @param {string} geometryName The name of this geometry.
-     * @param {string} shaderName The name of the shader used to render the geometry.
+     * @param {String} geometryName The name of this geometry.
+     * @param {String} shaderName The name of the shader used to render the geometry.
      */
     constructor(renderer, geometryName, shaderName) {
         super();
@@ -17,7 +23,7 @@ Lore.HelperBase = class HelperBase extends Lore.Node {
     /**
      * Set the value (a typed array) of an attribute.
      * 
-     * @param {string} name The name of the attribute. 
+     * @param {String} name The name of the attribute. 
      * @param {TypedArray} data A typed array containing the attribute values.
      */
     setAttribute(name, data) {
@@ -27,8 +33,8 @@ Lore.HelperBase = class HelperBase extends Lore.Node {
     /**
      * Get the value of an attribute (usually a typed array).
      * 
-     * @param {string} name The name of the attribute.
-     * @returns {any} Usually, a typed array containing the attribute values.
+     * @param {String} name The name of the attribute.
+     * @returns {TypedArray} Usually, a typed array containing the attribute values.
      */
     getAttribute(name) {
         return this.geometry.attributes[name].data;
@@ -37,9 +43,9 @@ Lore.HelperBase = class HelperBase extends Lore.Node {
     /**
      * Update a the value of an attribute at a specific index and marks the attribute as stale.
      * 
-     * @param {string} name The name of the attribute.
-     * @param {number} index The index of the value to be updated.
-     * @param {any} value Usually, a typed array or array with the length of the attribute values (3 for x, y, z coordinates) containing the new values.
+     * @param {String} name The name of the attribute.
+     * @param {Number} index The index of the value to be updated.
+     * @param {TypedArray} value Usually, a typed array or array with the length of the attribute values (3 for x, y, z coordinates) containing the new values.
      */
     updateAttribute(name, index, value) {
         let attr = this.geometry.attributes[name];
@@ -56,7 +62,7 @@ Lore.HelperBase = class HelperBase extends Lore.Node {
     /**
      * Updates all the values in the attribute and marks the attribute as stale.
      * 
-     * @param {string} name The name of the attribute.
+     * @param {String} name The name of the attribute.
      * @param {TypedArray} values A typed array containing the new attribute values.
      */
     updateAttributeAll(name, values) {

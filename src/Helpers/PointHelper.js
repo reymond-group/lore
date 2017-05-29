@@ -1,4 +1,21 @@
+/** 
+ * A helper class wrapping a point cloud.
+ * 
+ * @property {Object} opts An object containing options.
+ * @property {Number[]} indices Indices associated with the data.
+ * @property {Lore.Octree} octree The octree associated with the point cloud.
+ * @property {Object} filters A map mapping filter names to Lore.Filter instances associated with this helper class.
+ * @property {Number} pointSize The default point size of this data.
+ * @property {Object} dimensions An object with the properties min and max, each a 3D vector containing the extremes.
+ */
 Lore.PointHelper = class PointHelper extends Lore.HelperBase {
+    /**
+     * Creates an instance of PointHelper.
+     * @param {Lore.Renderer} renderer An instance of Lore.Renderer.
+     * @param {String} geometryName The name of this geometry.
+     * @param {String} shaderName The name of the shader used to render the geometry.
+     * @param {Object} options An object containing options.
+     */
     constructor(renderer, geometryName, shaderName, options) {
         super(renderer, geometryName, shaderName);
 
@@ -24,20 +41,44 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         };
     }
 
+    /**
+     * Get the max length of the length of three arrays.
+     * 
+     * @param {Array} x 
+     * @param {Array} y 
+     * @param {Array} z 
+     * @returns {Number} The length of the largest array.
+     */
     getMaxLength(x, y, z) {
         return Math.max(x.length, Math.max(y.length, z.length));
     }
 
+    /**
+     * Returns an object containing the dimensions of this point cloud.
+     * 
+     * @returns {Object} An object with the properties min and max, each a 3D vector containing the extremes.
+     */
     getDimensions() {
         return this.dimensions;
     }
 
+    /**
+     * Get the center (average) of the point cloud.
+     * 
+     * @returns {Lore.Vector3f} The center (average) of the point cloud.
+     */
     getCenter() {
         return new Lore.Vector3f((this.dimensions.max.getX() + this.dimensions.min.getX()) / 2.0, 
             (this.dimensions.max.getY() + this.dimensions.min.getY()) / 2.0,
             (this.dimensions.max.getZ() + this.dimensions.min.getZ()) / 2.0);
     }
 
+    /**
+     * Set the positions of points in this point cloud.
+     * 
+     * @param {TypedArray} positions The positions (linear array).
+     * @returns {Lore.PointHelper} Itself.
+     */
     setPositions(positions) {
         // Min, max will NOT be calculated as of now!
         // TODO?
@@ -47,6 +88,15 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
+    /**
+     * Set the positions of points in this point clouds.
+     * 
+     * @param {TypedArray} x An array containing the x components.
+     * @param {TypedArray} y An array containing the y components.
+     * @param {TypedArray} z An array containing the z components.
+     * @param {Number} length The length of the arrays.
+     * @returns {Lore.PointHelper} Itself.
+     */
     setPositionsXYZ(x, y, z, length) {
         let positions = new Float32Array(length * 3);
         
@@ -99,6 +149,17 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
+    /**
+     * Set the positions and the HSS (Hue, Saturation, Size) values of the points in the point cloud.
+     * 
+     * @param {TypedArray} x An array containing the x components.
+     * @param {TypedArray} y An array containing the y components.
+     * @param {TypedArray} z An array containing the z components.
+     * @param {TypedArray} hue An array containing the hues of the data points.
+     * @param {TypedArray} saturation An array containing the saturations of the data points.
+     * @param {TypedArray} size An array containing the sizes of the data points.
+     * @returns {Lore.PointHelper} Itself.
+     */
     setPositionsXYZHSS(x, y, z, hue, saturation, size) {
         let length = this.getMaxLength(x, y, z);
 
@@ -137,6 +198,14 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
+    /**
+     * Set the hue from an rgb values.
+     * 
+     * @param {TypeArray} r An array containing the red components of the colors.
+     * @param {TypeArray} g An array containing the green components of the colors.
+     * @param {TypeArray} b An array containing the blue components of the colors.
+     * @returns {Lore.PointHelper} Itself.
+     */
     setRGB(r, g, b) {
         let c = new Float32Array(r.length * 3);
         let colors = this.getAttribute('color');
@@ -149,7 +218,7 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
             c[j + 2] = b[i];
         }
 
-        // Convert to HOS (Hue, Opacity, Size)
+        // Convert to HOS (Hue, Saturation, Size)
         for (let i = 0; i < c.length; i += 3) {
             let r = c[i];
             let g = c[i + 1];
@@ -165,18 +234,37 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
+    /**
+     * Set the colors (HSS) for the points.
+     * 
+     * @param {TypedArray} colors An array containing the HSS values.
+     * @returns {Lore.PointHelper} Itself.
+     */
     setColors(colors) {
         this.setAttribute('color', colors);
 
         return this;
     }
 
+    /**
+     * Update the colors (HSS) for the points.
+     * 
+     * @param {TypedArray} colors An array containing the HSS values.
+     * @returns {Lore.PointHelper} Itself.
+     */
     updateColors(colors) {
         this.updateAttributeAll('color', colors);
 
         return this;
     }
 
+    /**
+     * Update the color (HSS) at a specific index.
+     * 
+     * @param {Number} index The index of the data point.
+     * @param {Lore.Color} color An instance of Lore.Color containing HSS values.
+     * @returns 
+     */
     updateColor(index, color) {
         this.updateAttribute('color', index, color.components);
 
