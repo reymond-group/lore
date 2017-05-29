@@ -1,3 +1,14 @@
+/** 
+ * A class representing a geometry.
+ * 
+ * @property {String} type The type name of this object (Lore.Geometry).
+ * @property {String} name The name of this geometry.
+ * @property {WebGLRenderingContext} gl A WebGL rendering context.
+ * @property {Lore.Shader} shader An initialized shader.
+ * @property {Object} attributes A map mapping attribute names to Lore.Attrubute objects.
+ * @property {Lore.DrawMode} [drawMode=gl.POINTS] The current draw mode of this geometry.
+ * @property {Boolean} isVisisble A boolean indicating whether or not this geometry is currently visible.
+ */
 Lore.Geometry = class Geometry extends Lore.Node {
     constructor(name, gl, shader) {
         super();

@@ -1,8 +1,21 @@
-/** A class representing a Lore attribute. */
+/** 
+ * A class representing an attribute. 
+ * 
+ * @property {String} type The type name of this object (Lore.Attribute).
+ * @property {*} data The data represented by the attribute in a 1D array. Usually a Float32Array.
+ * @property {Number} [attributeLength=3] The length of the attribute. '3' for Vector3f.
+ * @property {String} name The name of this attribut. Must be the name used by the shader.
+ * @property {Number} size The length of the attribute values (defined as data.length / attributeLength).
+ * @property {WebGLBuffer} buffer The bound WebGLBuffer.
+ * @property {GLint} attributeLocation The attribute location for this attribute.
+ * @property {GLenum} bufferType The buffer target. As of WebGL 1: gl.ARRAY_BUFFER or gl.ELEMENT_ARRAY_BUFFER.
+ * @property {GLenum} drawMode The draw mode. As of WebGL 1: gl.STATIC_DRAW, gl.DYNAMIC_DRAW or gl.STREAM_DRAW.
+ * @property {Boolean} stale A boolean indicating whether or not this attribute has changed and needs to be updated.
+ */
 Lore.Attribute = class Attribute {
     /**
      * Creates an instance of Attribute.
-     * @param {any} data The data represented by the attribute in a 1D array. Usually a Float32Array.
+     * @param {*} data The data represented by the attribute in a 1D array. Usually a Float32Array.
      * @param {Number} attributeLength The length of the attribute (3 for RGB, XYZ, ...).
      * @param {String} name The name of the attribute.
      */
@@ -23,7 +36,7 @@ Lore.Attribute = class Attribute {
      * Set the attribute value from a vector at a given index. The vector should have the same number of components as is the length of this attribute.
      * 
      * @param {Number} index The index at which to replace / set the value (is calculated as index * attributeLength).
-     * @param {Vector3f|any} v A vector.
+     * @param {Lore.Vector3f} v A vector.
      */
     setFromVector(index, v) {
         this.data.set(v.components, index * this.attributeLength, v.components.length);
@@ -32,7 +45,7 @@ Lore.Attribute = class Attribute {
     /**
      * Set the attribute values from vectors in an array.
      * 
-     * @param {Array} arr An array containing vectors. The number of components of the vectors must have the same length as the attribute length specified.
+     * @param {Lore.Vector3f[]} arr An array containing vectors. The number of components of the vectors must have the same length as the attribute length specified.
      */
     setFromVectorArray(arr) {
         if (this.attributeLength !== arr[0].components.length)
@@ -152,8 +165,8 @@ Lore.Attribute = class Attribute {
      * 
      * @param {WebGLRenderingContext} gl The WebGL rendering context.
      * @param {WebGLProgram} program A WebGL program.
-     * @param {Number|GLenum} bufferType The buffer type.
-     * @param {Number|GLenum} drawMode The draw mode.
+     * @param {GLenum} bufferType The buffer type.
+     * @param {GLenum} drawMode The draw mode.
      */
     createBuffer(gl, program, bufferType, drawMode) {
         this.buffer = gl.createBuffer();

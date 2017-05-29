@@ -1,4 +1,8 @@
-/** A class representing 3D float vector. */
+/** 
+ * A class representing 3D float vector.
+ * 
+ * @property {Float32Array} components A typed array storing the components of this vector.
+ */
 Lore.Vector3f = class Vector3f {
     /**
      * Creates an instance of Vector3f.
@@ -23,7 +27,7 @@ Lore.Vector3f = class Vector3f {
      * @param {Number} x The x component of the vector.
      * @param {Number} y The y component of the vector.
      * @param {Number} z The z component of the vector.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     set(x, y, z) {
         this.components[0] = x;
@@ -64,7 +68,7 @@ Lore.Vector3f = class Vector3f {
      * Sets the x component of this vector.
      * 
      * @param {Number} x The value to which the x component of this vectors will be set.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     setX(x) {
         this.components[0] = x;
@@ -76,7 +80,7 @@ Lore.Vector3f = class Vector3f {
      * Sets the y component of this vector.
      * 
      * @param {Number} y The value to which the y component of this vectors will be set.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     setY(y) {
         this.components[1] = y;
@@ -88,7 +92,7 @@ Lore.Vector3f = class Vector3f {
      * Sets the z component of this vector.
      * 
      * @param {Number} z The value to which the z component of this vectors will be set.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     setZ(z) {
         this.components[2] = z;
@@ -99,8 +103,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Sets this vector from spherical coordinates.
      * 
-     * @param {SphericalCoordinates} s A spherical coordinates object.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.SphericalCoordinates} s A spherical coordinates object.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     setFromSphericalCoords(s) {
         var radius = s.components[0];
@@ -119,8 +123,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Copies the values from another vector
      * 
-     * @param {Vector3f} v A vector.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Vector3f} v A vector.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     copyFrom(v) {
         this.components[0] = v.components[0];
@@ -134,7 +138,7 @@ Lore.Vector3f = class Vector3f {
      * Set the length / magnitude of the vector.
      * 
      * @param {Number} length The length / magnitude to set the vector to.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     setLength(length) {
         return this.multiplyScalar(length / this.length());
@@ -163,7 +167,7 @@ Lore.Vector3f = class Vector3f {
     /**
      * Normalizes the vector.
      * 
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     normalize() {
         return this.divideScalar(this.length());
@@ -172,8 +176,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Multiply the vector with another vector.
      * 
-     * @param {Vector3f} v A vector.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Vector3f} v A vector.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     multiply(v) {
         this.components[0] *= v.components[0];
@@ -187,7 +191,7 @@ Lore.Vector3f = class Vector3f {
      * Multiplies this vector with a scalar.
      * 
      * @param {Number} s A scalar.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     multiplyScalar(s) {
         this.components[0] *= s;
@@ -200,8 +204,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Divides the vector by another vector.
      * 
-     * @param {Vector3f} v A vector.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Vector3f} v A vector.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     divide(v) {
         this.components[0] /= v.components[0];
@@ -215,7 +219,7 @@ Lore.Vector3f = class Vector3f {
      * Divides the vector by a scalar.
      * 
      * @param {Number} s A scalar.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     divideScalar(s) {
         this.components[0] /= s;
@@ -228,8 +232,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Sums the vector with another.
      * 
-     * @param {Vector3f} v A vector.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Vector3f} v A vector.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     add(v) {
         this.components[0] += v.components[0];
@@ -242,8 +246,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Substracts a vector from this one.
      * 
-     * @param {Vector3f} v A vector.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Vector3f} v A vector.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     subtract(v) {
         this.components[0] -= v.components[0];
@@ -256,7 +260,7 @@ Lore.Vector3f = class Vector3f {
     /**
      * Calculates the dot product for the vector with another vector.
      * 
-     * @param {Vector3f} v A vector.
+     * @param {Lore.Vector3f} v A vector.
      * @returns {Number} The dot product of the two vectors.
      */
     dot(v) {
@@ -268,7 +272,7 @@ Lore.Vector3f = class Vector3f {
     /**
      * Calculates the cross product for the vector with another vector.
      * 
-     * @param {Vector3f} v A vector.
+     * @param {Lore.Vector3f} v A vector.
      * @returns {Number} The cross product of the two vectors.
      */
     cross(v) {
@@ -282,8 +286,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Projects the vector from world space into camera space.
      * 
-     * @param {CameraBase} camera A camera instance.
-     * @returns {Vector3f} The vector in camera space.
+     * @param {Lore.CameraBase} camera A camera instance.
+     * @returns {Lore.Vector3f} The vector in camera space.
      */
     project(camera) {
         return this.applyProjection(Lore.Matrix4f.multiply(camera.projectionMatrix, Lore.Matrix4f.invert(camera.modelMatrix)));
@@ -292,8 +296,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Projects the vector from camera space into world space.
      * 
-     * @param {CameraBase} camera A camera instance.
-     * @returns {Vector3f} The vector in world space.
+     * @param {Lore.CameraBase} camera A camera instance.
+     * @returns {Lore.Vector3f} The vector in world space.
      */
     unproject(camera) {
         return this.applyProjection(Lore.Matrix4f.multiply(camera.modelMatrix, Lore.Matrix4f.invert(camera.projectionMatrix)));
@@ -302,8 +306,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Applies a projection matrix to the vector.
      * 
-     * @param {Matrix4f} m A (projection) matrix.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Matrix4f} m A (projection) matrix.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     applyProjection(m) {
         var x = this.components[0];
@@ -323,8 +327,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Rotates the vector into the direction defined by the rotational component of a matrix.
      * 
-     * @param {Matrix4f} m A matrix.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Matrix4f} m A matrix.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     toDirection(m) {
         var x = this.components[0];
@@ -345,8 +349,8 @@ Lore.Vector3f = class Vector3f {
     /**
      * Applies a quaternion to the vector (usually a rotation).
      * 
-     * @param {Quaternion} q Quaternion.
-     * @returns {Vector3f} Returns itself.
+     * @param {Lore.Quaternion} q Quaternion.
+     * @returns {Lore.Vector3f} Returns itself.
      */
     applyQuaternion(q) {
         var x = this.components[0];
@@ -373,7 +377,7 @@ Lore.Vector3f = class Vector3f {
     /**
      * Calculates the square of the distance to another vector.
      * 
-     * @param {Vector3f} v A vector.
+     * @param {Lore.Vector3f} v A vector.
      * @returns {Number} The square of the distance to the other vector.
      */
     distanceToSq(v) {
@@ -387,7 +391,7 @@ Lore.Vector3f = class Vector3f {
     /**
      * Calculates the distance to another vector.
      * 
-     * @param {Vector3f} v A vector.
+     * @param {Lore.Vector3f} v A vector.
      * @returns {Number} The distance to the other vector.
      */
     distanceTo(v) {
@@ -397,7 +401,7 @@ Lore.Vector3f = class Vector3f {
     /**
      * Clones this vector.
      * 
-     * @returns {Vector3f} A clone of this vector.
+     * @returns {Lore.Vector3f} A clone of this vector.
      */
     clone() {
         return new Lore.Vector3f(this.components[0], this.components[1],
@@ -407,7 +411,7 @@ Lore.Vector3f = class Vector3f {
     /**
      * Compares the components of the vector to those of another.
      * 
-     * @param {Vector3f} v A vector.
+     * @param {Lore.Vector3f} v A vector.
      * @returns {Boolean} A vector indicating whether or not the two vectors are equal.
      */
     equals(v) {
@@ -430,8 +434,8 @@ Lore.Vector3f = class Vector3f {
      * Normalizes a vector.
      * 
      * @static
-     * @param {Vector3f} v A vector. 
-     * @returns {Vector3f} The noramlized vector.
+     * @param {Lore.Vector3f} v A vector. 
+     * @returns {Lore.Vector3f} The noramlized vector.
      */
     static normalize(v) {
         return Lore.Vector3f.divideScalar(v, v.length());
@@ -441,9 +445,9 @@ Lore.Vector3f = class Vector3f {
      * Multiplies two vectors.
      * 
      * @static
-     * @param {Vector3f} u A vector. 
-     * @param {Vector3f} v A vector. 
-     * @returns {Vector3f} The product of the two vectors.
+     * @param {Lore.Vector3f} u A vector. 
+     * @param {Lore.Vector3f} v A vector. 
+     * @returns {Lore.Vector3f} The product of the two vectors.
      */
     static multiply(u, v) {
         return new Lore.Vector3f(u.components[0] * v.components[0],
@@ -455,9 +459,9 @@ Lore.Vector3f = class Vector3f {
      * Multiplies a vector with a scalar.
      * 
      * @static
-     * @param {Vector3f} v A vector. 
+     * @param {Lore.Vector3f} v A vector. 
      * @param {Number} s A scalar.
-     * @returns {Vector3f} The vector multiplied by the scalar.
+     * @returns {Lore.Vector3f} The vector multiplied by the scalar.
      */
     static multiplyScalar(v, s) {
         return new Lore.Vector3f(v.components[0] * s,
@@ -469,9 +473,9 @@ Lore.Vector3f = class Vector3f {
      * Divides a vector by another vector (u / v).
      * 
      * @static
-     * @param {Vector3f} u A vector. 
-     * @param {Vector3f} v A vector. 
-     * @returns {Vector3f} The fraction vector.
+     * @param {Lore.Vector3f} u A vector. 
+     * @param {Lore.Vector3f} v A vector. 
+     * @returns {Lore.Vector3f} The fraction vector.
      */
     static divide(u, v) {
         return new Lore.Vector3f(u.components[0] / v.components[0],
@@ -483,9 +487,9 @@ Lore.Vector3f = class Vector3f {
      * Divides a vector by a scalar.
      * 
      * @static
-     * @param {Vector3f} v A vector. 
+     * @param {Lore.Vector3f} v A vector. 
      * @param {Number} s A scalar.
-     * @returns {Vector3f} The vector divided by the scalar.
+     * @returns {Lore.Vector3f} The vector divided by the scalar.
      */
     static divideScalar(v, s) {
         return new Lore.Vector3f(v.components[0] / s,
@@ -497,9 +501,9 @@ Lore.Vector3f = class Vector3f {
      * Sums two vectors.
      * 
      * @static
-     * @param {Vector3f} u A vector. 
-     * @param {Vector3f} v A vector. 
-     * @returns {Vector3f} The sum of the two vectors.
+     * @param {Lore.Vector3f} u A vector. 
+     * @param {Lore.Vector3f} v A vector. 
+     * @returns {Lore.Vector3f} The sum of the two vectors.
      */
     static add(u, v) {
         return new Lore.Vector3f(u.components[0] + v.components[0],
@@ -511,9 +515,9 @@ Lore.Vector3f = class Vector3f {
      * Subtracts one scalar from another (u - v)
      * 
      * @static
-     * @param {Vector3f} u A vector. 
-     * @param {Vector3f} v A vector. 
-     * @returns {Vector3f} The difference between the two vectors.
+     * @param {Lore.Vector3f} u A vector. 
+     * @param {Lore.Vector3f} v A vector. 
+     * @returns {Lore.Vector3f} The difference between the two vectors.
      */
     static subtract(u, v) {
         return new Lore.Vector3f(u.components[0] - v.components[0],
@@ -525,9 +529,9 @@ Lore.Vector3f = class Vector3f {
      * Calculates the cross product of two vectors.
      * 
      * @static
-     * @param {Vector3f} u A vector. 
-     * @param {Vector3f} v A vector. 
-     * @returns {Vector3f} The cross product of the two vectors.
+     * @param {Lore.Vector3f} u A vector. 
+     * @param {Lore.Vector3f} v A vector. 
+     * @returns {Lore.Vector3f} The cross product of the two vectors.
      */
     static cross(u, v) {
         return new Lore.Vector3f(
@@ -541,8 +545,8 @@ Lore.Vector3f = class Vector3f {
      * Calculates the dot product of two vectors.
      * 
      * @static
-     * @param {Vector3f} u A vector. 
-     * @param {Vector3f} v A vector. 
+     * @param {Lore.Vector3f} u A vector. 
+     * @param {Lore.Vector3f} v A vector. 
      * @returns {Number} The dot product of the two vectors.
      */
     static dot(u, v) {
@@ -555,7 +559,7 @@ Lore.Vector3f = class Vector3f {
      * Returns the forward vector (0, 0, 1).
      * 
      * @static
-     * @returns {Vector3f} The forward vector.
+     * @returns {Lore.Vector3f} The forward vector.
      */
     static forward() {
         return new Lore.Vector3f(0, 0, 1);
@@ -565,7 +569,7 @@ Lore.Vector3f = class Vector3f {
      * Returns the up vector (0, 1, 0).
      * 
      * @static
-     * @returns {Vector3f} The up vector.
+     * @returns {Lore.Vector3f} The up vector.
      */
     static up() {
         return new Lore.Vector3f(0, 1, 0);
@@ -575,7 +579,7 @@ Lore.Vector3f = class Vector3f {
      * Returns the right vector (1, 0, 0).
      * 
      * @static
-     * @returns {Vector3f} The right vector.
+     * @returns {Lore.Vector3f} The right vector.
      */
     static right() {
         return new Lore.Vector3f(1, 0, 0);

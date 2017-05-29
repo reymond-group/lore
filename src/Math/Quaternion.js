@@ -1,4 +1,8 @@
-/** A class representing a quaternion */
+/** 
+ * A class representing a quaternion.
+ * 
+ * @property {Float32Array} components A typed array storing the components of this quaternion.
+ */
 Lore.Quaternion = class Quaternion {
     /**
      * Creates an instance of Quaternion.
@@ -66,7 +70,7 @@ Lore.Quaternion = class Quaternion {
      * @param {Number} z The z component of this quaternion.
      * @param {Number} w The w component of this quaternion.
      * 
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     set(x, y, z, w) {
         this.components[0] = x;
@@ -93,7 +97,7 @@ Lore.Quaternion = class Quaternion {
      * Set the y component of this quaternion.
      * 
      * @param {Number} y The y component of this quaternion.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     setY(y) {
         this.components[1] = y;
@@ -105,7 +109,7 @@ Lore.Quaternion = class Quaternion {
      * Set the z component of this quaternion.
      * 
      * @param {Number} z The z component of this quaternion.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     setZ(z) {
         this.components[2] = z;
@@ -117,7 +121,7 @@ Lore.Quaternion = class Quaternion {
      * Set the w component of this quaternion.
      * 
      * @param {Number} w The w component of this quaternion.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     setW(w) {
         this.components[3] = w;
@@ -128,9 +132,9 @@ Lore.Quaternion = class Quaternion {
     /**
      * Sets the quaternion from the axis angle representation.
      * 
-     * @param {Vector3f} axis The axis component.
+     * @param {Lore.Vector3f} axis The axis component.
      * @param {Number} angle The angle component.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     setFromAxisAngle(axis, angle) {
         // See:
@@ -152,9 +156,9 @@ Lore.Quaternion = class Quaternion {
     /**
      * Sets the quaternion from unit vectors.
      * 
-     * @param {Vector3f} from The from vector.
-     * @param {Vector3f} to The to vector.
-     * @returns {Quaternion} Returns itself.
+     * @param {Lore.Vector3f} from The from vector.
+     * @param {Lore.Vector3f} to The to vector.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     setFromUnitVectors(from, to) {
         let v = null;
@@ -180,10 +184,10 @@ Lore.Quaternion = class Quaternion {
     /**
      * Set the quaternion based facing in a destionation direction.
      * 
-     * @param {Vector3f} source The source vector (the position).
-     * @param {Vector3f} dest The destination vector.
-     * @param {Vector3f} up The up vector of the source.
-     * @returns {Quaternion} Returns itself.
+     * @param {Lore.Vector3f} source The source vector (the position).
+     * @param {Lore.Vector3f} dest The destination vector.
+     * @param {Lore.Vector3f} up The up vector of the source.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     lookAt(source, dest, up) {
         this.setFromMatrix(Lore.Matrix4f.lookAt(source, dest, up));
@@ -215,7 +219,7 @@ Lore.Quaternion = class Quaternion {
     /**
      * Get the inverse of this quaternion.
      * 
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     inverse() {
         return this.conjugate().normalize();
@@ -224,7 +228,7 @@ Lore.Quaternion = class Quaternion {
     /**
      * Normalizes this quaternion.
      * 
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     normalize() {
         let length = this.length();
@@ -248,7 +252,7 @@ Lore.Quaternion = class Quaternion {
     /**
      * Get the dot product of this and another quaternion.
      * 
-     * @param {Quaternion} q A quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
      * @returns {Number} The dot product.
      */
     dot(q) {
@@ -261,8 +265,8 @@ Lore.Quaternion = class Quaternion {
     /**
      * Multiply this quaternion with another (a * b).
      * 
-     * @param {Quaternion} b Another quaternion.
-     * @returns {Quaternion} Returns itself.
+     * @param {Lore.Quaternion} b Another quaternion.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     multiplyA(b) {
         // See:
@@ -284,8 +288,8 @@ Lore.Quaternion = class Quaternion {
     /**
      * Multiply another with this quaternion (a * b).
      * 
-     * @param {any} a Another quaternion.
-     * @returns {Quaternion} Returns itself.
+     * @param {Lore.Quaternion} a Another quaternion.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     multiplyB(a) {
         // See:
@@ -308,7 +312,7 @@ Lore.Quaternion = class Quaternion {
      * Multiply this quaternion with a scalar.
      * 
      * @param {Number} s A scalar.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     multiplyScalar(s) {
         this.components[0] *= s;
@@ -322,7 +326,7 @@ Lore.Quaternion = class Quaternion {
     /**
      * Conjugate (* -1) this quaternion.
      * 
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     conjugate() {
         // See:
@@ -337,8 +341,8 @@ Lore.Quaternion = class Quaternion {
     /**
      * Add another quaternion to this one.
      * 
-     * @param {Quaternion} q A quaternion.
-     * @returns {Quaternion} Returns itself.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     add(q) {
         this.components[0] += q.components[0];
@@ -352,8 +356,8 @@ Lore.Quaternion = class Quaternion {
     /**
      * Subtract another quaternion from this one.
      * 
-     * @param {Quaternion} q A quaternion.
-     * @returns {Quaternion} Returns itself.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     subtract(q) {
         this.components[0] -= q.components[0];
@@ -368,7 +372,7 @@ Lore.Quaternion = class Quaternion {
      * Rotate this quaternion around the x axis.
      * 
      * @param {Number} angle An angle in radians.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     rotateX(angle) {
         let halfAngle = angle / 2.0;
@@ -381,7 +385,7 @@ Lore.Quaternion = class Quaternion {
      * Rotate this quaternion around the y axis.
      * 
      * @param {Number} angle An angle in radians.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     rotateY(angle) {
         let halfAngle = angle / 2.0;
@@ -394,7 +398,7 @@ Lore.Quaternion = class Quaternion {
      * Rotate this quaternion around the y axis.
      * 
      * @param {Number} angle An angle in radians.
-     * @returns {Quaternion} Returns itself.
+     * @returns {Lore.Quaternion} Returns itself.
      */
     rotateZ(angle) {
         let halfAngle = angle / 2.0;
@@ -416,7 +420,7 @@ Lore.Quaternion = class Quaternion {
     /**
      * Create a rotation matrix from this quaternion.
      * 
-     * @returns {Matrix4f} A rotation matrix representation of this quaternion.
+     * @returns {Lore.Matrix4f} A rotation matrix representation of this quaternion.
      */
     toRotationMatrix() {
         let i = this.components[0];
@@ -454,8 +458,8 @@ Lore.Quaternion = class Quaternion {
     /**
      * Set this quaternion from a (rotation) matrix.
      * 
-     * @param {Matrix4f} m 
-     * @returns {Quaternion} Returns itself.
+     * @param {Lore.Matrix4f} m 
+     * @returns {Lore.Quaternion} Returns itself.
      */
     setFromMatrix(m) {
         // As in three.js, this is an implementation straight from:
@@ -506,7 +510,7 @@ Lore.Quaternion = class Quaternion {
     /**
      * Clone this quaternion.
      * 
-     * @returns {Quaternion} A clone of this quaternion.
+     * @returns {Lore.Quaternion} A clone of this quaternion.
      */
     clone() {
         return new Lore.Quaternion(this.components[0], this.components[1],
@@ -516,7 +520,7 @@ Lore.Quaternion = class Quaternion {
     /**
      * Checks whether the entries of this quaternion match another one.
      * 
-     * @param {Quaternion} q A quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
      * @returns {Boolean} A boolean representing whether the entries of the two quaternions match.
      */
     equals(q) {
@@ -540,8 +544,8 @@ Lore.Quaternion = class Quaternion {
      * Calculate the dot product of two quaternions.
      * 
      * @static
-     * @param {Quaternion} q A quaternion.
-     * @param {Quaternion} p A quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @param {Lore.Quaternion} p A quaternion.
      * @returns {Number} The dot product.
      */
     static dot(q, p) {
@@ -555,9 +559,9 @@ Lore.Quaternion = class Quaternion {
      * Multiply (cross product) two quaternions.
      * 
      * @static
-     * @param {Quaternion} a A quaternion.
-     * @param {Quaternion} b A quaternion.
-     * @returns {Quaternion} The cross product quaternion.
+     * @param {Lore.Quaternion} a A quaternion.
+     * @param {Lore.Quaternion} b A quaternion.
+     * @returns {Lore.Quaternion} The cross product quaternion.
      */
     static multiply(a, b) {
         return new Lore.Quaternion(
@@ -576,9 +580,9 @@ Lore.Quaternion = class Quaternion {
      * Multiplies a quaternion with a scalar.
      * 
      * @static
-     * @param {Quaternion} q A quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
      * @param {Number} s A scalar.
-     * @returns {Quaternion} The resulting quaternion.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static multiplyScalar(q, s) {
         return new Lore.Quaternion(q.components[0] * s, q.components[1] * s,
@@ -589,8 +593,8 @@ Lore.Quaternion = class Quaternion {
      * Inverse a quaternion.
      * 
      * @static
-     * @param {Quaternion} q A quaternion.
-     * @returns {Quaternion} The resulting quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static inverse(q) {
         let p = new Lore.Quaternion(q.components);
@@ -601,8 +605,8 @@ Lore.Quaternion = class Quaternion {
      * Normalize a quaternion.
      * 
      * @static
-     * @param {Quaternion} q A quaternion.
-     * @returns {Quaternion} The resulting quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static normalize(q) {
         let length = q.length();
@@ -620,8 +624,8 @@ Lore.Quaternion = class Quaternion {
      * Conjugate (* -1) a quaternion.
      * 
      * @static
-     * @param {Quaternion} q A quaternion.
-     * @returns {Quaternion} The resulting quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static conjugate(q) {
         return new Lore.Quaternion(q.components[0] * -1, q.components[1] * -1,
@@ -632,9 +636,9 @@ Lore.Quaternion = class Quaternion {
      * Sum two quaternions.
      * 
      * @static
-     * @param {Quaternion} q A quaternion.
-     * @param {Quaternion} p A quaternion.
-     * @returns {Quaternion} The resulting quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @param {Lore.Quaternion} p A quaternion.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static add(q, p) {
         return new Lore.Quaternion(q.components[0] + p.components[0],
@@ -647,9 +651,9 @@ Lore.Quaternion = class Quaternion {
      * Subtract a quaternion from another (q - p).
      * 
      * @static
-     * @param {Quaternion} q A quaternion.
-     * @param {Quaternion} p A quaternion.
-     * @returns {Quaternion} The resulting quaternion.
+     * @param {Lore.Quaternion} q A quaternion.
+     * @param {Lore.Quaternion} p A quaternion.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static subtract(q, p) {
         return new Lore.Quaternion(q.components[0] - p.components[0],
@@ -662,8 +666,8 @@ Lore.Quaternion = class Quaternion {
      * Create a quaternion from a matrix.
      * 
      * @static
-     * @param {Matrix4f} m A matrix.
-     * @returns {Quaternion} The resulting quaternion.
+     * @param {Lore.Matrix4f} m A matrix.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static fromMatrix(m) {
         let q = new Lore.Quaternion();
@@ -675,10 +679,10 @@ Lore.Quaternion = class Quaternion {
      * Interpolate between two quaternions (t is between 0 and 1).
      * 
      * @static
-     * @param {Quaternion} q The source quaternion.
-     * @param {Quaternion} p The target quaternion.
+     * @param {Lore.Quaternion} q The source quaternion.
+     * @param {Lore.Quaternion} p The target quaternion.
      * @param {Number} t The interpolation value / percentage (between 0 an 1).
-     * @returns {Quaternion} The resulting quaternion.
+     * @returns {Lore.Quaternion} The resulting quaternion.
      */
     static slerp(q, p, t) {
         // See:

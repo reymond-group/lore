@@ -1,3 +1,4 @@
+/** A map mapping draw modes as strings to their GLInt representations. */
 Lore.DrawModes = {
     points: 0,
     lines: 1,

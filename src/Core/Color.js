@@ -1,4 +1,8 @@
-/** A class representing a Color. */
+/** 
+ * A class representing a Color. 
+ * 
+ * @property {Float32Array} components A typed array storing the components of this color (rgba).
+ */
 Lore.Color = class Color {
     /**
      * Creates an instance of Color.
@@ -26,7 +30,7 @@ Lore.Color = class Color {
      * @param {Number} g The green component (0.0 - 1.0).
      * @param {Number} b The blue component (0.0 - 1.0).
      * @param {Number} a The alpha component (0.0 - 1.0).
-     * @returns {Color} Returns itself.
+     * @returns {Lore.Color} Returns itself.
      */
     set(r, g, b, a) {
         this.components[0] = r;
@@ -45,7 +49,7 @@ Lore.Color = class Color {
      * 
      * @static
      * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
-     * @returns {Color} A color representing the hex string.
+     * @returns {Lore.Color} A color representing the hex string.
      */
     static fromHex(hex) {
         // Thanks to Tim Down
@@ -97,7 +101,7 @@ Lore.Color = class Color {
      * @param {Number} h The hue component.
      * @param {Number} s The saturation component.
      * @param {Number} l The lightness component.
-     * @returns {Array} An array containing the r, g and b values ([r, g, b]).
+     * @returns {Number[]} An array containing the r, g and b values ([r, g, b]).
      */
     static hslToRgb(h, s, l) {
         let r, g, b;
@@ -123,7 +127,7 @@ Lore.Color = class Color {
      * @param {Number} r The red component.
      * @param {Number} g The green component.
      * @param {Number} b The blue component.
-     * @returns {Array} An array containing the h, s and l values ([h, s, l]).
+     * @returns {Number[]} An array containing the h, s and l values ([h, s, l]).
      */
     static rgbToHsl(r, g, b) {
         r /= 255, g /= 255, b /= 255;

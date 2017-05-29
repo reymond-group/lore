@@ -1,11 +1,20 @@
-/** A class representing orbital controls. */
+/** 
+ * A class representing orbital controls.
+ * 
+ * @property {Lore.Vector3f} up The global up vector.
+ * @property {Number} radius The distance from the camera to the lookat vector.
+ * @property {Number} [yRotationLimit=Math.PI] The limit for the vertical rotation.
+ * @property {Lore.SphericalCoords} spherical The spherical coordinates of the camera on the sphere around the lookat vector.
+ * @property {Number} scale The sensitivity scale.
+ * @property {Lore.CameraBase} camera The camera associated with these controls.
+ */
 Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
 
     /**
      * Creates an instance of OrbitalControls.
-     * @param {Renderer} renderer An instance of a Lore renderer.
-     * @param {Number} radius The distance of the camera to the lookat vector.
-     * @param {Vector3f} lookAt The lookat vector.
+     * @param {Lore.Renderer} renderer An instance of a Lore renderer.
+     * @param {Lore.Number} radius The distance of the camera to the lookat vector.
+     * @param {Lore.Vector3f} lookAt The lookat vector.
      */
     constructor(renderer, radius, lookAt = new Lore.Vector3f()) {
         super(renderer, lookAt);
@@ -15,9 +24,9 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
         
         this.yRotationLimit = Math.PI;
 
-        this.dPhi = 0.0;
-        this.dTheta = 0.0;
-        this.dPan = new Lore.Vector3f();
+        this._dPhi = 0.0;
+        this._dTheta = 0.0;
+        this._dPan = new Lore.Vector3f();
 
         this.spherical = new Lore.SphericalCoords();
 
@@ -53,7 +62,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
      * Limit the vertical rotation to the horizon (the upper hemisphere).
      * 
      * @param {Boolean} limit A boolean indicating whether or not to limit the vertical rotation to the horizon.
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     limitRotationToHorizon(limit) {
         if (limit) {
@@ -69,7 +78,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
      * Sets the distance (radius of the sphere) from the lookat vector to the camera.
      * 
      * @param {Number} radius The radius.
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setRadius(radius) {
         this.radius = radius;
@@ -85,19 +94,19 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
      * 
-     * @param {any} e A mouse or touch events data.
+     * @param {*} e A mouse or touch events data.
      * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     update(e, source) {
         if (source == 'left' && !this.rotationLocked) {
             // Rotate
-            this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
-            this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
+            this._dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
+            this._dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
             
             // It's just to fast like this ...
-            // this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
-            // this.dPhi = -2 * Math.PI * e.y / this.canvas.clientHeight;
+            // this._dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
+            // this._dPhi = -2 * Math.PI * e.y / this.canvas.clientHeight;
         } else if (source == 'right' || source == 'left' && this.rotationLocked) {
             // Translate
             let x = e.x * (this.camera.right - this.camera.left) /
@@ -108,9 +117,9 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
             let u = this.camera.getUpVector().components;
             let r = this.camera.getRightVector().components;
 
-            this.dPan.components[0] = r[0] * -x + u[0] * y;
-            this.dPan.components[1] = r[1] * -x + u[1] * y;
-            this.dPan.components[2] = r[2] * -x + u[2] * y;
+            this._dPan.components[0] = r[0] * -x + u[0] * y;
+            this._dPan.components[1] = r[1] * -x + u[1] * y;
+            this._dPan.components[2] = r[2] * -x + u[2] * y;
         } else if (source == 'middle' || source == 'wheel') {
             if (e.y > 0) {
                 // Zoom Out
@@ -129,22 +138,22 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
         let offset = this.camera.position.clone().subtract(this.lookAt);
 
         this.spherical.setFromVector(offset);
-        this.spherical.components[1] += this.dPhi;
-        this.spherical.components[2] += this.dTheta;
+        this.spherical.components[1] += this._dPhi;
+        this.spherical.components[2] += this._dTheta;
         this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
         this.spherical.secure();
 
         // Limit radius here
-        this.lookAt.add(this.dPan);
+        this.lookAt.add(this._dPan);
         offset.setFromSphericalCoords(this.spherical);
 
         this.camera.position.copyFrom(this.lookAt).add(offset);
         this.camera.setLookAt(this.lookAt);
         this.camera.updateViewMatrix();
 
-        this.dPhi = 0.0;
-        this.dTheta = 0.0;
-        this.dPan.set(0, 0, 0);
+        this._dPhi = 0.0;
+        this._dTheta = 0.0;
+        this._dPan.set(0, 0, 0);
 
         this.raiseEvent('updated');
 
@@ -156,7 +165,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
      * 
      * @param {Number} phi The phi component of the spherical coordinates.
      * @param {Number} theta The theta component of the spherical coordinates.
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setView(phi, theta) {
         let offset = this.camera.position.clone().subtract(this.lookAt);
@@ -179,7 +188,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Zoom in on the lookat vector.
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     zoomIn() {
         this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
@@ -193,7 +202,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Zoom out from the lookat vector.
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     zoomOut() {
         this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
@@ -207,7 +216,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Set the camera to the top view (locks rotation).
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setTopView() {
         this.setView(0.0, 2.0 * Math.PI);
@@ -219,7 +228,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Set the camera to the bottom view (locks rotation).
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setBottomView() {
         this.setView(0.0, 0.0);
@@ -231,7 +240,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Set the camera to the right view (locks rotation).
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setRightView() {
         this.setView(0.5 * Math.PI, 0.5 * Math.PI);
@@ -243,7 +252,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Set the camera to the left view (locks rotation).
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setLeftView() {
         this.setView(0.5 * Math.PI, -0.5 * Math.PI);
@@ -255,7 +264,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Set the camera to the front view (locks rotation).
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setFrontView() {
         this.setView(0.5 * Math.PI, 2.0 * Math.PI);
@@ -267,7 +276,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Set the camera to the back view (locks rotation).
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setBackView() {
         this.setView(0.5 * Math.PI, Math.PI);
@@ -279,7 +288,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     /**
      * Set the camera to free view (unlocks rotation).
      * 
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setFreeView() {
         this.setView(0.25 * Math.PI, 0.25 * Math.PI);

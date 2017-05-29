@@ -3,7 +3,6 @@ Lore.Statistics = class Statistics {
     /**
      * Returns a normally distributed (pseudo) random number.
      * 
-     * @static
      * @returns {Number} A normally distributed (pseudo) random number.
      */
     static randomNormal() {
@@ -31,10 +30,9 @@ Lore.Statistics = class Statistics {
     /**
      * Returns a normally distributed (pseudo) random number within a range.
      * 
-     * @static
      * @param {Number} a The start of the range.
      * @param {Number} b The end of the range.
-     * @returns A normally distributed (pseudo) random number within a range.
+     * @returns {Number} A normally distributed (pseudo) random number within a range.
      */
     static randomNormalInRange(a, b) {
         let val;
@@ -49,10 +47,9 @@ Lore.Statistics = class Statistics {
     /**
      * Returns a normally distributed (pseudo) random number around a mean with a standard deviation.
      * 
-     * @static
      * @param {Number} mean The mean.
      * @param {Number} sd The standard deviation.
-     * @returns A normally distributed (pseudo) random number around a mean with a standard deviation.
+     * @returns {Number} A normally distributed (pseudo) random number around a mean with a standard deviation.
      */
     static randomNormalScaled(mean, sd) {
         let r = Lore.Statistics.randomNormalInRange(-1, 1);
@@ -63,9 +60,8 @@ Lore.Statistics = class Statistics {
     /**
      * Normalize / scale an array between 0 and 1.
      * 
-     * @static
-     * @param {Array} arr An array.
-     * @returns {Array} The normalized / scaled array.
+     * @param {Number[]} arr An array.
+     * @returns {Number[]} The normalized / scaled array.
      */
     static normalize(arr) {
         let max = Number.MIN_VALUE;
@@ -89,7 +85,6 @@ Lore.Statistics = class Statistics {
     /**
      * Scales a number to within a given scale.
      * 
-     * @static
      * @param {Number} value The number.
      * @param {Number} oldMin The current minimum.
      * @param {Number} oldMax The current maximum.

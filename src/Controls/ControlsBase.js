@@ -1,15 +1,21 @@
 /** 
  * An abstract class representing the base for controls implementations. 
  * 
- * 
- * */
+ * @property {Lore.Renderer} renderer A Lore.Renderer instance.
+ * @property {Lore.CameraBase} camera A Lore.CameraBase extending object.
+ * @property {HTMLElement} canvas A canvas HTMLElement.
+ * @property {Number} lowFps The FPS limit when throttling FPS.
+ * @property {Number} highFps The FPS limit when not throttling FPS.
+ * @property {String} touchMode The current touch mode.
+ * @property {Lore.Vector3f} lookAt The current lookat associated with these controls.
+ */
 Lore.ControlsBase = class ControlsBase {
 
     /**
      * Creates an instance of ControlsBase.
-     * @param {Renderer} renderer An instance of a Lore renderer.
-     * @param {boolean} [lookAt=new Lore.Vector3f()] The look at vector of the controls.
-     * @param {boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
+     * @param {Lore.Renderer} renderer An instance of a Lore renderer.
+     * @param {Boolean} [lookAt=new Lore.Vector3f()] The look at vector of the controls.
+     * @param {Boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
      */
     constructor(renderer, lookAt = new Lore.Vector3f(), enableVR = false) {
         this.renderer = renderer;
@@ -17,7 +23,7 @@ Lore.ControlsBase = class ControlsBase {
         this.canvas = renderer.canvas;
         this.lowFps = 15;
         this.highFps = 30;
-        this.eventListeners = {};
+        this._eventListeners = {};
         this.renderer.setMaxFps(this.lowFps);
         this.touchMode = 'drag';
         this.lookAt = lookAt;
@@ -114,10 +120,11 @@ Lore.ControlsBase = class ControlsBase {
             that.mouse.normalizedPosition.x = ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
             that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
 
-            if (that.touchMode !== 'drag')
+            if (that.touchMode !== 'drag') {
                 that.raiseEvent('mousemove', {
                     e: that
                 });
+            }
 
             that.raiseEvent('mousedown', {
                 e: that,
@@ -310,7 +317,6 @@ Lore.ControlsBase = class ControlsBase {
 
     /**
      * Initialiizes WebVR, if the API is available and the device suppports it.
-     * 
      */
     initWebVR() {
         if (navigator.getVRDevices) {
@@ -333,23 +339,23 @@ Lore.ControlsBase = class ControlsBase {
      * @param {Function} callback A callback function to be called on the event being fired.
      */
     addEventListener(eventName, callback) {
-        if (!this.eventListeners[eventName]) {
-            this.eventListeners[eventName] = [];
+        if (!this._eventListeners[eventName]) {
+            this._eventListeners[eventName] = [];
         }
 
-        this.eventListeners[eventName].push(callback);
+        this._eventListeners[eventName].push(callback);
     }
 
     /**
      * Raises an event.
      * 
-     * @param {any} eventName The name of the event to be raised.
-     * @param {any} data The data to be supplied to the callback function.
+     * @param {String} eventName The name of the event to be raised.
+     * @param {*} data The data to be supplied to the callback function.
      */
     raiseEvent(eventName, data) {
-        if (this.eventListeners[eventName]) {
-            for (let i = 0; i < this.eventListeners[eventName].length; i++) {
-                this.eventListeners[eventName][i](data);
+        if (this._eventListeners[eventName]) {
+            for (let i = 0; i < this._eventListeners[eventName].length; i++) {
+                this._eventListeners[eventName][i](data);
             }
         }
     }
@@ -366,8 +372,8 @@ Lore.ControlsBase = class ControlsBase {
     /**
      * Sets the lookat vector, which is the center of the orbital camera sphere.
      * 
-     * @param {Vector3f} lookAt The lookat vector.
-     * @returns {OrbitalControls} Returns itself.
+     * @param {Lore.Vector3f} lookAt The lookat vector.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
     setLookAt(lookAt) {
         //this.camera.position = new Lore.Vector3f(this.radius, this.radius, this.radius);
@@ -380,7 +386,7 @@ Lore.ControlsBase = class ControlsBase {
     /**
      * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
      * 
-     * @param {any} e A mouse or touch events data.
+     * @param {*} e A mouse or touch events data.
      * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
      * @returns {Lore.ControlsBase} Returns itself.
      */
