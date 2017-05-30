@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Matrix4f - Documentation</title>
+    <title>PointHelper - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,7 +27,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Matrix4f</h1>
+    <h1 class="page-title">PointHelper</h1>
     
 
     
@@ -40,10 +40,10 @@
 <header>
     
         <h2>
-        Matrix4f
+        PointHelper
         </h2>
         
-            <div class="class-description"><p>A class representing a 4x4 float matrix</p></div>
+            <div class="class-description"><p>A helper class wrapping a point cloud.</p></div>
         
     
 </header>
@@ -57,7 +57,7 @@
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="Matrix4f"><span class="type-signature"></span>new Matrix4f<span class="signature">(entries<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="PointHelper"><span class="type-signature"></span>new PointHelper<span class="signature">(renderer, geometryName, shaderName, options)</span><span class="type-signature"></span></h4>
 
     
 
@@ -69,7 +69,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line2">line 2</a>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line11">line 11</a>
     </li></ul></dd>
     
 
@@ -106,10 +106,177 @@
 
 
 
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An object containing options.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>indices</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Number></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Indices associated with the data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>octree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Lore.Octree.html">Lore.Octree</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The octree associated with the point cloud.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>filters</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A map mapping filter names to Lore.Filter instances associated with this helper class.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>pointSize</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The default point size of this data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dimensions</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An object with the properties min and max, each a 3D vector containing the extremes.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
 
 
 <div class="description">
-    <p>Creates an instance of Matrix4f.</p>
+    <p>Creates an instance of PointHelper.</p>
 </div>
 
 
@@ -135,11 +302,7 @@
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
-        
-        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -151,39 +314,92 @@
 
         <tr>
             
-                <td class="name"><code>entries</code></td>
+                <td class="name"><code>renderer</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Float32Array</span>
+<span class="param-type">Lore.Renderer</span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
 
-                
+            
 
+            <td class="description last"><p>An instance of Lore.Renderer.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>geometryName</code></td>
+            
+
+            <td class="type">
+            
                 
-                </td>
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
             
 
             
-                <td class="default">
-                
-                    <code>new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])</code>
-                
-                </td>
+
+            <td class="description last"><p>The name of this geometry.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>shaderName</code></td>
             
 
-            <td class="description last"></td>
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of the shader used to render the geometry.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An object containing options.</p></td>
         </tr>
 
     
@@ -228,7 +444,7 @@
 
     
 
-    <h4 class="name" id=".compose"><span class="type-signature">(static) </span>compose<span class="signature">(position, quaternion, scale)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
+    <h4 class="name" id="getCenter"><span class="type-signature"></span>getCenter<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Lore.Vector3f.html">Lore.Vector3f</a>}</span></h4>
 
     
 
@@ -240,7 +456,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line714">line 714</a>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line70">line 70</a>
     </li></ul></dd>
     
 
@@ -280,7 +496,7 @@
 
 
 <div class="description">
-    <p>Composes a matrix from the positional, rotational and scaling components.</p>
+    <p>Get the center (average) of the point cloud.</p>
 </div>
 
 
@@ -291,101 +507,6 @@
 
 
 
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>position</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The positional component.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>quaternion</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Quaternion</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The rotational component.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>scale</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The scaling component.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 
@@ -404,7 +525,7 @@
 
         
 <div class="param-desc">
-    <p>A matrix.</p>
+    <p>The center (average) of the point cloud.</p>
 </div>
 
 
@@ -415,7 +536,7 @@
     </dt>
     <dd>
         
-<span class="param-type">Matrix4f</span>
+<span class="param-type"><a href="Lore.Vector3f.html">Lore.Vector3f</a></span>
 
 
     </dd>
@@ -429,7 +550,7 @@
 
     
 
-    <h4 class="name" id=".fromQuaternion"><span class="type-signature">(static) </span>fromQuaternion<span class="signature">(q)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
+    <h4 class="name" id="getDimensions"><span class="type-signature"></span>getDimensions<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
 
@@ -441,7 +562,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line641">line 641</a>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line61">line 61</a>
     </li></ul></dd>
     
 
@@ -481,7 +602,7 @@
 
 
 <div class="description">
-    <p>Initialize a matrix from a quaternion.</p>
+    <p>Returns an object containing the dimensions of this point cloud.</p>
 </div>
 
 
@@ -492,55 +613,6 @@
 
 
 
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>q</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Quaternion</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A quaternion.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 
@@ -559,7 +631,7 @@
 
         
 <div class="param-desc">
-    <p>A matrix.</p>
+    <p>An object with the properties min and max, each a 3D vector containing the extremes.</p>
 </div>
 
 
@@ -570,7 +642,7 @@
     </dt>
     <dd>
         
-<span class="param-type">Matrix4f</span>
+<span class="param-type">Object</span>
 
 
     </dd>
@@ -584,7 +656,7 @@
 
     
 
-    <h4 class="name" id=".invert"><span class="type-signature">(static) </span>invert<span class="signature">(matrix)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getMaxLength"><span class="type-signature"></span>getMaxLength<span class="signature">(x, y, z)</span><span class="type-signature"> &rarr; {Number}</span></h4>
 
     
 
@@ -596,7 +668,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line731">line 731</a>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line52">line 52</a>
     </li></ul></dd>
     
 
@@ -636,7 +708,7 @@
 
 
 <div class="description">
-    <p>Inverts a matrix.</p>
+    <p>Get the max length of the length of three arrays.</p>
 </div>
 
 
@@ -674,13 +746,13 @@
 
         <tr>
             
-                <td class="name"><code>matrix</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Matrix4f</span>
+<span class="param-type">Array</span>
 
 
             
@@ -690,7 +762,53 @@
 
             
 
-            <td class="description last"><p>A matrix to be inverted.</p></td>
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>z</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
         </tr>
 
     
@@ -714,196 +832,7 @@
 
         
 <div class="param-desc">
-    <p>The inverted matrix.</p>
-</div>
-
-
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id=".lookAt"><span class="type-signature">(static) </span>lookAt<span class="signature">(cameraPosition, target, up)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line680">line 680</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Create a lookat matrix for a camera.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>cameraPosition</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The position of the camera.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>target</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The lookat (target) of the camera.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>up</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The up vector of the camera node.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A matrix.</p>
+    <p>The length of the largest array.</p>
 </div>
 
 
@@ -914,7 +843,7 @@
     </dt>
     <dd>
         
-<span class="param-type">Matrix4f</span>
+<span class="param-type">Number</span>
 
 
     </dd>
@@ -928,7 +857,7 @@
 
     
 
-    <h4 class="name" id=".multiply"><span class="type-signature">(static) </span>multiply<span class="signature">(a, b)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
+    <h4 class="name" id="setColors"><span class="type-signature"></span>setColors<span class="signature">(colors)</span><span class="type-signature"> &rarr; {<a href="Lore.PointHelper.html">Lore.PointHelper</a>}</span></h4>
 
     
 
@@ -940,7 +869,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line575">line 575</a>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line243">line 243</a>
     </li></ul></dd>
     
 
@@ -980,7 +909,7 @@
 
 
 <div class="description">
-    <p>Multiply the two matrices (a * b).</p>
+    <p>Set the colors (HSS) for the points.</p>
 </div>
 
 
@@ -1018,13 +947,13 @@
 
         <tr>
             
-                <td class="name"><code>a</code></td>
+                <td class="name"><code>colors</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">any</span>
+<span class="param-type">TypedArray</span>
 
 
             
@@ -1034,7 +963,834 @@
 
             
 
-            <td class="description last"><p>A matrix to be multiplied.</p></td>
+            <td class="description last"><p>An array containing the HSS values.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Itself.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Lore.PointHelper.html">Lore.PointHelper</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setPositions"><span class="type-signature"></span>setPositions<span class="signature">(positions)</span><span class="type-signature"> &rarr; {<a href="Lore.PointHelper.html">Lore.PointHelper</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line82">line 82</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Set the positions of points in this point cloud.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>positions</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The positions (linear array).</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Itself.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Lore.PointHelper.html">Lore.PointHelper</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setPositionsXYZ"><span class="type-signature"></span>setPositionsXYZ<span class="signature">(x, y, z, length)</span><span class="type-signature"> &rarr; {<a href="Lore.PointHelper.html">Lore.PointHelper</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line100">line 100</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Set the positions of points in this point clouds.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the x components.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the y components.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>z</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the z components.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>length</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The length of the arrays.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Itself.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Lore.PointHelper.html">Lore.PointHelper</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setPositionsXYZHSS"><span class="type-signature"></span>setPositionsXYZHSS<span class="signature">(x, y, z, hue, saturation, size)</span><span class="type-signature"> &rarr; {<a href="Lore.PointHelper.html">Lore.PointHelper</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line163">line 163</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Set the positions and the HSS (Hue, Saturation, Size) values of the points in the point cloud.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the x components.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the y components.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>z</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the z components.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>hue</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the hues of the data points.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>saturation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the saturations of the data points.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>size</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the sizes of the data points.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Itself.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Lore.PointHelper.html">Lore.PointHelper</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setRGB"><span class="type-signature"></span>setRGB<span class="signature">(r, g, b)</span><span class="type-signature"> &rarr; {<a href="Lore.PointHelper.html">Lore.PointHelper</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line209">line 209</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Set the hue from an rgb values.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>r</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypeArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the red components of the colors.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>g</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">TypeArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array containing the green components of the colors.</p></td>
         </tr>
 
     
@@ -1047,7 +1803,7 @@
             <td class="type">
             
                 
-<span class="param-type">any</span>
+<span class="param-type">TypeArray</span>
 
 
             
@@ -1057,7 +1813,7 @@
 
             
 
-            <td class="description last"><p>A matrix to be multiplied.</p></td>
+            <td class="description last"><p>An array containing the blue components of the colors.</p></td>
         </tr>
 
     
@@ -1081,7 +1837,7 @@
 
         
 <div class="param-desc">
-    <p>A matrix.</p>
+    <p>Itself.</p>
 </div>
 
 
@@ -1092,7 +1848,7 @@
     </dt>
     <dd>
         
-<span class="param-type">Matrix4f</span>
+<span class="param-type"><a href="Lore.PointHelper.html">Lore.PointHelper</a></span>
 
 
     </dd>
@@ -1106,7 +1862,7 @@
 
     
 
-    <h4 class="name" id="clone"><span class="type-signature"></span>clone<span class="signature">()</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
+    <h4 class="name" id="updateColor"><span class="type-signature"></span>updateColor<span class="signature">(index, color)</span><span class="type-signature"> &rarr; {<a href="Lore.PointHelper.html">Lore.PointHelper</a>}</span></h4>
 
     
 
@@ -1118,7 +1874,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line535">line 535</a>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line268">line 268</a>
     </li></ul></dd>
     
 
@@ -1158,113 +1914,7 @@
 
 
 <div class="description">
-    <p>Clones this matrix.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A clone of the matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="compose"><span class="type-signature"></span>compose<span class="signature">(position, quaternion, scale)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line382">line 382</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Composes the matrix from the positional, rotational and scaling components.</p>
+    <p>Update the color (HSS) at a specific index.</p>
 </div>
 
 
@@ -1302,13 +1952,13 @@
 
         <tr>
             
-                <td class="name"><code>position</code></td>
+                <td class="name"><code>index</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Vector3f</span>
+<span class="param-type">Number</span>
 
 
             
@@ -1318,20 +1968,20 @@
 
             
 
-            <td class="description last"><p>The positional component.</p></td>
+            <td class="description last"><p>The index of the data point.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>quaternion</code></td>
+                <td class="name"><code>color</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Quaternion</span>
+<span class="param-type"><a href="Lore.Color.html">Lore.Color</a></span>
 
 
             
@@ -1341,30 +1991,7 @@
 
             
 
-            <td class="description last"><p>The rotational component.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>scale</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The scaling component.</p></td>
+            <td class="description last"><p>An instance of Lore.Color containing HSS values.</p></td>
         </tr>
 
     
@@ -1388,7 +2015,7 @@
 
         
 <div class="param-desc">
-    <p>Returns itself.</p>
+    <p>Itself.</p>
 </div>
 
 
@@ -1399,7 +2026,7 @@
     </dt>
     <dd>
         
-<span class="param-type">Matrix4f</span>
+<span class="param-type"><a href="Lore.PointHelper.html">Lore.PointHelper</a></span>
 
 
     </dd>
@@ -1413,7 +2040,7 @@
 
     
 
-    <h4 class="name" id="decompose"><span class="type-signature"></span>decompose<span class="signature">(outPosition, outQuaternion, outScale)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
+    <h4 class="name" id="updateColors"><span class="type-signature"></span>updateColors<span class="signature">(colors)</span><span class="type-signature"> &rarr; {<a href="Lore.PointHelper.html">Lore.PointHelper</a>}</span></h4>
 
     
 
@@ -1425,7 +2052,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line319">line 319</a>
+        <a href="Helpers_PointHelper.js.html">Helpers/PointHelper.js</a>, <a href="Helpers_PointHelper.js.html#line255">line 255</a>
     </li></ul></dd>
     
 
@@ -1465,7 +2092,7 @@
 
 
 <div class="description">
-    <p>Decomposes the matrix into its positional, rotational and scaling component.</p>
+    <p>Update the colors (HSS) for the points.</p>
 </div>
 
 
@@ -1503,13 +2130,13 @@
 
         <tr>
             
-                <td class="name"><code>outPosition</code></td>
+                <td class="name"><code>colors</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Vector3f</span>
+<span class="param-type">TypedArray</span>
 
 
             
@@ -1519,53 +2146,7 @@
 
             
 
-            <td class="description last"><p>The positional component will be written to this vector.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>outQuaternion</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Quaternion</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The rotational component will be written to this quaternion.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>outScale</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The scaling component will be written to this vector.</p></td>
+            <td class="description last"><p>An array containing the HSS values.</p></td>
         </tr>
 
     
@@ -1589,7 +2170,7 @@
 
         
 <div class="param-desc">
-    <p>Returns itself.</p>
+    <p>Itself.</p>
 </div>
 
 
@@ -1600,1751 +2181,7 @@
     </dt>
     <dd>
         
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="determinant"><span class="type-signature"></span>determinant<span class="signature">()</span><span class="type-signature"> &rarr; {Number}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line270">line 270</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Get the determinant of the matrix.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>The determinant of this matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="equals"><span class="type-signature"></span>equals<span class="signature">(a)</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line545">line 545</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Checks whether or not the entries of the two matrices match.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>a</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Matrix4f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A boolean indicating whether or not the entries of the two matrices match.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Boolean</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="invert"><span class="type-signature"></span>invert<span class="signature">()</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line395">line 395</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Inverts this matrix.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="multiplyA"><span class="type-signature"></span>multiplyA<span class="signature">(b)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line52">line 52</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Multiplies this matrix with another matrix (a * b).</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>b</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">any</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Another matrix.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="multiplyB"><span class="type-signature"></span>multiplyB<span class="signature">(a)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line117">line 117</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Multiplies another matrix with this matrix (a * b).</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>a</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">any</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Another matrix.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="scale"><span class="type-signature"></span>scale<span class="signature">(v)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line182">line 182</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the scale component of this matrix.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>v</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The scaling vector.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="set"><span class="type-signature"></span>set<span class="signature">(m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32, m03, m13, m23, m33)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line36">line 36</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>m00</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m10</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m20</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m30</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m01</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m11</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m21</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m31</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m02</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m12</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m22</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m32</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m03</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m13</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m23</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>m33</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A matrix entry.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setPosition"><span class="type-signature"></span>setPosition<span class="signature">(vec)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line211">line 211</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the position component of this matrix.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>vec</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">any</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The position vector.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setRotation"><span class="type-signature"></span>setRotation<span class="signature">(q)</span><span class="type-signature"> &rarr; {Matrix4f}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line225">line 225</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the rotation component of this matrix.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>q</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Quaternion</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A quaternion representing the rotation.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Matrix4f</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="toString"><span class="type-signature"></span>toString<span class="signature">()</span><span class="type-signature"> &rarr; {String}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_Matrix4f.js.html">Math/Matrix4f.js</a>, <a href="Math_Matrix4f.js.html#line558">line 558</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Returns a string representation of the matrix.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>The string representation of this matrix.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">String</span>
+<span class="param-type"><a href="Lore.PointHelper.html">Lore.PointHelper</a></span>
 
 
     </dd>

@@ -222,4 +222,9 @@ Lore.Renderer = class Renderer {
     getDevicePixelRatio() {
         return window.devicePixelRatio || 1;
     }
+
+    reset() {
+        this.geometries = {};
+        this.controls.resetEventListeners();
+    }
 }

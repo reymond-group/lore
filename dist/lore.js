@@ -134,6 +134,7 @@ Lore.defaults = {
     antialiasing: false
 };
 
+/** A map mapping draw modes as strings to their GLInt representations. */
 Lore.DrawModes = {
     points: 0,
     lines: 1,
@@ -144,7 +145,11 @@ Lore.DrawModes = {
     triangleFan: 6
 };
 
-/** A class representing a Color. */
+/** 
+ * A class representing a Color. 
+ * 
+ * @property {Float32Array} components A typed array storing the components of this color (rgba).
+ */
 Lore.Color = function () {
     /**
      * Creates an instance of Color.
@@ -174,7 +179,7 @@ Lore.Color = function () {
      * @param {Number} g The green component (0.0 - 1.0).
      * @param {Number} b The blue component (0.0 - 1.0).
      * @param {Number} a The alpha component (0.0 - 1.0).
-     * @returns {Color} Returns itself.
+     * @returns {Lore.Color} Returns itself.
      */
 
 
@@ -197,7 +202,7 @@ Lore.Color = function () {
          * 
          * @static
          * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
-         * @returns {Color} A color representing the hex string.
+         * @returns {Lore.Color} A color representing the hex string.
          */
 
     }], [{
@@ -255,7 +260,7 @@ Lore.Color = function () {
          * @param {Number} h The hue component.
          * @param {Number} s The saturation component.
          * @param {Number} l The lightness component.
-         * @returns {Array} An array containing the r, g and b values ([r, g, b]).
+         * @returns {Number[]} An array containing the r, g and b values ([r, g, b]).
          */
 
     }, {
@@ -286,7 +291,7 @@ Lore.Color = function () {
          * @param {Number} r The red component.
          * @param {Number} g The green component.
          * @param {Number} b The blue component.
-         * @returns {Array} An array containing the h, s and l values ([h, s, l]).
+         * @returns {Number[]} An array containing the h, s and l values ([h, s, l]).
          */
 
     }, {
@@ -583,11 +588,24 @@ Lore.Renderer = function () {
         value: function getDevicePixelRatio() {
             return window.devicePixelRatio || 1;
         }
+    }, {
+        key: 'reset',
+        value: function reset() {
+            this.geometries = {};
+            this.controls.resetEventListeners();
+        }
     }]);
 
     return Renderer;
 }();
 
+/**
+ * A class representing a shader.
+ * 
+ * @property {String} name The name of the shader.
+ * @property {Object} uniforms A map mapping uniform names to Lore.Uniform instances.
+ * 
+ */
 Lore.Shader = function () {
     function Shader(name, uniforms, vertexShader, fragmentShader) {
         _classCallCheck(this, Shader);
@@ -723,7 +741,21 @@ Lore.Shader = function () {
     return Shader;
 }();
 
+/**
+ * A class representing a uniform.
+ * 
+ * @property {String} name The name of this uniform. Also the variable name in the shader.
+ * @property {Number} value The value of this uniform.
+ * @property {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
+ * @property {Boolean} stale A boolean indicating whether or not this uniform is stale and needs to be updated.
+ */
 Lore.Uniform = function () {
+    /**
+     * Creates an instance of Uniform.
+     * @param {String} name The name of this uniform. Also the variable name in the shader.
+     * @param {Number} value The value of this uniform.
+     * @param {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
+     */
     function Uniform(name, value, type) {
         _classCallCheck(this, Uniform);
 
@@ -733,12 +765,28 @@ Lore.Uniform = function () {
         this.stale = true;
     }
 
+    /**
+     * Set the value of this uniform.
+     * 
+     * @param {Number} value A number which is valid for the specified type.
+     */
+
+
     _createClass(Uniform, [{
         key: 'setValue',
         value: function setValue(value) {
             this.value = value;
             this.stale = true;
         }
+
+        /**
+         * Pushes the uniform to the GPU.
+         * 
+         * @param {WebGLRenderingContext} gl A WebGL rendering context.
+         * @param {WebGLUniformLocation} program 
+         * @param {Lore.Uniform} uniform 
+         */
+
     }], [{
         key: 'Set',
         value: function Set(gl, program, uniform) {
@@ -783,10 +831,26 @@ Lore.Uniform = function () {
     return Uniform;
 }();
 
-// This is more or less the same implementation of a 3d node that
-// THREE.js uses
-
+/**
+ * A class representing a node. A node is the base-class for all 3D objects.
+ * 
+ * @property {String} type The type name of this object (Lore.Node).
+ * @property {String} id A GUID uniquely identifying the node.
+ * @property {Boolean} isVisible A boolean indicating whether or not the node is visible (rendered).
+ * @property {Lore.Vector3f} position The position of this node.
+ * @property {Lore.Quaternion} rotation The rotation of this node.
+ * @property {Lore.Vector3f} scale The scale of this node.
+ * @property {Lore.Vector3f} up The up vector associated with this node.
+ * @property {Lore.Matrix3f} normalMatrix The normal matrix of this node.
+ * @property {Lore.Matrix4f} modelMatrix The model matrix associated with this node.
+ * @property {Boolean} isStale A boolean indicating whether or not the modelMatrix of this node is stale.
+ * @property {Lore.Node[]} children An array containing child-nodes.
+ * @property {Lore.Node} parent The parent node.
+ */
 Lore.Node = function () {
+    /**
+     * Creates an instance of Node.
+     */
     function Node() {
         _classCallCheck(this, Node);
 
@@ -805,6 +869,14 @@ Lore.Node = function () {
         this.parent = null;
     }
 
+    /**
+     * Apply a matrix to the model matrix of this node.
+     * 
+     * @param {Lore.Matrix4f} matrix A matrix.
+     * @returns {Lore.Node} Itself.
+     */
+
+
     _createClass(Node, [{
         key: 'applyMatrix',
         value: function applyMatrix(matrix) {
@@ -812,6 +884,13 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Returns the up vector for this node.
+         * 
+         * @returns {Lore.Vector3f} The up vector for this node.
+         */
+
     }, {
         key: 'getUpVector',
         value: function getUpVector() {
@@ -819,6 +898,13 @@ Lore.Node = function () {
 
             return v.applyQuaternion(this.rotation);
         }
+
+        /**
+         * Returns the forward vector for this node.
+         * 
+         * @returns {Lore.Vector3f} The forward vector for this node.
+         */
+
     }, {
         key: 'getForwardVector',
         value: function getForwardVector() {
@@ -826,6 +912,13 @@ Lore.Node = function () {
 
             return v.applyQuaternion(this.rotation);
         }
+
+        /**
+         * Returns the right vector for this node.
+         * 
+         * @returns {Lore.Vector3f} The right vector for this node.
+         */
+
     }, {
         key: 'getRightVector',
         value: function getRightVector() {
@@ -833,6 +926,15 @@ Lore.Node = function () {
 
             return v.applyQuaternion(this.rotation);
         }
+
+        /**
+         * Translates this node on an axis.
+         * 
+         * @param {Lore.Vector3f} axis A vector representing an axis.
+         * @param {Number} distance The distance for which to move the node along the axis.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'translateOnAxis',
         value: function translateOnAxis(axis, distance) {
@@ -844,6 +946,14 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Translates the node along the x-axis.
+         * 
+         * @param {Number} distance The distance for which to move the node along the x-axis.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'translateX',
         value: function translateX(distance) {
@@ -851,6 +961,14 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Translates the node along the y-axis.
+         * 
+         * @param {Number} distance The distance for which to move the node along the y-axis.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'translateY',
         value: function translateY(distance) {
@@ -858,6 +976,14 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Translates the node along the z-axis.
+         * 
+         * @param {Number} distance The distance for which to move the node along the z-axis.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'translateZ',
         value: function translateZ(distance) {
@@ -865,6 +991,14 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Set the translation (position) of this node.
+         * 
+         * @param {Lore.Vector3f} v A vector.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'setTranslation',
         value: function setTranslation(v) {
@@ -872,6 +1006,15 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Set the rotation from an axis and an angle.
+         * 
+         * @param {Lore.Vector3f} axis A vector representing an angle
+         * @param {Number} angle An angle.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'setRotation',
         value: function setRotation(axis, angle) {
@@ -879,6 +1022,15 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Rotate this node by an angle on an axis.
+         * 
+         * @param {Lore.Vector3f} axis A vector representing an angle
+         * @param {Number} angle An angle.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'rotate',
         value: function rotate(axis, angle) {
@@ -888,6 +1040,14 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Rotate around the x-axis.
+         * 
+         * @param {Number} angle An angle.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'rotateX',
         value: function rotateX(angle) {
@@ -895,6 +1055,14 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Rotate around the y-axis.
+         * 
+         * @param {Number} angle An angle.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'rotateY',
         value: function rotateY(angle) {
@@ -902,6 +1070,14 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Rotate around the z-axis.
+         * 
+         * @param {Number} angle An angle.
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'rotateZ',
         value: function rotateZ(angle) {
@@ -909,11 +1085,25 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Get the rotation matrix for this node.
+         * 
+         * @returns {Lore.Matrix4f} This nodes rotation matrix.
+         */
+
     }, {
         key: 'getRotationMatrix',
         value: function getRotationMatrix() {
             return this.rotation.toRotationMatrix();
         }
+
+        /**
+         * Update the model matrix of this node. Has to be called in order to apply scaling, rotations or translations.
+         * 
+         * @returns {Lore.Node} Itself.
+         */
+
     }, {
         key: 'update',
         value: function update() {
@@ -923,11 +1113,25 @@ Lore.Node = function () {
 
             return this;
         }
+
+        /**
+         * Returns the model matrix as an array. 
+         * 
+         * @returns {Float32Array} The model matrix.
+         */
+
     }, {
         key: 'getModelMatrix',
         value: function getModelMatrix() {
             return this.modelMatrix.entries;
         }
+
+        /**
+         * Creates a GUID.
+         * 
+         * @returns {String} A GUID.
+         */
+
     }], [{
         key: 'createGUID',
         value: function createGUID() {
@@ -937,6 +1141,7 @@ Lore.Node = function () {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                 var r = Math.random() * 16 | 0,
                     v = c == 'x' ? r : r & 0x3 | 0x8;
+
                 return v.toString(16);
             });
         }
@@ -945,6 +1150,17 @@ Lore.Node = function () {
     return Node;
 }();
 
+/** 
+ * A class representing a geometry.
+ * 
+ * @property {String} type The type name of this object (Lore.Geometry).
+ * @property {String} name The name of this geometry.
+ * @property {WebGLRenderingContext} gl A WebGL rendering context.
+ * @property {Lore.Shader} shader An initialized shader.
+ * @property {Object} attributes A map mapping attribute names to Lore.Attrubute objects.
+ * @property {Lore.DrawMode} [drawMode=gl.POINTS] The current draw mode of this geometry.
+ * @property {Boolean} isVisisble A boolean indicating whether or not this geometry is currently visible.
+ */
 Lore.Geometry = function (_Lore$Node) {
     _inherits(Geometry, _Lore$Node);
 
@@ -1069,11 +1285,24 @@ Lore.Geometry = function (_Lore$Node) {
     return Geometry;
 }(Lore.Node);
 
-/** A class representing a Lore attribute. */
+/** 
+ * A class representing an attribute. 
+ * 
+ * @property {String} type The type name of this object (Lore.Attribute).
+ * @property {*} data The data represented by the attribute in a 1D array. Usually a Float32Array.
+ * @property {Number} [attributeLength=3] The length of the attribute. '3' for Vector3f.
+ * @property {String} name The name of this attribut. Must be the name used by the shader.
+ * @property {Number} size The length of the attribute values (defined as data.length / attributeLength).
+ * @property {WebGLBuffer} buffer The bound WebGLBuffer.
+ * @property {GLint} attributeLocation The attribute location for this attribute.
+ * @property {GLenum} bufferType The buffer target. As of WebGL 1: gl.ARRAY_BUFFER or gl.ELEMENT_ARRAY_BUFFER.
+ * @property {GLenum} drawMode The draw mode. As of WebGL 1: gl.STATIC_DRAW, gl.DYNAMIC_DRAW or gl.STREAM_DRAW.
+ * @property {Boolean} stale A boolean indicating whether or not this attribute has changed and needs to be updated.
+ */
 Lore.Attribute = function () {
     /**
      * Creates an instance of Attribute.
-     * @param {any} data The data represented by the attribute in a 1D array. Usually a Float32Array.
+     * @param {*} data The data represented by the attribute in a 1D array. Usually a Float32Array.
      * @param {Number} attributeLength The length of the attribute (3 for RGB, XYZ, ...).
      * @param {String} name The name of the attribute.
      */
@@ -1096,7 +1325,7 @@ Lore.Attribute = function () {
      * Set the attribute value from a vector at a given index. The vector should have the same number of components as is the length of this attribute.
      * 
      * @param {Number} index The index at which to replace / set the value (is calculated as index * attributeLength).
-     * @param {Vector3f|any} v A vector.
+     * @param {Lore.Vector3f} v A vector.
      */
 
 
@@ -1109,7 +1338,7 @@ Lore.Attribute = function () {
         /**
          * Set the attribute values from vectors in an array.
          * 
-         * @param {Array} arr An array containing vectors. The number of components of the vectors must have the same length as the attribute length specified.
+         * @param {Lore.Vector3f[]} arr An array containing vectors. The number of components of the vectors must have the same length as the attribute length specified.
          */
 
     }, {
@@ -1261,8 +1490,8 @@ Lore.Attribute = function () {
          * 
          * @param {WebGLRenderingContext} gl The WebGL rendering context.
          * @param {WebGLProgram} program A WebGL program.
-         * @param {Number|GLenum} bufferType The buffer type.
-         * @param {Number|GLenum} drawMode The draw mode.
+         * @param {GLenum} bufferType The buffer type.
+         * @param {GLenum} drawMode The draw mode.
          */
 
     }, {
@@ -1404,14 +1633,24 @@ Lore.Effect = function () {
     return Effect;
 }();
 
-/** An abstract class representing the base for controls implementations. */
+/** 
+ * An abstract class representing the base for controls implementations. 
+ * 
+ * @property {Lore.Renderer} renderer A Lore.Renderer instance.
+ * @property {Lore.CameraBase} camera A Lore.CameraBase extending object.
+ * @property {HTMLElement} canvas A canvas HTMLElement.
+ * @property {Number} lowFps The FPS limit when throttling FPS.
+ * @property {Number} highFps The FPS limit when not throttling FPS.
+ * @property {String} touchMode The current touch mode.
+ * @property {Lore.Vector3f} lookAt The current lookat associated with these controls.
+ */
 Lore.ControlsBase = function () {
 
     /**
      * Creates an instance of ControlsBase.
-     * @param {Renderer} renderer An instance of a Lore renderer.
-     * @param {boolean} [lookAt=new Lore.Vector3f()] The look at vector of the controls.
-     * @param {boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
+     * @param {Lore.Renderer} renderer An instance of a Lore renderer.
+     * @param {Boolean} [lookAt=new Lore.Vector3f()] The look at vector of the controls.
+     * @param {Boolean} [enableVR=false] Whether or not to track phone spatial information using the WebVR API.
      */
     function ControlsBase(renderer) {
         var lookAt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Lore.Vector3f();
@@ -1424,7 +1663,7 @@ Lore.ControlsBase = function () {
         this.canvas = renderer.canvas;
         this.lowFps = 15;
         this.highFps = 30;
-        this.eventListeners = {};
+        this._eventListeners = {};
         this.renderer.setMaxFps(this.lowFps);
         this.touchMode = 'drag';
         this.lookAt = lookAt;
@@ -1519,9 +1758,11 @@ Lore.ControlsBase = function () {
             that.mouse.normalizedPosition.x = (touch.clientX - rect.left) / that.canvas.width * 2 - 1;
             that.mouse.normalizedPosition.y = -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
 
-            if (that.touchMode !== 'drag') that.raiseEvent('mousemove', {
-                e: that
-            });
+            if (that.touchMode !== 'drag') {
+                that.raiseEvent('mousemove', {
+                    e: that
+                });
+            }
 
             that.raiseEvent('mousedown', {
                 e: that,
@@ -1710,7 +1951,6 @@ Lore.ControlsBase = function () {
 
     /**
      * Initialiizes WebVR, if the API is available and the device suppports it.
-     * 
      */
 
 
@@ -1738,26 +1978,26 @@ Lore.ControlsBase = function () {
     }, {
         key: 'addEventListener',
         value: function addEventListener(eventName, callback) {
-            if (!this.eventListeners[eventName]) {
-                this.eventListeners[eventName] = [];
+            if (!this._eventListeners[eventName]) {
+                this._eventListeners[eventName] = [];
             }
 
-            this.eventListeners[eventName].push(callback);
+            this._eventListeners[eventName].push(callback);
         }
 
         /**
          * Raises an event.
          * 
-         * @param {any} eventName The name of the event to be raised.
-         * @param {any} data The data to be supplied to the callback function.
+         * @param {String} eventName The name of the event to be raised.
+         * @param {*} data The data to be supplied to the callback function.
          */
 
     }, {
         key: 'raiseEvent',
         value: function raiseEvent(eventName, data) {
-            if (this.eventListeners[eventName]) {
-                for (var i = 0; i < this.eventListeners[eventName].length; i++) {
-                    this.eventListeners[eventName][i](data);
+            if (this._eventListeners[eventName]) {
+                for (var i = 0; i < this._eventListeners[eventName].length; i++) {
+                    this._eventListeners[eventName][i](data);
                 }
             }
         }
@@ -1777,8 +2017,8 @@ Lore.ControlsBase = function () {
         /**
          * Sets the lookat vector, which is the center of the orbital camera sphere.
          * 
-         * @param {Vector3f} lookAt The lookat vector.
-         * @returns {OrbitalControls} Returns itself.
+         * @param {Lore.Vector3f} lookAt The lookat vector.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -1794,7 +2034,7 @@ Lore.ControlsBase = function () {
         /**
          * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
          * 
-         * @param {any} e A mouse or touch events data.
+         * @param {*} e A mouse or touch events data.
          * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
          * @returns {Lore.ControlsBase} Returns itself.
          */
@@ -1804,20 +2044,43 @@ Lore.ControlsBase = function () {
         value: function update(e, source) {
             return this;
         }
+
+        /**
+         * Removes all event listeners.
+         * 
+         * @returns {Lore.ControlsBase} Itself.
+         */
+
+    }, {
+        key: 'resetEventListeners',
+        value: function resetEventListeners() {
+            this._eventListeners = {};
+
+            return this;
+        }
     }]);
 
     return ControlsBase;
 }();
 
-/** A class representing orbital controls. */
+/** 
+ * A class representing orbital controls.
+ * 
+ * @property {Lore.Vector3f} up The global up vector.
+ * @property {Number} radius The distance from the camera to the lookat vector.
+ * @property {Number} [yRotationLimit=Math.PI] The limit for the vertical rotation.
+ * @property {Lore.SphericalCoords} spherical The spherical coordinates of the camera on the sphere around the lookat vector.
+ * @property {Number} scale The sensitivity scale.
+ * @property {Lore.CameraBase} camera The camera associated with these controls.
+ */
 Lore.OrbitalControls = function (_Lore$ControlsBase) {
     _inherits(OrbitalControls, _Lore$ControlsBase);
 
     /**
      * Creates an instance of OrbitalControls.
-     * @param {Renderer} renderer An instance of a Lore renderer.
-     * @param {Number} radius The distance of the camera to the lookat vector.
-     * @param {Vector3f} lookAt The lookat vector.
+     * @param {Lore.Renderer} renderer An instance of a Lore renderer.
+     * @param {Lore.Number} radius The distance of the camera to the lookat vector.
+     * @param {Lore.Vector3f} lookAt The lookat vector.
      */
     function OrbitalControls(renderer, radius) {
         var lookAt = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new Lore.Vector3f();
@@ -1831,9 +2094,9 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
 
         _this3.yRotationLimit = Math.PI;
 
-        _this3.dPhi = 0.0;
-        _this3.dTheta = 0.0;
-        _this3.dPan = new Lore.Vector3f();
+        _this3._dPhi = 0.0;
+        _this3._dTheta = 0.0;
+        _this3._dPan = new Lore.Vector3f();
 
         _this3.spherical = new Lore.SphericalCoords();
 
@@ -1870,7 +2133,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
      * Limit the vertical rotation to the horizon (the upper hemisphere).
      * 
      * @param {Boolean} limit A boolean indicating whether or not to limit the vertical rotation to the horizon.
-     * @returns {OrbitalControls} Returns itself.
+     * @returns {Lore.OrbitalControls} Returns itself.
      */
 
 
@@ -1890,7 +2153,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
          * Sets the distance (radius of the sphere) from the lookat vector to the camera.
          * 
          * @param {Number} radius The radius.
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -1909,9 +2172,9 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
          * 
-         * @param {any} e A mouse or touch events data.
+         * @param {*} e A mouse or touch events data.
          * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -1919,12 +2182,12 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         value: function update(e, source) {
             if (source == 'left' && !this.rotationLocked) {
                 // Rotate
-                this.dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
-                this.dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
+                this._dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
+                this._dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom);
 
                 // It's just to fast like this ...
-                // this.dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
-                // this.dPhi = -2 * Math.PI * e.y / this.canvas.clientHeight;
+                // this._dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
+                // this._dPhi = -2 * Math.PI * e.y / this.canvas.clientHeight;
             } else if (source == 'right' || source == 'left' && this.rotationLocked) {
                 // Translate
                 var x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
@@ -1933,9 +2196,9 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
                 var u = this.camera.getUpVector().components;
                 var r = this.camera.getRightVector().components;
 
-                this.dPan.components[0] = r[0] * -x + u[0] * y;
-                this.dPan.components[1] = r[1] * -x + u[1] * y;
-                this.dPan.components[2] = r[2] * -x + u[2] * y;
+                this._dPan.components[0] = r[0] * -x + u[0] * y;
+                this._dPan.components[1] = r[1] * -x + u[1] * y;
+                this._dPan.components[2] = r[2] * -x + u[2] * y;
             } else if (source == 'middle' || source == 'wheel') {
                 if (e.y > 0) {
                     // Zoom Out
@@ -1954,22 +2217,22 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
             var offset = this.camera.position.clone().subtract(this.lookAt);
 
             this.spherical.setFromVector(offset);
-            this.spherical.components[1] += this.dPhi;
-            this.spherical.components[2] += this.dTheta;
+            this.spherical.components[1] += this._dPhi;
+            this.spherical.components[2] += this._dTheta;
             this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
             this.spherical.secure();
 
             // Limit radius here
-            this.lookAt.add(this.dPan);
+            this.lookAt.add(this._dPan);
             offset.setFromSphericalCoords(this.spherical);
 
             this.camera.position.copyFrom(this.lookAt).add(offset);
             this.camera.setLookAt(this.lookAt);
             this.camera.updateViewMatrix();
 
-            this.dPhi = 0.0;
-            this.dTheta = 0.0;
-            this.dPan.set(0, 0, 0);
+            this._dPhi = 0.0;
+            this._dTheta = 0.0;
+            this._dPan.set(0, 0, 0);
 
             this.raiseEvent('updated');
 
@@ -1981,7 +2244,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
          * 
          * @param {Number} phi The phi component of the spherical coordinates.
          * @param {Number} theta The theta component of the spherical coordinates.
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2007,7 +2270,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Zoom in on the lookat vector.
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2024,7 +2287,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Zoom out from the lookat vector.
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2041,7 +2304,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Set the camera to the top view (locks rotation).
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2056,7 +2319,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Set the camera to the bottom view (locks rotation).
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2071,7 +2334,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Set the camera to the right view (locks rotation).
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2086,7 +2349,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Set the camera to the left view (locks rotation).
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2101,7 +2364,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Set the camera to the front view (locks rotation).
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2116,7 +2379,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Set the camera to the back view (locks rotation).
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2131,7 +2394,7 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         /**
          * Set the camera to free view (unlocks rotation).
          * 
-         * @returns {OrbitalControls} Returns itself.
+         * @returns {Lore.OrbitalControls} Returns itself.
          */
 
     }, {
@@ -2219,7 +2482,15 @@ Lore.FirstPersonControls = function (_Lore$ControlsBase2) {
     return FirstPersonControls;
 }(Lore.ControlsBase);
 
-/** An abstract class representing the base for camera implementations. */
+/** 
+ * An abstract class representing the base for camera implementations. 
+ * 
+ * @property {string} type The type name of this object (Lore.CameraBase).
+ * @property {Lore.Renderer} renderer A Lore.Renderer object.
+ * @property {boolean} isProjectionMatrixStale A boolean indicating whether or not the projection matrix was changed and has to be updated.
+ * @property {Lore.ProjectionMatrix} projectionMatrix A Lore.ProjectionMatrix object.
+ * @property {Lore.Matrix4f} viewMatrix A Lore.Matrix4f object representing the view matrix for this camera.
+ * */
 Lore.CameraBase = function (_Lore$Node2) {
     _inherits(CameraBase, _Lore$Node2);
 
@@ -2370,7 +2641,17 @@ Lore.CameraBase = function (_Lore$Node2) {
     return CameraBase;
 }(Lore.Node);
 
-/** A class representing an orthographic camera. */
+/** 
+ * A class representing an orthographic camera. 
+ * 
+ * @property {number} [zoom=1.0] The zoom value of this camera.
+ * @property {number} left The left border of the frustum.
+ * @property {number} right The right border of the frustum.
+ * @property {number} top The top border of the frustum.
+ * @property {number} bottom The bottom border of the frustum.
+ * @property {number} near The near plane distance of the frustum.
+ * @property {number} far The far plane distance of the frustum.
+ * */
 Lore.OrthographicCamera = function (_Lore$CameraBase) {
     _inherits(OrthographicCamera, _Lore$CameraBase);
 
@@ -2506,7 +2787,11 @@ Lore.PerspectiveCamera = function (_Lore$CameraBase2) {
     return PerspectiveCamera;
 }(Lore.CameraBase);
 
-/** A class representing 3D float vector. */
+/** 
+ * A class representing 3D float vector.
+ * 
+ * @property {Float32Array} components A typed array storing the components of this vector.
+ */
 Lore.Vector3f = function () {
     /**
      * Creates an instance of Vector3f.
@@ -2533,7 +2818,7 @@ Lore.Vector3f = function () {
      * @param {Number} x The x component of the vector.
      * @param {Number} y The y component of the vector.
      * @param {Number} z The z component of the vector.
-     * @returns {Vector3f} Returns itself.
+     * @returns {Lore.Vector3f} Returns itself.
      */
 
 
@@ -2587,7 +2872,7 @@ Lore.Vector3f = function () {
          * Sets the x component of this vector.
          * 
          * @param {Number} x The value to which the x component of this vectors will be set.
-         * @returns {Vector3f} Returns itself.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2602,7 +2887,7 @@ Lore.Vector3f = function () {
          * Sets the y component of this vector.
          * 
          * @param {Number} y The value to which the y component of this vectors will be set.
-         * @returns {Vector3f} Returns itself.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2617,7 +2902,7 @@ Lore.Vector3f = function () {
          * Sets the z component of this vector.
          * 
          * @param {Number} z The value to which the z component of this vectors will be set.
-         * @returns {Vector3f} Returns itself.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2631,8 +2916,8 @@ Lore.Vector3f = function () {
         /**
          * Sets this vector from spherical coordinates.
          * 
-         * @param {SphericalCoordinates} s A spherical coordinates object.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.SphericalCoordinates} s A spherical coordinates object.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2654,8 +2939,8 @@ Lore.Vector3f = function () {
         /**
          * Copies the values from another vector
          * 
-         * @param {Vector3f} v A vector.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Vector3f} v A vector.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2672,7 +2957,7 @@ Lore.Vector3f = function () {
          * Set the length / magnitude of the vector.
          * 
          * @param {Number} length The length / magnitude to set the vector to.
-         * @returns {Vector3f} Returns itself.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2708,7 +2993,7 @@ Lore.Vector3f = function () {
         /**
          * Normalizes the vector.
          * 
-         * @returns {Vector3f} Returns itself.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2720,8 +3005,8 @@ Lore.Vector3f = function () {
         /**
          * Multiply the vector with another vector.
          * 
-         * @param {Vector3f} v A vector.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Vector3f} v A vector.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2738,7 +3023,7 @@ Lore.Vector3f = function () {
          * Multiplies this vector with a scalar.
          * 
          * @param {Number} s A scalar.
-         * @returns {Vector3f} Returns itself.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2754,8 +3039,8 @@ Lore.Vector3f = function () {
         /**
          * Divides the vector by another vector.
          * 
-         * @param {Vector3f} v A vector.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Vector3f} v A vector.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2772,7 +3057,7 @@ Lore.Vector3f = function () {
          * Divides the vector by a scalar.
          * 
          * @param {Number} s A scalar.
-         * @returns {Vector3f} Returns itself.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2788,8 +3073,8 @@ Lore.Vector3f = function () {
         /**
          * Sums the vector with another.
          * 
-         * @param {Vector3f} v A vector.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Vector3f} v A vector.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2805,8 +3090,8 @@ Lore.Vector3f = function () {
         /**
          * Substracts a vector from this one.
          * 
-         * @param {Vector3f} v A vector.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Vector3f} v A vector.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2822,7 +3107,7 @@ Lore.Vector3f = function () {
         /**
          * Calculates the dot product for the vector with another vector.
          * 
-         * @param {Vector3f} v A vector.
+         * @param {Lore.Vector3f} v A vector.
          * @returns {Number} The dot product of the two vectors.
          */
 
@@ -2835,7 +3120,7 @@ Lore.Vector3f = function () {
         /**
          * Calculates the cross product for the vector with another vector.
          * 
-         * @param {Vector3f} v A vector.
+         * @param {Lore.Vector3f} v A vector.
          * @returns {Number} The cross product of the two vectors.
          */
 
@@ -2848,8 +3133,8 @@ Lore.Vector3f = function () {
         /**
          * Projects the vector from world space into camera space.
          * 
-         * @param {CameraBase} camera A camera instance.
-         * @returns {Vector3f} The vector in camera space.
+         * @param {Lore.CameraBase} camera A camera instance.
+         * @returns {Lore.Vector3f} The vector in camera space.
          */
 
     }, {
@@ -2861,8 +3146,8 @@ Lore.Vector3f = function () {
         /**
          * Projects the vector from camera space into world space.
          * 
-         * @param {CameraBase} camera A camera instance.
-         * @returns {Vector3f} The vector in world space.
+         * @param {Lore.CameraBase} camera A camera instance.
+         * @returns {Lore.Vector3f} The vector in world space.
          */
 
     }, {
@@ -2874,8 +3159,8 @@ Lore.Vector3f = function () {
         /**
          * Applies a projection matrix to the vector.
          * 
-         * @param {Matrix4f} m A (projection) matrix.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Matrix4f} m A (projection) matrix.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2898,8 +3183,8 @@ Lore.Vector3f = function () {
         /**
          * Rotates the vector into the direction defined by the rotational component of a matrix.
          * 
-         * @param {Matrix4f} m A matrix.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Matrix4f} m A matrix.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2923,8 +3208,8 @@ Lore.Vector3f = function () {
         /**
          * Applies a quaternion to the vector (usually a rotation).
          * 
-         * @param {Quaternion} q Quaternion.
-         * @returns {Vector3f} Returns itself.
+         * @param {Lore.Quaternion} q Quaternion.
+         * @returns {Lore.Vector3f} Returns itself.
          */
 
     }, {
@@ -2954,7 +3239,7 @@ Lore.Vector3f = function () {
         /**
          * Calculates the square of the distance to another vector.
          * 
-         * @param {Vector3f} v A vector.
+         * @param {Lore.Vector3f} v A vector.
          * @returns {Number} The square of the distance to the other vector.
          */
 
@@ -2971,7 +3256,7 @@ Lore.Vector3f = function () {
         /**
          * Calculates the distance to another vector.
          * 
-         * @param {Vector3f} v A vector.
+         * @param {Lore.Vector3f} v A vector.
          * @returns {Number} The distance to the other vector.
          */
 
@@ -2984,7 +3269,7 @@ Lore.Vector3f = function () {
         /**
          * Clones this vector.
          * 
-         * @returns {Vector3f} A clone of this vector.
+         * @returns {Lore.Vector3f} A clone of this vector.
          */
 
     }, {
@@ -2996,7 +3281,7 @@ Lore.Vector3f = function () {
         /**
          * Compares the components of the vector to those of another.
          * 
-         * @param {Vector3f} v A vector.
+         * @param {Lore.Vector3f} v A vector.
          * @returns {Boolean} A vector indicating whether or not the two vectors are equal.
          */
 
@@ -3022,8 +3307,8 @@ Lore.Vector3f = function () {
          * Normalizes a vector.
          * 
          * @static
-         * @param {Vector3f} v A vector. 
-         * @returns {Vector3f} The noramlized vector.
+         * @param {Lore.Vector3f} v A vector. 
+         * @returns {Lore.Vector3f} The noramlized vector.
          */
 
     }], [{
@@ -3036,9 +3321,9 @@ Lore.Vector3f = function () {
          * Multiplies two vectors.
          * 
          * @static
-         * @param {Vector3f} u A vector. 
-         * @param {Vector3f} v A vector. 
-         * @returns {Vector3f} The product of the two vectors.
+         * @param {Lore.Vector3f} u A vector. 
+         * @param {Lore.Vector3f} v A vector. 
+         * @returns {Lore.Vector3f} The product of the two vectors.
          */
 
     }, {
@@ -3051,9 +3336,9 @@ Lore.Vector3f = function () {
          * Multiplies a vector with a scalar.
          * 
          * @static
-         * @param {Vector3f} v A vector. 
+         * @param {Lore.Vector3f} v A vector. 
          * @param {Number} s A scalar.
-         * @returns {Vector3f} The vector multiplied by the scalar.
+         * @returns {Lore.Vector3f} The vector multiplied by the scalar.
          */
 
     }, {
@@ -3066,9 +3351,9 @@ Lore.Vector3f = function () {
          * Divides a vector by another vector (u / v).
          * 
          * @static
-         * @param {Vector3f} u A vector. 
-         * @param {Vector3f} v A vector. 
-         * @returns {Vector3f} The fraction vector.
+         * @param {Lore.Vector3f} u A vector. 
+         * @param {Lore.Vector3f} v A vector. 
+         * @returns {Lore.Vector3f} The fraction vector.
          */
 
     }, {
@@ -3081,9 +3366,9 @@ Lore.Vector3f = function () {
          * Divides a vector by a scalar.
          * 
          * @static
-         * @param {Vector3f} v A vector. 
+         * @param {Lore.Vector3f} v A vector. 
          * @param {Number} s A scalar.
-         * @returns {Vector3f} The vector divided by the scalar.
+         * @returns {Lore.Vector3f} The vector divided by the scalar.
          */
 
     }, {
@@ -3096,9 +3381,9 @@ Lore.Vector3f = function () {
          * Sums two vectors.
          * 
          * @static
-         * @param {Vector3f} u A vector. 
-         * @param {Vector3f} v A vector. 
-         * @returns {Vector3f} The sum of the two vectors.
+         * @param {Lore.Vector3f} u A vector. 
+         * @param {Lore.Vector3f} v A vector. 
+         * @returns {Lore.Vector3f} The sum of the two vectors.
          */
 
     }, {
@@ -3111,9 +3396,9 @@ Lore.Vector3f = function () {
          * Subtracts one scalar from another (u - v)
          * 
          * @static
-         * @param {Vector3f} u A vector. 
-         * @param {Vector3f} v A vector. 
-         * @returns {Vector3f} The difference between the two vectors.
+         * @param {Lore.Vector3f} u A vector. 
+         * @param {Lore.Vector3f} v A vector. 
+         * @returns {Lore.Vector3f} The difference between the two vectors.
          */
 
     }, {
@@ -3126,9 +3411,9 @@ Lore.Vector3f = function () {
          * Calculates the cross product of two vectors.
          * 
          * @static
-         * @param {Vector3f} u A vector. 
-         * @param {Vector3f} v A vector. 
-         * @returns {Vector3f} The cross product of the two vectors.
+         * @param {Lore.Vector3f} u A vector. 
+         * @param {Lore.Vector3f} v A vector. 
+         * @returns {Lore.Vector3f} The cross product of the two vectors.
          */
 
     }, {
@@ -3141,8 +3426,8 @@ Lore.Vector3f = function () {
          * Calculates the dot product of two vectors.
          * 
          * @static
-         * @param {Vector3f} u A vector. 
-         * @param {Vector3f} v A vector. 
+         * @param {Lore.Vector3f} u A vector. 
+         * @param {Lore.Vector3f} v A vector. 
          * @returns {Number} The dot product of the two vectors.
          */
 
@@ -3156,7 +3441,7 @@ Lore.Vector3f = function () {
          * Returns the forward vector (0, 0, 1).
          * 
          * @static
-         * @returns {Vector3f} The forward vector.
+         * @returns {Lore.Vector3f} The forward vector.
          */
 
     }, {
@@ -3169,7 +3454,7 @@ Lore.Vector3f = function () {
          * Returns the up vector (0, 1, 0).
          * 
          * @static
-         * @returns {Vector3f} The up vector.
+         * @returns {Lore.Vector3f} The up vector.
          */
 
     }, {
@@ -3182,7 +3467,7 @@ Lore.Vector3f = function () {
          * Returns the right vector (1, 0, 0).
          * 
          * @static
-         * @returns {Vector3f} The right vector.
+         * @returns {Lore.Vector3f} The right vector.
          */
 
     }, {
@@ -3952,7 +4237,11 @@ Lore.Matrix4f = function () {
     return Matrix4f;
 }();
 
-/** A class representing a quaternion */
+/** 
+ * A class representing a quaternion.
+ * 
+ * @property {Float32Array} components A typed array storing the components of this quaternion.
+ */
 Lore.Quaternion = function () {
     /**
      * Creates an instance of Quaternion.
@@ -4035,7 +4324,7 @@ Lore.Quaternion = function () {
          * @param {Number} z The z component of this quaternion.
          * @param {Number} w The w component of this quaternion.
          * 
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4068,7 +4357,7 @@ Lore.Quaternion = function () {
          * Set the y component of this quaternion.
          * 
          * @param {Number} y The y component of this quaternion.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4083,7 +4372,7 @@ Lore.Quaternion = function () {
          * Set the z component of this quaternion.
          * 
          * @param {Number} z The z component of this quaternion.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4098,7 +4387,7 @@ Lore.Quaternion = function () {
          * Set the w component of this quaternion.
          * 
          * @param {Number} w The w component of this quaternion.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4112,9 +4401,9 @@ Lore.Quaternion = function () {
         /**
          * Sets the quaternion from the axis angle representation.
          * 
-         * @param {Vector3f} axis The axis component.
+         * @param {Lore.Vector3f} axis The axis component.
          * @param {Number} angle The angle component.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4139,9 +4428,9 @@ Lore.Quaternion = function () {
         /**
          * Sets the quaternion from unit vectors.
          * 
-         * @param {Vector3f} from The from vector.
-         * @param {Vector3f} to The to vector.
-         * @returns {Quaternion} Returns itself.
+         * @param {Lore.Vector3f} from The from vector.
+         * @param {Lore.Vector3f} to The to vector.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4167,10 +4456,10 @@ Lore.Quaternion = function () {
         /**
          * Set the quaternion based facing in a destionation direction.
          * 
-         * @param {Vector3f} source The source vector (the position).
-         * @param {Vector3f} dest The destination vector.
-         * @param {Vector3f} up The up vector of the source.
-         * @returns {Quaternion} Returns itself.
+         * @param {Lore.Vector3f} source The source vector (the position).
+         * @param {Lore.Vector3f} dest The destination vector.
+         * @param {Lore.Vector3f} up The up vector of the source.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4208,7 +4497,7 @@ Lore.Quaternion = function () {
         /**
          * Get the inverse of this quaternion.
          * 
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4220,7 +4509,7 @@ Lore.Quaternion = function () {
         /**
          * Normalizes this quaternion.
          * 
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4247,7 +4536,7 @@ Lore.Quaternion = function () {
         /**
          * Get the dot product of this and another quaternion.
          * 
-         * @param {Quaternion} q A quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
          * @returns {Number} The dot product.
          */
 
@@ -4260,8 +4549,8 @@ Lore.Quaternion = function () {
         /**
          * Multiply this quaternion with another (a * b).
          * 
-         * @param {Quaternion} b Another quaternion.
-         * @returns {Quaternion} Returns itself.
+         * @param {Lore.Quaternion} b Another quaternion.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4286,8 +4575,8 @@ Lore.Quaternion = function () {
         /**
          * Multiply another with this quaternion (a * b).
          * 
-         * @param {any} a Another quaternion.
-         * @returns {Quaternion} Returns itself.
+         * @param {Lore.Quaternion} a Another quaternion.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4313,7 +4602,7 @@ Lore.Quaternion = function () {
          * Multiply this quaternion with a scalar.
          * 
          * @param {Number} s A scalar.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4330,7 +4619,7 @@ Lore.Quaternion = function () {
         /**
          * Conjugate (* -1) this quaternion.
          * 
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4348,8 +4637,8 @@ Lore.Quaternion = function () {
         /**
          * Add another quaternion to this one.
          * 
-         * @param {Quaternion} q A quaternion.
-         * @returns {Quaternion} Returns itself.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4366,8 +4655,8 @@ Lore.Quaternion = function () {
         /**
          * Subtract another quaternion from this one.
          * 
-         * @param {Quaternion} q A quaternion.
-         * @returns {Quaternion} Returns itself.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4385,7 +4674,7 @@ Lore.Quaternion = function () {
          * Rotate this quaternion around the x axis.
          * 
          * @param {Number} angle An angle in radians.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4399,7 +4688,7 @@ Lore.Quaternion = function () {
          * Rotate this quaternion around the y axis.
          * 
          * @param {Number} angle An angle in radians.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4413,7 +4702,7 @@ Lore.Quaternion = function () {
          * Rotate this quaternion around the y axis.
          * 
          * @param {Number} angle An angle in radians.
-         * @returns {Quaternion} Returns itself.
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4437,7 +4726,7 @@ Lore.Quaternion = function () {
         /**
          * Create a rotation matrix from this quaternion.
          * 
-         * @returns {Matrix4f} A rotation matrix representation of this quaternion.
+         * @returns {Lore.Matrix4f} A rotation matrix representation of this quaternion.
          */
 
     }, {
@@ -4478,8 +4767,8 @@ Lore.Quaternion = function () {
         /**
          * Set this quaternion from a (rotation) matrix.
          * 
-         * @param {Matrix4f} m 
-         * @returns {Quaternion} Returns itself.
+         * @param {Lore.Matrix4f} m 
+         * @returns {Lore.Quaternion} Returns itself.
          */
 
     }, {
@@ -4533,7 +4822,7 @@ Lore.Quaternion = function () {
         /**
          * Clone this quaternion.
          * 
-         * @returns {Quaternion} A clone of this quaternion.
+         * @returns {Lore.Quaternion} A clone of this quaternion.
          */
 
     }, {
@@ -4545,7 +4834,7 @@ Lore.Quaternion = function () {
         /**
          * Checks whether the entries of this quaternion match another one.
          * 
-         * @param {Quaternion} q A quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
          * @returns {Boolean} A boolean representing whether the entries of the two quaternions match.
          */
 
@@ -4571,8 +4860,8 @@ Lore.Quaternion = function () {
          * Calculate the dot product of two quaternions.
          * 
          * @static
-         * @param {Quaternion} q A quaternion.
-         * @param {Quaternion} p A quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @param {Lore.Quaternion} p A quaternion.
          * @returns {Number} The dot product.
          */
 
@@ -4586,9 +4875,9 @@ Lore.Quaternion = function () {
          * Multiply (cross product) two quaternions.
          * 
          * @static
-         * @param {Quaternion} a A quaternion.
-         * @param {Quaternion} b A quaternion.
-         * @returns {Quaternion} The cross product quaternion.
+         * @param {Lore.Quaternion} a A quaternion.
+         * @param {Lore.Quaternion} b A quaternion.
+         * @returns {Lore.Quaternion} The cross product quaternion.
          */
 
     }, {
@@ -4601,9 +4890,9 @@ Lore.Quaternion = function () {
          * Multiplies a quaternion with a scalar.
          * 
          * @static
-         * @param {Quaternion} q A quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
          * @param {Number} s A scalar.
-         * @returns {Quaternion} The resulting quaternion.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -4616,8 +4905,8 @@ Lore.Quaternion = function () {
          * Inverse a quaternion.
          * 
          * @static
-         * @param {Quaternion} q A quaternion.
-         * @returns {Quaternion} The resulting quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -4631,8 +4920,8 @@ Lore.Quaternion = function () {
          * Normalize a quaternion.
          * 
          * @static
-         * @param {Quaternion} q A quaternion.
-         * @returns {Quaternion} The resulting quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -4652,8 +4941,8 @@ Lore.Quaternion = function () {
          * Conjugate (* -1) a quaternion.
          * 
          * @static
-         * @param {Quaternion} q A quaternion.
-         * @returns {Quaternion} The resulting quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -4666,9 +4955,9 @@ Lore.Quaternion = function () {
          * Sum two quaternions.
          * 
          * @static
-         * @param {Quaternion} q A quaternion.
-         * @param {Quaternion} p A quaternion.
-         * @returns {Quaternion} The resulting quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @param {Lore.Quaternion} p A quaternion.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -4681,9 +4970,9 @@ Lore.Quaternion = function () {
          * Subtract a quaternion from another (q - p).
          * 
          * @static
-         * @param {Quaternion} q A quaternion.
-         * @param {Quaternion} p A quaternion.
-         * @returns {Quaternion} The resulting quaternion.
+         * @param {Lore.Quaternion} q A quaternion.
+         * @param {Lore.Quaternion} p A quaternion.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -4696,8 +4985,8 @@ Lore.Quaternion = function () {
          * Create a quaternion from a matrix.
          * 
          * @static
-         * @param {Matrix4f} m A matrix.
-         * @returns {Quaternion} The resulting quaternion.
+         * @param {Lore.Matrix4f} m A matrix.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -4712,10 +5001,10 @@ Lore.Quaternion = function () {
          * Interpolate between two quaternions (t is between 0 and 1).
          * 
          * @static
-         * @param {Quaternion} q The source quaternion.
-         * @param {Quaternion} p The target quaternion.
+         * @param {Lore.Quaternion} q The source quaternion.
+         * @param {Lore.Quaternion} p The target quaternion.
          * @param {Number} t The interpolation value / percentage (between 0 an 1).
-         * @returns {Quaternion} The resulting quaternion.
+         * @returns {Lore.Quaternion} The resulting quaternion.
          */
 
     }, {
@@ -5003,7 +5292,6 @@ Lore.Statistics = function () {
         /**
          * Returns a normally distributed (pseudo) random number.
          * 
-         * @static
          * @returns {Number} A normally distributed (pseudo) random number.
          */
         value: function randomNormal() {
@@ -5035,10 +5323,9 @@ Lore.Statistics = function () {
         /**
          * Returns a normally distributed (pseudo) random number within a range.
          * 
-         * @static
          * @param {Number} a The start of the range.
          * @param {Number} b The end of the range.
-         * @returns A normally distributed (pseudo) random number within a range.
+         * @returns {Number} A normally distributed (pseudo) random number within a range.
          */
 
     }, {
@@ -5056,10 +5343,9 @@ Lore.Statistics = function () {
         /**
          * Returns a normally distributed (pseudo) random number around a mean with a standard deviation.
          * 
-         * @static
          * @param {Number} mean The mean.
          * @param {Number} sd The standard deviation.
-         * @returns A normally distributed (pseudo) random number around a mean with a standard deviation.
+         * @returns {Number} A normally distributed (pseudo) random number around a mean with a standard deviation.
          */
 
     }, {
@@ -5073,9 +5359,8 @@ Lore.Statistics = function () {
         /**
          * Normalize / scale an array between 0 and 1.
          * 
-         * @static
-         * @param {Array} arr An array.
-         * @returns {Array} The normalized / scaled array.
+         * @param {Number[]} arr An array.
+         * @returns {Number[]} The normalized / scaled array.
          */
 
     }, {
@@ -5102,7 +5387,6 @@ Lore.Statistics = function () {
         /**
          * Scales a number to within a given scale.
          * 
-         * @static
          * @param {Number} value The number.
          * @param {Number} oldMin The current minimum.
          * @param {Number} oldMax The current maximum.
@@ -5439,7 +5723,13 @@ var RadixSort = function () {
     return RadixSort;
 }();
 
-/** The base class for helper classes. */
+/** 
+ * The base class for helper classes.
+ * 
+ * @property {Lore.Renderer} renderer An instance of Lore.Renderer.
+ * @property {Lore.Shader} shader The shader associated with this helper.
+ * @property {Lore.Geometry} geometry The geometry associated with this helper.
+ */
 
 
 Lore.HelperBase = function (_Lore$Node3) {
@@ -5449,8 +5739,8 @@ Lore.HelperBase = function (_Lore$Node3) {
      * Creates an instance of HelperBase.
      * 
      * @param {Lore.Renderer} renderer A Lore.Renderer object.
-     * @param {string} geometryName The name of this geometry.
-     * @param {string} shaderName The name of the shader used to render the geometry.
+     * @param {String} geometryName The name of this geometry.
+     * @param {String} shaderName The name of the shader used to render the geometry.
      */
     function HelperBase(renderer, geometryName, shaderName) {
         _classCallCheck(this, HelperBase);
@@ -5466,7 +5756,7 @@ Lore.HelperBase = function (_Lore$Node3) {
     /**
      * Set the value (a typed array) of an attribute.
      * 
-     * @param {string} name The name of the attribute. 
+     * @param {String} name The name of the attribute. 
      * @param {TypedArray} data A typed array containing the attribute values.
      */
 
@@ -5480,8 +5770,8 @@ Lore.HelperBase = function (_Lore$Node3) {
         /**
          * Get the value of an attribute (usually a typed array).
          * 
-         * @param {string} name The name of the attribute.
-         * @returns {any} Usually, a typed array containing the attribute values.
+         * @param {String} name The name of the attribute.
+         * @returns {TypedArray} Usually, a typed array containing the attribute values.
          */
 
     }, {
@@ -5493,9 +5783,9 @@ Lore.HelperBase = function (_Lore$Node3) {
         /**
          * Update a the value of an attribute at a specific index and marks the attribute as stale.
          * 
-         * @param {string} name The name of the attribute.
-         * @param {number} index The index of the value to be updated.
-         * @param {any} value Usually, a typed array or array with the length of the attribute values (3 for x, y, z coordinates) containing the new values.
+         * @param {String} name The name of the attribute.
+         * @param {Number} index The index of the value to be updated.
+         * @param {TypedArray} value Usually, a typed array or array with the length of the attribute values (3 for x, y, z coordinates) containing the new values.
          */
 
     }, {
@@ -5515,7 +5805,7 @@ Lore.HelperBase = function (_Lore$Node3) {
         /**
          * Updates all the values in the attribute and marks the attribute as stale.
          * 
-         * @param {string} name The name of the attribute.
+         * @param {String} name The name of the attribute.
          * @param {TypedArray} values A typed array containing the new attribute values.
          */
 
@@ -5545,9 +5835,26 @@ Lore.HelperBase = function (_Lore$Node3) {
     return HelperBase;
 }(Lore.Node);
 
+/** 
+ * A helper class wrapping a point cloud.
+ * 
+ * @property {Object} opts An object containing options.
+ * @property {Number[]} indices Indices associated with the data.
+ * @property {Lore.Octree} octree The octree associated with the point cloud.
+ * @property {Object} filters A map mapping filter names to Lore.Filter instances associated with this helper class.
+ * @property {Number} pointSize The default point size of this data.
+ * @property {Object} dimensions An object with the properties min and max, each a 3D vector containing the extremes.
+ */
 Lore.PointHelper = function (_Lore$HelperBase) {
     _inherits(PointHelper, _Lore$HelperBase);
 
+    /**
+     * Creates an instance of PointHelper.
+     * @param {Lore.Renderer} renderer An instance of Lore.Renderer.
+     * @param {String} geometryName The name of this geometry.
+     * @param {String} shaderName The name of the shader used to render the geometry.
+     * @param {Object} options An object containing options.
+     */
     function PointHelper(renderer, geometryName, shaderName, options) {
         _classCallCheck(this, PointHelper);
 
@@ -5576,21 +5883,53 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         return _this10;
     }
 
+    /**
+     * Get the max length of the length of three arrays.
+     * 
+     * @param {Array} x 
+     * @param {Array} y 
+     * @param {Array} z 
+     * @returns {Number} The length of the largest array.
+     */
+
+
     _createClass(PointHelper, [{
         key: 'getMaxLength',
         value: function getMaxLength(x, y, z) {
             return Math.max(x.length, Math.max(y.length, z.length));
         }
+
+        /**
+         * Returns an object containing the dimensions of this point cloud.
+         * 
+         * @returns {Object} An object with the properties min and max, each a 3D vector containing the extremes.
+         */
+
     }, {
         key: 'getDimensions',
         value: function getDimensions() {
             return this.dimensions;
         }
+
+        /**
+         * Get the center (average) of the point cloud.
+         * 
+         * @returns {Lore.Vector3f} The center (average) of the point cloud.
+         */
+
     }, {
         key: 'getCenter',
         value: function getCenter() {
             return new Lore.Vector3f((this.dimensions.max.getX() + this.dimensions.min.getX()) / 2.0, (this.dimensions.max.getY() + this.dimensions.min.getY()) / 2.0, (this.dimensions.max.getZ() + this.dimensions.min.getZ()) / 2.0);
         }
+
+        /**
+         * Set the positions of points in this point cloud.
+         * 
+         * @param {TypedArray} positions The positions (linear array).
+         * @returns {Lore.PointHelper} Itself.
+         */
+
     }, {
         key: 'setPositions',
         value: function setPositions(positions) {
@@ -5601,6 +5940,17 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             return this;
         }
+
+        /**
+         * Set the positions of points in this point clouds.
+         * 
+         * @param {TypedArray} x An array containing the x components.
+         * @param {TypedArray} y An array containing the y components.
+         * @param {TypedArray} z An array containing the z components.
+         * @param {Number} length The length of the arrays.
+         * @returns {Lore.PointHelper} Itself.
+         */
+
     }, {
         key: 'setPositionsXYZ',
         value: function setPositionsXYZ(x, y, z, length) {
@@ -5654,6 +6004,19 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             return this;
         }
+
+        /**
+         * Set the positions and the HSS (Hue, Saturation, Size) values of the points in the point cloud.
+         * 
+         * @param {TypedArray} x An array containing the x components.
+         * @param {TypedArray} y An array containing the y components.
+         * @param {TypedArray} z An array containing the z components.
+         * @param {TypedArray} hue An array containing the hues of the data points.
+         * @param {TypedArray} saturation An array containing the saturations of the data points.
+         * @param {TypedArray} size An array containing the sizes of the data points.
+         * @returns {Lore.PointHelper} Itself.
+         */
+
     }, {
         key: 'setPositionsXYZHSS',
         value: function setPositionsXYZHSS(x, y, z, hue, saturation, size) {
@@ -5693,6 +6056,16 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             return this;
         }
+
+        /**
+         * Set the hue from an rgb values.
+         * 
+         * @param {TypeArray} r An array containing the red components of the colors.
+         * @param {TypeArray} g An array containing the green components of the colors.
+         * @param {TypeArray} b An array containing the blue components of the colors.
+         * @returns {Lore.PointHelper} Itself.
+         */
+
     }, {
         key: 'setRGB',
         value: function setRGB(r, g, b) {
@@ -5707,7 +6080,7 @@ Lore.PointHelper = function (_Lore$HelperBase) {
                 c[j + 2] = b[i];
             }
 
-            // Convert to HOS (Hue, Opacity, Size)
+            // Convert to HOS (Hue, Saturation, Size)
             for (var _i3 = 0; _i3 < c.length; _i3 += 3) {
                 var _r = c[_i3];
                 var _g = c[_i3 + 1];
@@ -5722,6 +6095,14 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             return this;
         }
+
+        /**
+         * Set the colors (HSS) for the points.
+         * 
+         * @param {TypedArray} colors An array containing the HSS values.
+         * @returns {Lore.PointHelper} Itself.
+         */
+
     }, {
         key: 'setColors',
         value: function setColors(colors) {
@@ -5729,6 +6110,14 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             return this;
         }
+
+        /**
+         * Update the colors (HSS) for the points.
+         * 
+         * @param {TypedArray} colors An array containing the HSS values.
+         * @returns {Lore.PointHelper} Itself.
+         */
+
     }, {
         key: 'updateColors',
         value: function updateColors(colors) {
@@ -5736,6 +6125,15 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
             return this;
         }
+
+        /**
+         * Update the color (HSS) at a specific index.
+         * 
+         * @param {Number} index The index of the data point.
+         * @param {Lore.Color} color An instance of Lore.Color containing HSS values.
+         * @returns {Lore.PointHelper} Itself.
+         */
+
     }, {
         key: 'updateColor',
         value: function updateColor(index, color) {
@@ -6204,7 +6602,17 @@ Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
     return CoordinatesHelper;
 }(Lore.HelperBase);
 
-/** A helper class to create an octree associated with vertex data. */
+/** 
+ * A helper class to create an octree associated with vertex data. 
+ * 
+ * @property {*} opts An object containing options.
+ * @property {Lore.PointHelper} target The Lore.PointHelper object from which this octree is constructed.
+ * @property {Lore.Renderer} renderer An instance of Lore.Renderer.
+ * @property {Lore.Octree} octree The octree associated with the target.
+ * @property {Lore.Raycaster} raycaster An instance of Lore.Raycaster.
+ * @property {Object} hovered The currently hovered item.
+ * @property {Object[]} selected The currently selected items.
+ */
 Lore.OctreeHelper = function (_Lore$HelperBase4) {
     _inherits(OctreeHelper, _Lore$HelperBase4);
 
@@ -6212,10 +6620,10 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
      * Creates an instance of OctreeHelper.
      * 
      * @param {Lore.Renderer} renderer A Lore.Renderer object.
-     * @param {string} geometryName The name of this geometry.
-     * @param {string} shaderName The name of the shader used to render this octree.
+     * @param {String} geometryName The name of this geometry.
+     * @param {String} shaderName The name of the shader used to render this octree.
      * @param {Lore.PointHelper} target The Lore.PointHelper object from which this octree is constructed.
-     * @param {object} options The options used to draw this octree.
+     * @param {Object} options The options used to draw this octree.
      */
     function OctreeHelper(renderer, geometryName, shaderName, target, options) {
         _classCallCheck(this, OctreeHelper);
@@ -6227,7 +6635,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         };
 
         _this13.opts = Lore.Utils.extend(true, _this13.defaults, options);
-        _this13.eventListeners = {};
+        _this13._eventListeners = {};
         _this13.target = target;
         _this13.renderer = renderer;
         _this13.octree = _this13.target.octree;
@@ -6322,7 +6730,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Sets the point size of the associated Lore.PointHelper object as well as the threshold for the associated raycaster used for vertex picking.
          * 
-         * @param {number} zoom The current zoom value of the orthographic view.
+         * @param {Number} zoom The current zoom value of the orthographic view.
          */
 
     }, {
@@ -6336,8 +6744,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Get the screen position of a vertex by its index.
          * 
-         * @param {number} index The index of a vertex.
-         * @returns {array} An array containing the screen position. E.g. [122, 290].
+         * @param {Number} index The index of a vertex.
+         * @returns {Number[]} An array containing the screen position. E.g. [122, 290].
          */
 
     }, {
@@ -6353,7 +6761,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Adds an object to the selected collection of this Lore.OctreeHelper object.
          * 
-         * @param {object|number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
+         * @param {Object|Number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
          */
 
     }, {
@@ -6385,7 +6793,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Remove an item from the selected collection of this Lore.OctreeHelper object.
          * 
-         * @param {number} index The index of the item in the selected collection.
+         * @param {Number} index The index of the item in the selected collection.
          */
 
     }, {
@@ -6415,8 +6823,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Check whether or not the selected collection of this Lore.OctreeHelper object contains a vertex with a given index.
          * 
-         * @param {number} index The index of a vertex in the associated Lore.PointHelper object.
-         * @returns {boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
+         * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
+         * @returns {Boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
          */
 
     }, {
@@ -6434,7 +6842,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Adds a vertex with a given index to the currently hovered vertex of this Lore.OctreeHelper object.
          * 
-         * @param {any} index The index of a vertex in the associated Lore.PointHelper object.
+         * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
          */
 
     }, {
@@ -6525,8 +6933,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Get the indices and distances of the vertices currently intersected by the ray sent from the mouse position.
          * 
-         * @param {object} mouse A mouse object containing x and y properties.
-         * @returns {object} A distance-sorted (ASC) array containing the interesected vertices.
+         * @param {Object} mouse A mouse object containing x and y properties.
+         * @returns {Object[]} A distance-sorted (ASC) array containing the interesected vertices.
          */
 
     }, {
@@ -6547,36 +6955,36 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Add an event listener to this Lore.OctreeHelper object.
          * 
-         * @param {string} eventName The name of the event to listen for.
-         * @param {function} callback A callback function called when an event is fired.
+         * @param {String} eventName The name of the event to listen for.
+         * @param {Function} callback A callback function called when an event is fired.
          */
 
     }, {
         key: 'addEventListener',
         value: function addEventListener(eventName, callback) {
-            if (!this.eventListeners[eventName]) {
-                this.eventListeners[eventName] = [];
+            if (!this._eventListeners[eventName]) {
+                this._eventListeners[eventName] = [];
             }
 
-            this.eventListeners[eventName].push(callback);
+            this._eventListeners[eventName].push(callback);
         }
 
         /**
          * Raise an event with a given name and send the data to the functions listening for this event.
          * 
-         * @param {string} eventName The name of the event to be rised.
-         * @param {any} data Data to be sent to the listening functions.
+         * @param {String} eventName The name of the event to be rised.
+         * @param {*} data Data to be sent to the listening functions.
          */
 
     }, {
         key: 'raiseEvent',
         value: function raiseEvent(eventName, data) {
-            if (!this.eventListeners[eventName]) {
+            if (!this._eventListeners[eventName]) {
                 return;
             }
 
-            for (var i = 0; i < this.eventListeners[eventName].length; i++) {
-                this.eventListeners[eventName][i](data);
+            for (var i = 0; i < this._eventListeners[eventName].length; i++) {
+                this._eventListeners[eventName][i](data);
             }
         }
 
@@ -6725,7 +7133,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Set the threshold of the raycaster associated with this Lore.OctreeHelper object.
          * 
-         * @param {number} threshold The threshold (maximum distance to the ray) of the raycaster.
+         * @param {Number} threshold The threshold (maximum distance to the ray) of the raycaster.
          */
 
     }, {
@@ -6737,8 +7145,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         /**
          * Execute a ray intersection search within this octree.
          * 
-         * @param {array} indices The indices of the octree nodes that are intersected by the ray.
-         * @returns {array} An array containing the vertices intersected by the ray.
+         * @param {Number[]} indices The indices of the octree nodes that are intersected by the ray.
+         * @returns {Number[]} An array containing the vertices intersected by the ray.
          */
 
     }, {
@@ -6794,7 +7202,22 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
     return OctreeHelper;
 }(Lore.HelperBase);
 
+/** 
+ * An abstract class representing the base for filter implementations. 
+ * 
+ * @property {string} type The type name of this object (Lore.FilterBase).
+ * @property {Lore.Geometry} geometry The Geometry associated with this filter.
+ * @property {string} attribute The name of the attribute to filter on.
+ * @property {number} attributeIndex The attribute-index to filter on.
+ * @property {boolean} active Whether or not the filter is active.
+ */
 Lore.FilterBase = function () {
+
+    /**
+     * Creates an instance of FilterBase.
+     * @param {string} attribute The name of the attribute to filter on.
+     * @param {name} attributeIndex The attribute-index to filter on.
+     */
     function FilterBase(attribute, attributeIndex) {
         _classCallCheck(this, FilterBase);
 
@@ -6805,22 +7228,55 @@ Lore.FilterBase = function () {
         this.active = false;
     }
 
+    /**
+     * Returns the geometry associated with this filter.
+     * 
+     * @returns {Lore.Geometry} The geometry associated with this filter.
+     */
+
+
     _createClass(FilterBase, [{
         key: 'getGeometry',
         value: function getGeometry() {
             return this.geometry;
         }
+
+        /**
+         * Sets the geometry associated with this filter.
+         * 
+         * @param {Lore.Geometry} value The geometry to be associated with this filter.
+         */
+
     }, {
         key: 'setGeometry',
         value: function setGeometry(value) {
             this.geometry = value;
         }
+
+        /**
+         * Abstract method. 
+         */
+
     }, {
         key: 'filter',
         value: function filter() {}
+
+        /**
+         * Abstract method. 
+         */
+
     }, {
         key: 'reset',
         value: function reset() {}
+
+        /**
+         * Check whether or not a vertex with a given index is visible. A vertex is visible when its color attribute is > 0.0 at attribute-index 2 (the size in HSS).
+         *
+         * @param {Lore.Geometry} geometry A Lore.Geometry with a color attribute.
+         * @param {number} index A vertex index.
+         * @returns {boolean} A boolean indicating whether or not the vertex specified by index is visible (HSS size > 0.0).
+         */
+
     }], [{
         key: 'isVisible',
         value: function isVisible(geometry, index) {
@@ -6831,9 +7287,21 @@ Lore.FilterBase = function () {
     return FilterBase;
 }();
 
+/** 
+ * A class representing an In-Range-Filter. It is used to filter a geometry based on a min and max value. 
+ * @property {number} min The minimum value.
+ * @property {number} max The maximum value.
+ * */
 Lore.InRangeFilter = function (_Lore$FilterBase) {
     _inherits(InRangeFilter, _Lore$FilterBase);
 
+    /**
+     * Creates an instance of InRangeFilter.
+     * @param {string} attribute The name of the attribute to filter on.
+     * @param {number} attributeIndex The attribute-index to filter on.
+     * @param {number} min The minum value.
+     * @param {number} max The maximum value.
+     */
     function InRangeFilter(attribute, attributeIndex, min, max) {
         _classCallCheck(this, InRangeFilter);
 
@@ -6844,26 +7312,59 @@ Lore.InRangeFilter = function (_Lore$FilterBase) {
         return _this14;
     }
 
+    /**
+     * Get the minimum.
+     * 
+     * @returns {number} The minimum.
+     */
+
+
     _createClass(InRangeFilter, [{
         key: 'getMin',
         value: function getMin() {
             return this.min;
         }
+
+        /**
+         * Set the minimum.
+         * 
+         * @param {number} value The minimum.
+         */
+
     }, {
         key: 'setMin',
         value: function setMin(value) {
             this.min = value;
         }
+
+        /**
+         * Get the maximum.
+         * 
+         * @returns {number} The maximum.
+         */
+
     }, {
         key: 'getMax',
         value: function getMax() {
             return this.max;
         }
+
+        /**
+         * Set the maximum.
+         * 
+         * @param {number} value The maximum.
+         */
+
     }, {
         key: 'setMax',
         value: function setMax(value) {
             this.max = value;
         }
+
+        /**
+         * Execute the filter operation on the specified attribute and attribute-index. In order to filter, the HSS size value (attribute-index 2 of the color attribute) is set to its negative (1.0 -> -1.0, 2.5 -> -2.5).
+         */
+
     }, {
         key: 'filter',
         value: function filter() {
@@ -6881,6 +7382,11 @@ Lore.InRangeFilter = function (_Lore$FilterBase) {
 
             this.geometry.updateAttribute('color');
         }
+
+        /**
+         * Resets the filter ("removes" it). The HSS size value is set back to its original value (-1.0 -> 1.0, -2.5 -> 2.5). 
+         */
+
     }, {
         key: 'reset',
         value: function reset() {
@@ -8521,6 +9027,7 @@ Lore.AABB = function () {
     return AABB;
 }();
 
+/** A class representing a raycaster. */
 Lore.Raycaster = function () {
     function Raycaster() {
         _classCallCheck(this, Raycaster);
@@ -8530,6 +9037,16 @@ Lore.Raycaster = function () {
         this.far = 1000;
         this.threshold = 0.1;
     }
+
+    /**
+     * Set the raycaster based on a camera and the current mouse coordinates.
+     * 
+     * @param {Lore.CameraBase} camera A camera object which extends Lore.CameraBase.
+     * @param {number} mouseX The x coordinate of the mouse.
+     * @param {number} mouseY The y coordinate of the mouse.
+     * @returns {Lore.Raycaster} Itself.
+     */
+
 
     _createClass(Raycaster, [{
         key: 'set',

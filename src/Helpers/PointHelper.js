@@ -263,7 +263,7 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
      * 
      * @param {Number} index The index of the data point.
      * @param {Lore.Color} color An instance of Lore.Color containing HSS values.
-     * @returns 
+     * @returns {Lore.PointHelper} Itself.
      */
     updateColor(index, color) {
         this.updateAttribute('color', index, color.components);

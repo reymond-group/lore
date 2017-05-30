@@ -393,4 +393,15 @@ Lore.ControlsBase = class ControlsBase {
     update(e, source) {
         return this;
     }
+    
+    /**
+     * Removes all event listeners.
+     * 
+     * @returns {Lore.ControlsBase} Itself.
+     */
+    resetEventListeners() {
+        this._eventListeners = {};
+
+        return this;
+    }
 }

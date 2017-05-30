@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>SphericalCoords - Documentation</title>
+    <title>Core/Geometry.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,1135 +27,138 @@
 
 <div id="main">
     
-    <h1 class="page-title">SphericalCoords</h1>
-    
-
-    
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-        SphericalCoords
-        </h2>
-        
-            <div class="class-description"><p>A class representing spherical coordinates.</p></div>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-    
-    <h2>Constructor</h2>
-    
-
-    <h4 class="name" id="SphericalCoords"><span class="type-signature"></span>new SphericalCoords<span class="signature">(radius, phi, theta)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_SphericalCoords.js.html">Math/SphericalCoords.js</a>, <a href="Math_SphericalCoords.js.html#line2">line 2</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Creates an instance of SphericalCoords.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>radius</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The radius.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>phi</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Phi in radians.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>theta</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Theta in radians.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    <h4 class="name" id="clone"><span class="type-signature"></span>clone<span class="signature">()</span><span class="type-signature"> &rarr; {SphericalCoords}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_SphericalCoords.js.html">Math/SphericalCoords.js</a>, <a href="Math_SphericalCoords.js.html#line86">line 86</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Clone this spherical coordinates object.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A clone of the spherical coordinates object.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">SphericalCoords</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="limit"><span class="type-signature"></span>limit<span class="signature">(phiMin, phiMax, thetaMin, thetaMax)</span><span class="type-signature"> &rarr; {SphericalCoords}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_SphericalCoords.js.html">Math/SphericalCoords.js</a>, <a href="Math_SphericalCoords.js.html#line73">line 73</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Limit the rotation by setting maxima and minima for phi and theta.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>phiMin</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The minimum for phi.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>phiMax</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The maximum for phi.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>thetaMin</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The minimum for theta.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>thetaMax</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The maximum for theta.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">SphericalCoords</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="secure"><span class="type-signature"></span>secure<span class="signature">()</span><span class="type-signature"> &rarr; {SphericalCoords}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_SphericalCoords.js.html">Math/SphericalCoords.js</a>, <a href="Math_SphericalCoords.js.html#line37">line 37</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Avoid overflows.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">SphericalCoords</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="set"><span class="type-signature"></span>set<span class="signature">(radius, phi, theta)</span><span class="type-signature"> &rarr; {SphericalCoords}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_SphericalCoords.js.html">Math/SphericalCoords.js</a>, <a href="Math_SphericalCoords.js.html#line24">line 24</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the spherical coordinates from the radius, the phi angle and the theta angle.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>radius</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>phi</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>theta</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">SphericalCoords</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setFromVector"><span class="type-signature"></span>setFromVector<span class="signature">(v)</span><span class="type-signature"> &rarr; {SphericalCoords}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_SphericalCoords.js.html">Math/SphericalCoords.js</a>, <a href="Math_SphericalCoords.js.html#line49">line 49</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Set the spherical coordaintes from a vector.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>v</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Vector3f</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A vector.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Returns itself.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">SphericalCoords</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="toString"><span class="type-signature"></span>toString<span class="signature">()</span><span class="type-signature"> &rarr; {String}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Math_SphericalCoords.js.html">Math/SphericalCoords.js</a>, <a href="Math_SphericalCoords.js.html#line95">line 95</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description">
-    <p>Returns a string representation of these spherical coordinates.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A string representing spherical coordinates.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">String</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-        
-    
-
-    
-
-    
-</article>
-
-</section>
+    <h1 class="page-title">Core/Geometry.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** 
+ * A class representing a geometry.
+ * 
+ * @property {String} type The type name of this object (Lore.Geometry).
+ * @property {String} name The name of this geometry.
+ * @property {WebGLRenderingContext} gl A WebGL rendering context.
+ * @property {Lore.Shader} shader An initialized shader.
+ * @property {Object} attributes A map mapping attribute names to Lore.Attrubute objects.
+ * @property {Lore.DrawMode} [drawMode=gl.POINTS] The current draw mode of this geometry.
+ * @property {Boolean} isVisisble A boolean indicating whether or not this geometry is currently visible.
+ */
+Lore.Geometry = class Geometry extends Lore.Node {
+    constructor(name, gl, shader) {
+        super();
+
+        this.type = 'Lore.Geometry';
+        this.name = name;
+        this.gl = gl;
+        this.shader = shader;
+        this.attributes = {};
+        this.drawMode = this.gl.POINTS;
+        this.isVisible = true;
+    }
+
+    addAttribute(name, data, length) {
+        this.attributes[name] = new Lore.Attribute(data, length, name);
+        this.attributes[name].createBuffer(this.gl, this.shader.program);
+
+        return this;
+    }
+
+    updateAttribute(name, data) {
+        if (data) {
+            this.attributes[name].data = data;
+        }
+
+        this.attributes[name].update(this.gl);
+
+        return this;
+    }
+
+    getAttribute(name) {
+        return this.attributes[name];
+    }
+
+    removeAttribute(name) {
+        delete this.attributes[name];
+
+        return this;
+    }
+
+    setMode(drawMode) {
+        switch (drawMode) {
+        case Lore.DrawModes.points:
+            this.drawMode = this.gl.POINTS;
+            break;
+        case Lore.DrawModes.lines:
+            this.drawMode = this.gl.LINES;
+            break;
+        case Lore.DrawModes.lineStrip:
+            this.drawMode = this.gl.LINE_STRIP;
+            break;
+        case Lore.DrawModes.lineLoop:
+            this.drawMode = this.gl.LINE_LOOP;
+            break;
+        case Lore.DrawModes.triangles:
+            this.drawMode = this.gl.TRIANGLES;
+            break;
+        case Lore.DrawModes.triangleStrip:
+            this.drawMode = this.gl.TRIANGLE_STRIP;
+            break;
+        case Lore.DrawModes.triangleFan:
+            this.drawMode = this.gl.TRIANGLE_FAN;
+            break;
+        }
+
+        return this;
+    }
+
+    size() {
+        // Is this ok? All attributes should have the same length ...
+        if (Object.keys(this.attributes).length > 0) {
+            return this.attributes[Object.keys(this.attributes)[0]].size;
+        }
+
+        return 0;
+    }
+
+    draw(renderer) {
+        if (!this.isVisible) return;
+
+        for (let prop in this.attributes)
+            if (this.attributes[prop].stale) this.attributes[prop].update(this.gl);
+
+        this.shader.use();
+
+        // Update the modelView and projection matrices
+        if (renderer.camera.isProjectionMatrixStale) {
+            console.log(renderer.camera.getProjectionMatrix());
+            console.log(renderer.camera.viewMatrix);
+            this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
+        }
+
+        if (renderer.camera.isViewMatrixStale) {
+            let modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
+            this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
+        }
+
+        this.shader.updateUniforms();
+
+        // How exactly does the binding work??
+        // What will happen if I want to draw a second geometry?
+        for (let prop in this.attributes) {
+            this.attributes[prop].bind(this.gl);
+        }
+
+        this.gl.drawArrays(this.drawMode, 0, this.size());
+    }
+}
+</code></pre>
+        </article>
+    </section>
 
 
 
@@ -1165,7 +168,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue May 30 2017 21:44:30 GMT+0200 (W. Europe Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue May 30 2017 21:44:27 GMT+0200 (W. Europe Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
