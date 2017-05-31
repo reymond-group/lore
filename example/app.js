@@ -16,9 +16,29 @@ var _data = [];
 csvReader.addEventListener('loaded', function(data) {
     pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'sphere');
     pointHelper.geometry.isVisible = true;
+    data['normmag'] = new Float32Array(data['absmag'].length);
     _data = data;
 
-    pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['ci'], 1.0, data['absmag']);
+    let min = Number.POSITIVE_INFINITY;
+    let max = Number.NEGATIVE_INFINITY;
+
+    for (var i = 0; i < data['absmag'].length; i++) {
+        if (data['absmag'][i] < min) {
+            min = data['absmag'][i];
+        }
+
+        if (data['absmag'][i] > max) {
+            max = data['absmag'][i];
+        }
+    }
+
+    let diff = max - min;
+
+    for (var i = 0; i < data['absmag'].length; i++) {
+        data['normmag'][i] = 0.9 - (0.1 + ((data['absmag'][i] - min) * (0.8)) / diff);
+    }
+
+    pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['normmag'], 1.0, 1.0);
     // lore.controls.setLookAt(pointHelper.getCenter());
     lore.controls.setLookAt(new Lore.Vector3f());
     console.log(pointHelper.getCenter(), pointHelper.getDimensions());
@@ -29,7 +49,7 @@ csvReader.addEventListener('loaded', function(data) {
     });
     octreeHelper.addEventListener('hoveredchanged', function(e) {
         if (e.e !== null) {
-            app.hoveredValue = _data['hd'][e.e.index] + ' (' + _data['proper'][e.e.index] + ') ' + ' [' + _data['con'][e.e.index] + ']';
+            app.hoveredValue = _data['hd'][e.e.index] + ' (' + _data['proper'][e.e.index] + ') ' + ' [' + _data['con'][e.e.index] + '], mag: ' + _data['absmag'][e.e.index];
         }
     });
 
