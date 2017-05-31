@@ -388,19 +388,14 @@ Lore.Renderer = function () {
         this.effect = null;
         this.lastTiming = performance.now();
 
-        // Disable context menu on right click
-        this.canvas.addEventListener('contextmenu', function (e) {
-            if (e.button === 2) {
-                e.preventDefault();
-                return false;
-            }
-        });
+        this.disableContextMenu();
 
         var that = this;
         that.init();
 
         // Attach the controls last
         var center = options.center ? options.center : new Lore.Vector3f();
+
         that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
     }
 
@@ -421,7 +416,6 @@ Lore.Renderer = function () {
             }
 
             var g = this.gl;
-            console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
 
             if (this.opts.verbose) {
                 var hasAA = g.getContextAttributes().antialias;
@@ -497,6 +491,17 @@ Lore.Renderer = function () {
             this.effect = new Lore.Effect(this, 'fxaaEffect');
             this.ready = true;
             this.animate();
+        }
+    }, {
+        key: 'disableContextMenu',
+        value: function disableContextMenu() {
+            // Disable context menu on right click
+            this.canvas.addEventListener('contextmenu', function (e) {
+                if (e.button === 2) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
         }
     }, {
         key: 'setClearColor',
@@ -587,12 +592,6 @@ Lore.Renderer = function () {
         key: 'getDevicePixelRatio',
         value: function getDevicePixelRatio() {
             return window.devicePixelRatio || 1;
-        }
-    }, {
-        key: 'reset',
-        value: function reset() {
-            this.geometries = {};
-            this.controls.resetEventListeners();
         }
     }]);
 
@@ -1260,8 +1259,6 @@ Lore.Geometry = function (_Lore$Node) {
 
             // Update the modelView and projection matrices
             if (renderer.camera.isProjectionMatrixStale) {
-                console.log(renderer.camera.getProjectionMatrix());
-                console.log(renderer.camera.viewMatrix);
                 this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
             }
 
@@ -1795,7 +1792,7 @@ Lore.ControlsBase = function () {
             if (that.mouse.touches == 2) source = 'right';
 
             e.preventDefault();
-            console.log(touch.pageX, touch.pageY);
+
             if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
                 that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
                 that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
@@ -1983,6 +1980,28 @@ Lore.ControlsBase = function () {
             }
 
             this._eventListeners[eventName].push(callback);
+        }
+
+        /**
+         * Remove an event listener from this controls instance.
+         * 
+         * @param {String} eventName The name of the event that is to be listened for.
+         * @param {Function} callback A callback function to be called on the event being fired.
+         */
+
+    }, {
+        key: 'removeEventListener',
+        value: function removeEventListener(eventName, callback) {
+            if (!this._eventListeners.hasOwnProperty(eventName)) {
+                return;
+            }
+
+            var index = this._eventListeners[eventName].indexOf(callback);
+
+            if (index > -1) {
+                this._eventListeners[eventName].splice(index, 1);
+                console.log('removed handler!');
+            }
         }
 
         /**
@@ -5830,6 +5849,14 @@ Lore.HelperBase = function (_Lore$Node3) {
         value: function draw() {
             this.geometry.draw(this.renderer);
         }
+
+        /**
+         * Destructor for the helper (mainly used for OctreeHelpers to clean up events).
+         */
+
+    }, {
+        key: 'destruct',
+        value: function destruct() {}
     }]);
 
     return HelperBase;
@@ -6645,7 +6672,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
         var that = _this13;
 
-        renderer.controls.addEventListener('dblclick', function (e) {
+        _this13._dblclickHandler = function (e) {
             if (e.e.mouse.state.middle || e.e.mouse.state.right) {
                 return;
             }
@@ -6660,9 +6687,11 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
                 that.addSelected(result[0]);
             }
-        });
+        };
 
-        renderer.controls.addEventListener('mousemove', function (e) {
+        renderer.controls.addEventListener('dblclick', _this13._dblclickHandler);
+
+        _this13._mousemoveHandler = function (e) {
             if (e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) {
                 return;
             }
@@ -6677,6 +6706,7 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
 
                 that.hovered = result[0];
                 that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+
                 that.raiseEvent('hoveredchanged', {
                     e: that.hovered
                 });
@@ -6686,13 +6716,17 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
                     e: null
                 });
             }
-        });
+        };
 
-        renderer.controls.addEventListener('zoomchanged', function (zoom) {
+        renderer.controls.addEventListener('mousemove', _this13._mousemoveHandler);
+
+        _this13._zoomchangedHandler = function (zoom) {
             that.setPointSizeFromZoom(zoom);
-        });
+        };
 
-        renderer.controls.addEventListener('updated', function () {
+        renderer.controls.addEventListener('zoomchanged', _this13._zoomchangedHandler);
+
+        _this13._updatedHandler = function () {
             for (var i = 0; i < that.selected.length; i++) {
                 that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
             }
@@ -6702,7 +6736,9 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             }
 
             that.raiseEvent('updated');
-        });
+        };
+
+        renderer.controls.addEventListener('updated', _this13._updatedHandler);
 
         _this13.init();
         return _this13;
@@ -7196,6 +7232,19 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             }
 
             return result;
+        }
+
+        /**
+         * Remove eventhandlers from associated controls.
+         */
+
+    }, {
+        key: 'destruct',
+        value: function destruct() {
+            this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
+            this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler);
+            this.renderer.controls.removeEventListener('zoomchanged', this._zoomchangedHandler);
+            this.renderer.controls.removeEventListener('updated', this._updatedHandler);
         }
     }]);
 
@@ -7807,7 +7856,10 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                        ]);
                                                                                                                                                                                                                                                                                                                                                                        */
 ['#define fxaaTexture2D(t, p, o, r) texture2D(t, p + (o * r), 0.0)', '#define fxaaSat(x) clamp(x, 0.0, 1.0)', '#define FXAA_QUALITY_PS 8', '#define FXAA_QUALITY_P0 1.0', '#define FXAA_QUALITY_P1 1.5', '#define FXAA_QUALITY_P2 2.0', '#define FXAA_QUALITY_P3 2.0', '#define FXAA_QUALITY_P4 2.0', '#define FXAA_QUALITY_P5 2.0', '#define FXAA_QUALITY_P6 4.0', '#define FXAA_QUALITY_P7 12.0', 'vec4 fxaa(vec2 pos, sampler2D tex, vec2 resolution,', 'float subpixQuality, float edgeThreshold, float edgeThresholdMin) {', 'vec2 posM;', 'posM.x = pos.x;', 'posM.y = pos.y;', 'vec4 rgbyM = texture2D(tex, posM);', 'vec3 luma = vec3(0.299, 0.587, 0.114);', 'float lumaM = dot(rgbyM.xyz, luma);', 'float lumaS = dot(fxaaTexture2D(tex, posM, vec2(0, 1), resolution.xy).xyz, luma);', 'float lumaE = dot(fxaaTexture2D(tex, posM, vec2(1, 0), resolution.xy).xyz, luma);', 'float lumaN = dot(fxaaTexture2D(tex, posM, vec2(0, -1), resolution.xy).xyz, luma);', 'float lumaW = dot(fxaaTexture2D(tex, posM, vec2(-1, 0), resolution.xy).xyz, luma);', 'float maxSM = max(lumaS, lumaM);', 'float minSM = min(lumaS, lumaM);', 'float maxESM = max(lumaE, maxSM);', 'float minESM = min(lumaE, minSM);', 'float maxWN = max(lumaN, lumaW);', 'float minWN = min(lumaN, lumaW);', 'float rangeMax = max(maxWN, maxESM);', 'float rangeMin = min(minWN, minESM);', 'float rangeMaxScaled = rangeMax * edgeThreshold;', 'float range = rangeMax - rangeMin;', 'float rangeMaxClamped = max(edgeThresholdMin, rangeMaxScaled);', 'bool earlyExit = range < rangeMaxClamped;', '// maybe return rgbyM -> leave unchanged', 'if(earlyExit) return rgbyM;', 'float lumaNW = dot(fxaaTexture2D(tex, posM, vec2(-1, -1), resolution.xy).xyz, luma);', 'float lumaSE = dot(fxaaTexture2D(tex, posM, vec2(1, 1), resolution.xy).xyz, luma);', 'float lumaNE = dot(fxaaTexture2D(tex, posM, vec2(1, -1), resolution.xy).xyz, luma);', 'float lumaSW = dot(fxaaTexture2D(tex, posM, vec2(-1, 1), resolution.xy).xyz, luma);', 'float lumaNS = lumaN + lumaS;', 'float lumaWE = lumaW + lumaE;', 'float subpixRcpRange = 1.0 / range;', 'float subpixNSWE = lumaNS + lumaWE;', 'float edgeHorz1 = (-2.0 * lumaM) + lumaNS;', 'float edgeVert1 = (-2.0 * lumaM) + lumaWE;', 'float lumaNESE = lumaNE + lumaSE;', 'float lumaNWNE = lumaNW + lumaNE;', 'float edgeHorz2 = (-2.0 * lumaE) + lumaNESE;', 'float edgeVert2 = (-2.0 * lumaN) + lumaNWNE;', 'float lumaNWSW = lumaNW + lumaSW;', 'float lumaSWSE = lumaSW + lumaSE;', 'float edgeHorz4 = (abs(edgeHorz1) * 2.0) + abs(edgeHorz2);', 'float edgeVert4 = (abs(edgeVert1) * 2.0) + abs(edgeVert2);', 'float edgeHorz3 = (-2.0 * lumaW) + lumaNWSW;', 'float edgeVert3 = (-2.0 * lumaS) + lumaSWSE;', 'float edgeHorz = abs(edgeHorz3) + edgeHorz4;', 'float edgeVert = abs(edgeVert3) + edgeVert4;', 'float subpixNWSWNESE = lumaNWSW + lumaNESE;', 'float lengthSign = resolution.x;', 'bool horzSpan = edgeHorz >= edgeVert;', 'float subpixA = subpixNSWE * 2.0 + subpixNWSWNESE;', 'if(!horzSpan) lumaN = lumaW;', 'if(!horzSpan) lumaS = lumaE;', 'if(horzSpan) lengthSign = resolution.y;', 'float subpixB = (subpixA * (1.0/12.0)) - lumaM;', 'float gradientN = lumaN - lumaM;', 'float gradientS = lumaS - lumaM;', 'float lumaNN = lumaN + lumaM;', 'float lumaSS = lumaS + lumaM;', 'bool pairN = abs(gradientN) >= abs(gradientS);', 'float gradient = max(abs(gradientN), abs(gradientS));', 'if(pairN) lengthSign = -lengthSign;', 'float subpixC = fxaaSat(abs(subpixB) * subpixRcpRange);', 'vec2 posB;', 'posB.x = posM.x;', 'posB.y = posM.y;', 'vec2 offNP;', 'offNP.x = (!horzSpan) ? 0.0 : resolution.x;', 'offNP.y = ( horzSpan) ? 0.0 : resolution.y;', 'if(!horzSpan) posB.x += lengthSign * 0.5;', 'if( horzSpan) posB.y += lengthSign * 0.5;', 'vec2 posN;', 'posN.x = posB.x - offNP.x * FXAA_QUALITY_P0;', 'posN.y = posB.y - offNP.y * FXAA_QUALITY_P0;', 'vec2 posP;', 'posP.x = posB.x + offNP.x * FXAA_QUALITY_P0;', 'posP.y = posB.y + offNP.y * FXAA_QUALITY_P0;', 'float subpixD = ((-2.0)*subpixC) + 3.0;', 'float lumaEndN = texture2D(tex, posN).w;', 'float subpixE = subpixC * subpixC;', 'float lumaEndP = texture2D(tex, posP).w;', 'if(!pairN) lumaNN = lumaSS;', 'float gradientScaled = gradient * 1.0/4.0;', 'float lumaMM = lumaM - lumaNN * 0.5;', 'float subpixF = subpixD * subpixE;', 'bool lumaMLTZero = lumaMM < 0.0;', 'lumaEndN -= lumaNN * 0.5;', 'lumaEndP -= lumaNN * 0.5;', 'bool doneN = abs(lumaEndN) >= gradientScaled;', 'bool doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P1;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P1;', 'bool doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P1;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P1;', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P2;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P2;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P2;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P2;', '#if (FXAA_QUALITY_PS > 3)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P3;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P3;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P3;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P3;', '#if (FXAA_QUALITY_PS > 4)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P4;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P4;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P4;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P4;', '#if (FXAA_QUALITY_PS > 5)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P5;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P5;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P5;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P5;', '#if (FXAA_QUALITY_PS > 6)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P6;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P6;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P6;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P6;', '#if (FXAA_QUALITY_PS > 7)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P7;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P7;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P7;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P7;', '#if (FXAA_QUALITY_PS > 8)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P8;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P8;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P8;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P8;', '#if (FXAA_QUALITY_PS > 9)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P9;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P9;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P9;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P9;', '#if (FXAA_QUALITY_PS > 10)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P10;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P10;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P10;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P10;', '#if (FXAA_QUALITY_PS > 11)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P11;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P11;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P11;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P11;', '#if (FXAA_QUALITY_PS > 12)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P12;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P12;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P12;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P12;', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', 'float dstN = posM.x - posN.x;', 'float dstP = posP.x - posM.x;', 'if(!horzSpan) dstN = posM.y - posN.y;', 'if(!horzSpan) dstP = posP.y - posM.y;', 'bool goodSpanN = (lumaEndN < 0.0) != lumaMLTZero;', 'float spanLength = (dstP + dstN);', 'bool goodSpanP = (lumaEndP < 0.0) != lumaMLTZero;', 'float spanLengthRcp = 1.0 / spanLength;', 'bool directionN = dstN < dstP;', 'float dst = min(dstN, dstP);', 'bool goodSpan = directionN ? goodSpanN : goodSpanP;', 'float subpixG = subpixF * subpixF;', 'float pixelOffset = (dst * (-spanLengthRcp)) + 0.5;', 'float subpixH = subpixG * subpixQuality;', 'float pixelOffsetGood = goodSpan ? pixelOffset : 0.0;', 'float pixelOffsetSubpix = max(pixelOffsetGood, subpixH);', 'if(!horzSpan) posM.x += pixelOffsetSubpix * lengthSign;', 'if( horzSpan) posM.y += pixelOffsetSubpix * lengthSign;', '// maybe return vec4(texture2D(tex, posM).xyz, lumaM);', 'return texture2D(tex, posM);', '}', 'uniform sampler2D fbo_texture;', 'uniform vec2 resolution;', 'varying vec2 f_texcoord;', 'void main(void) {', 'gl_FragColor = fxaa(f_texcoord, fbo_texture, vec2(1.0 / resolution.x, 1.0 / resolution.y), 0.75, 0.166, 0.0833);', '}']);
-/**
+/**                if (neighbours[j] == locCode) {
+                    // console.log(locCode);
+                }
+
  * @class
  * An octree constructed using the point cloud.
  * @property {number} threshold - A threshold indicating whether or not a further subdivision is needed based on the number of data points in the current node.
@@ -8436,7 +8488,7 @@ Lore.Octree = function () {
             // Get all the neighbours from this cell that are closer than the nereast box
             var indexCount = 0;
             var indices = new Uint32Array(k);
-            console.log(sortedPointDistances, sortedCellDistances);
+
             for (var i = 0; indexCount < k && i < sortedPointDistances.array.length; i++) {
                 // Break if closest neighbouring cell is closer than the closest remaining point
                 if (sortedPointDistances.array[i] > sortedCellDistances.array[0]) {
@@ -8536,11 +8588,7 @@ Lore.Octree = function () {
                 var neighbours = this.getNeighbours(locCodes[i]);
 
                 for (var j = 0; j < neighbours.length; j++) {
-                    if (neighbours[j] == locCode) {
-                        // console.log(locCode);
-                    }
-
-                    if (neighbours[j] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
+                    if (neighbours[j] !== locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
                         locCodes.push(neighbours[j]);
                     }
                 }
@@ -8550,7 +8598,7 @@ Lore.Octree = function () {
             var l1 = locCodes.length;
             var l2 = distancesSq.length;
 
-            if (l1 == l2) {
+            if (l1 === l2) {
                 return;
             }
 

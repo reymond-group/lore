@@ -1,4 +1,7 @@
-/**
+/**                if (neighbours[j] == locCode) {
+                    // console.log(locCode);
+                }
+
  * @class
  * An octree constructed using the point cloud.
  * @property {number} threshold - A threshold indicating whether or not a further subdivision is needed based on the number of data points in the current node.
@@ -587,7 +590,7 @@ Lore.Octree = class Octree {
         // Get all the neighbours from this cell that are closer than the nereast box
         let indexCount = 0;
         let indices = new Uint32Array(k);
-        console.log(sortedPointDistances, sortedCellDistances);
+
         for (var i = 0; indexCount < k && i < sortedPointDistances.array.length; i++) {
             // Break if closest neighbouring cell is closer than the closest remaining point
             if (sortedPointDistances.array[i] > sortedCellDistances.array[0]) {
@@ -681,11 +684,7 @@ Lore.Octree = class Octree {
             let neighbours = this.getNeighbours(locCodes[i]);
 
             for (var j = 0; j < neighbours.length; j++) {
-                if (neighbours[j] == locCode) {
-                    // console.log(locCode);
-                }
-
-                if (neighbours[j] != locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
+                if (neighbours[j] !== locCode && !Lore.Utils.arrayContains(locCodes, neighbours[j])) {
                     locCodes.push(neighbours[j]);
                 }
             }
@@ -695,7 +694,7 @@ Lore.Octree = class Octree {
         let l1 = locCodes.length;
         let l2 = distancesSq.length;
 
-        if (l1 == l2) {
+        if (l1 === l2) {
             return;
         }
 

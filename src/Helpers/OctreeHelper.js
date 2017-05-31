@@ -38,7 +38,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
         let that = this;
 
-        renderer.controls.addEventListener('dblclick', function (e) {
+        this._dblclickHandler = function (e) {
             if (e.e.mouse.state.middle || e.e.mouse.state.right) {
                 return;
             }
@@ -53,9 +53,11 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
                 that.addSelected(result[0]);
             }
-        });
+        };
 
-        renderer.controls.addEventListener('mousemove', function (e) {
+        renderer.controls.addEventListener('dblclick', this._dblclickHandler);
+
+        this._mousemoveHandler = function (e) {
             if (e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) {
                 return;
             }
@@ -70,6 +72,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
                 that.hovered = result[0];
                 that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+                
                 that.raiseEvent('hoveredchanged', {
                     e: that.hovered
                 });
@@ -79,13 +82,17 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
                     e: null
                 });
             }
-        });
+        };
 
-        renderer.controls.addEventListener('zoomchanged', function (zoom) {
+        renderer.controls.addEventListener('mousemove', this._mousemoveHandler);
+
+        this._zoomchangedHandler = function (zoom) {
             that.setPointSizeFromZoom(zoom);
-        });
+        };
 
-        renderer.controls.addEventListener('updated', function () {
+        renderer.controls.addEventListener('zoomchanged', this._zoomchangedHandler);
+
+        this._updatedHandler = function () {
             for (let i = 0; i < that.selected.length; i++) {
                 that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
             }
@@ -95,7 +102,9 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
             }
 
             that.raiseEvent('updated');
-        });
+        };
+
+        renderer.controls.addEventListener('updated', this._updatedHandler);
 
         this.init();
     }
@@ -530,5 +539,15 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         }
 
         return result;
+    }
+
+    /**
+     * Remove eventhandlers from associated controls.
+     */
+    destruct() {
+       this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
+       this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler); 
+       this.renderer.controls.removeEventListener('zoomchanged', this._zoomchangedHandler); 
+       this.renderer.controls.removeEventListener('updated', this._updatedHandler); 
     }
 }

@@ -157,7 +157,7 @@ Lore.ControlsBase = class ControlsBase {
             if (that.mouse.touches == 2) source = 'right';
 
             e.preventDefault();
-            console.log(touch.pageX, touch.pageY);
+            
             if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
                 that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
                 that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
@@ -344,6 +344,25 @@ Lore.ControlsBase = class ControlsBase {
         }
 
         this._eventListeners[eventName].push(callback);
+    }
+
+    /**
+     * Remove an event listener from this controls instance.
+     * 
+     * @param {String} eventName The name of the event that is to be listened for.
+     * @param {Function} callback A callback function to be called on the event being fired.
+     */
+    removeEventListener(eventName, callback) {
+        if (!this._eventListeners.hasOwnProperty(eventName)) {
+            return;
+        }
+
+        let index = this._eventListeners[eventName].indexOf(callback);
+ 
+        if (index > -1) {
+            this._eventListeners[eventName].splice(index, 1);
+            console.log('removed handler!');
+        }
     }
 
     /**

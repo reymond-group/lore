@@ -29,19 +29,14 @@ Lore.Renderer = class Renderer {
         this.effect = null;
         this.lastTiming = performance.now();
 
-        // Disable context menu on right click
-        this.canvas.addEventListener('contextmenu', function (e) {
-            if (e.button === 2) {
-                e.preventDefault();
-                return false;
-            }
-        });
+        this.disableContextMenu();
 
         let that = this;
         that.init();
 
         // Attach the controls last
         let center = options.center ? options.center : new Lore.Vector3f();
+
         that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
     }
 
@@ -61,7 +56,6 @@ Lore.Renderer = class Renderer {
         }
 
         let g = this.gl;
-        console.log(g.getParameter(g.ALIASED_LINE_WIDTH_RANGE));
 
         if (this.opts.verbose) {
             let hasAA = g.getContextAttributes().antialias;
@@ -139,6 +133,16 @@ Lore.Renderer = class Renderer {
         this.effect = new Lore.Effect(this, 'fxaaEffect');
         this.ready = true;
         this.animate();
+    }
+
+    disableContextMenu() {
+        // Disable context menu on right click
+        this.canvas.addEventListener('contextmenu', function (e) {
+            if (e.button === 2) {
+                e.preventDefault();
+                return false;
+            }
+        });
     }
 
     setClearColor(color) {
@@ -221,10 +225,5 @@ Lore.Renderer = class Renderer {
 
     getDevicePixelRatio() {
         return window.devicePixelRatio || 1;
-    }
-
-    reset() {
-        this.geometries = {};
-        this.controls.resetEventListeners();
     }
 }

@@ -96,8 +96,6 @@ Lore.Geometry = class Geometry extends Lore.Node {
 
         // Update the modelView and projection matrices
         if (renderer.camera.isProjectionMatrixStale) {
-            console.log(renderer.camera.getProjectionMatrix());
-            console.log(renderer.camera.viewMatrix);
             this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
         }
 

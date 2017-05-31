@@ -81,4 +81,11 @@ Lore.HelperBase = class HelperBase extends Lore.Node {
     draw() {
         this.geometry.draw(this.renderer);
     }
+
+    /**
+     * Destructor for the helper (mainly used for OctreeHelpers to clean up events).
+     */
+    destruct() {
+        
+    }
 }
