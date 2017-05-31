@@ -45,7 +45,7 @@
             </div>
             <div class="right-col col s4">
                 <h3>Lore.js Demo</h3>
-                <input id="csv" type="file"></input>
+                <input id="csv" type="file" style="display: none"></input>
                 <p id="fps"></p>
                 <div id="app">
                     <div class="row">
@@ -55,7 +55,11 @@
                     </div>
                     <div class="row">
                         <div class="col s12">
-                            <input id="cutoff-button" type="button" value="Set Cutoff"></input>
+                            <a class="waves-effect waves-light btn-flat" onclick="document.getElementById('csv').click()">Upload</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12">
                             <label>Filter by Color</label>
                             <p class="range-field">
                                 <input id="filter" type="range" min="0.0" max="1.0" step="0.05" value="0" v-on:input="filter"></input>
@@ -131,7 +135,7 @@
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
-    <script src="../dist/lore.js"></script>
+    <script src="lore.min.js"></script>
     <script src="app.js"></script>
 
     <script>

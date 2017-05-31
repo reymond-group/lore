@@ -49,16 +49,11 @@ csvReader.addEventListener('loaded', function(data) {
     });
     octreeHelper.addEventListener('hoveredchanged', function(e) {
         if (e.e !== null) {
-            app.hoveredValue = _data['hd'][e.e.index] + ' (' + _data['proper'][e.e.index] + ') ' + ' [' + _data['con'][e.e.index] + '], mag: ' + _data['absmag'][e.e.index];
+            app.hoveredValue = _data['hd'][e.e.index] + ' (' + _data['proper'][e.e.index] + ') ' + ' [' + _data['con'][e.e.index] + '], mag: ' + Math.round(_data['absmag'][e.e.index] * 100) / 100;
         }
     });
 
     pointHelper.addFilter('hueRange', new Lore.InRangeFilter('color', 0, 0.22, 0.25));
-});
-
-document.getElementById('cutoff-button').addEventListener('click', function() {
-    var val = document.getElementById('cutoff').value;
-    pointHelper.setCutoff(val);
 });
 
 var app = new Vue({
