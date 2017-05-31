@@ -1992,8 +1992,16 @@ Lore.ControlsBase = function () {
     }, {
         key: 'removeEventListener',
         value: function removeEventListener(eventName, callback) {
+            console.log('remove event listener called');
+
             if (!this._eventListeners.hasOwnProperty(eventName)) {
                 return;
+            }
+
+            console.log('removing event listeners ...');
+
+            for (var i = 0; i < this._eventListeners[eventName].length; i++) {
+                console.log(eventName, this._eventListeners[eventName][i], callback, this._eventListeners[eventName] == callback);
             }
 
             var index = this._eventListeners[eventName].indexOf(callback);
@@ -2061,20 +2069,6 @@ Lore.ControlsBase = function () {
     }, {
         key: 'update',
         value: function update(e, source) {
-            return this;
-        }
-
-        /**
-         * Removes all event listeners.
-         * 
-         * @returns {Lore.ControlsBase} Itself.
-         */
-
-    }, {
-        key: 'resetEventListeners',
-        value: function resetEventListeners() {
-            this._eventListeners = {};
-
             return this;
         }
     }]);
