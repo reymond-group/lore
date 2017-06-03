@@ -109,7 +109,7 @@ Lore.init = function (canvas, options) {
 
 Lore.getGrakaInfo = function (targetId) {
     var canvas = document.getElementById(targetId);
-    var gl = canvas.getContext('webgl');
+    var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
     var info = {
         renderer: '',
@@ -143,14 +143,13 @@ Lore.DrawModes = {
     triangles: 4,
     traingleStrip: 5,
     triangleFan: 6
-};
 
-/** 
- * A class representing a Color. 
- * 
- * @property {Float32Array} components A typed array storing the components of this color (rgba).
- */
-Lore.Color = function () {
+    /** 
+     * A class representing a Color. 
+     * 
+     * @property {Float32Array} components A typed array storing the components of this color (rgba).
+     */
+};Lore.Color = function () {
     /**
      * Creates an instance of Color.
      * @param {Number} r The red component (0.0 - 1.0).
@@ -8465,10 +8464,10 @@ Lore.Octree = function () {
             var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
 
             // Calculte the distances to the other points in the same cell
-            var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+            var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions
 
             // Sort the indices according to distance
-            var radixSort = new RadixSort();
+            );var radixSort = new RadixSort();
             var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
             // Sort the neighbours according to distance

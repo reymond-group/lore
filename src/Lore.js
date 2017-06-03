@@ -96,7 +96,8 @@ Lore.init = function(canvas, options) {
 
 Lore.getGrakaInfo = function(targetId) {
     let canvas = document.getElementById(targetId);
-    let gl = canvas.getContext('webgl');
+    let gl = canvas.getContext('webgl') || 
+            canvas.getContext('experimental-webgl');
 
     let info = {
         renderer: '',
