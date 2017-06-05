@@ -110,10 +110,15 @@ Lore.getGrakaInfo = function(targetId) {
         info.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
         info.vendor   = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
     }
-    
-    console.log(info);
 
     return info;
+}
+
+Lore.supportsHighQuality = function(targetId) {
+    let info = Lore.getGrakaInfo(targetId);
+    
+
+    return false;
 }
 
 Lore.defaults = {
