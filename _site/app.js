@@ -1,4 +1,4 @@
-console.log(Lore);
+console.log(Lore.Color);
 var lore = Lore.init('loreCanvas', {
     clearColor: '#121212',
     limitRotationToHorizon: false,
@@ -6,6 +6,7 @@ var lore = Lore.init('loreCanvas', {
     coordinates: {
         enabled: true,
         options: {
+            position: new Lore.Vector3f(),
             axis: {
                 x: {
                     length: 50.0,
