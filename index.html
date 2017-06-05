@@ -12,10 +12,30 @@
     <style>
         html, body, .container, #row-main {
             height: 100%;
+            margin: 0;
+            padding: 0;
         }
 
-        #row-main {
-            margin: 0px;
+        #main {
+            position: absolute;
+            width: calc(100% - 350px); 
+            height: 100%
+        }
+
+        #main canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        #panel {
+            position:absolute;
+            top: 0; 
+            right: 0;
+            width: 350px;
+            height: 100%;
+            padding: 10px;
+            overflow-y: auto;
         }
 
         .left-col {
@@ -35,99 +55,99 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="row-main" class="row">
-            <div class="left-col col s8">
-                <div style="width: 100%; height: 100%">
-                    <canvas id="loreCanvas" style="height:100%; width:100%">
-                    </canvas>
-                </div>
-            </div>
-            <div class="right-col col s4">
+    <div id="main">
+        <canvas id="loreCanvas">
+        </canvas>
+    </div>
+
+    <div id="panel">
+        <div class="row">
+            <div class="clo s12">
                 <h3>Lore.js Demo</h3>
                 <input id="csv" type="file" style="display: none"></input>
-                <p id="fps"></p>
-                <div id="app">
-                    <div class="row">
-                        <div class="col s12">
-                            <div id="hovered">{{hoveredValue}}</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s12">
-                            <a class="waves-effect waves-light btn-flat" onclick="document.getElementById('csv').click()">Upload</a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s12">
-                            <label>Filter by Color</label>
-                            <p class="range-field">
-                                <input id="filter" type="range" min="0.0" max="1.0" step="0.05" value="0" v-on:input="filter"></input>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s12">
-                            <label>Distance to LookAt</label>
-                            <p class="range-field">
-                                <input id="radius" type="range" min="0" max="5000" step="1" v-model="radius" v-on:input="updateRadius"></input>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s6">
-                            <label>Fog Start Distance</label>
-                            <p class="range-field">
-                                <input id="fogStart" type="range" min="0" max="5000" step="1" v-model="fogStart" v-on:input="updateFog"></input>
-                            </p>
-                        </div>
-                        <div class="col s6">
-                            <label>Fog End Distance</label>
-                            <p class="range-field">
-                                <input id="fogEnd" type="range" min="0" max="5000" step="1" v-model="fogEnd" v-on:input="updateFog"></input>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s4">
-                            <label>LookAt (X)</label>
-                            <p class="range-field">
-                                <input id="lookAtX" type="range" min="-500" max="500" step="1" v-model="lookAtX" v-on:input="updateLookAt"></input>
-                            </p>
-                        </div>
-                        <div class="col s4">
-                            <label>LookAt (Y)</label>
-                            <p class="range-field">
-                                <input id="lookAtY" type="range" min="-500" max="500" step="1" v-model="lookAtY" v-on:input="updateLookAt"></input>
-                            </p>
-                        </div>
-                        <div class="col s4">
-                            <label>LookAt (Z)</label>
-                            <p class="range-field">
-                                <input id="lookAtZ" type="range" min="-500" max="500" step="1" v-model="lookAtZ" v-on:input="updateLookAt"></input>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-field col s12">
-                            <select onchange="app.changeView(this.value);">
-                                <option value="" disabled selected>Select a View Option</option>
-                                <option value="top">Top View</option>
-                                <option value="front">Front View</option>
-                                <option value="back">Back View</option>
-                                <option value="left">Left View</option>
-                                <option value="right">Right View</option>
-                                <option value="free">Free View</option>
-                            </select>
-                            <label>View</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s12">
-                            <a class="waves-effect waves-light btn-flat" v-on:click="zoomIn">Zoom In</a>
-                            <a class="waves-effect waves-light btn-flat" v-on:click="zoomOut">Zoom Out</a>
-                        </div>
-                    </div>
+                <p>Current FPS: <span id="fps"></span></p>
+            </div>
+        </div>
+        <div id="app">
+            <div class="row">
+                <div class="col s12">
+                    <label>Hovered Value</label>
+                    <div id="hovered">{{hoveredValue}}</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <a class="waves-effect waves-light btn-flat" onclick="document.getElementById('csv').click()">Upload</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <label>Filter by Color</label>
+                    <p class="range-field">
+                        <input id="filter" type="range" min="0.0" max="1.0" step="0.05" value="0" v-on:input="filter"></input>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <label>Distance to LookAt</label>
+                    <p class="range-field">
+                        <input id="radius" type="range" min="0" max="5000" step="1" v-model="radius" v-on:input="updateRadius"></input>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s6">
+                    <label>Fog Start Distance</label>
+                    <p class="range-field">
+                        <input id="fogStart" type="range" min="0" max="5000" step="1" v-model="fogStart" v-on:input="updateFog"></input>
+                    </p>
+                </div>
+                <div class="col s6">
+                    <label>Fog End Distance</label>
+                    <p class="range-field">
+                        <input id="fogEnd" type="range" min="0" max="5000" step="1" v-model="fogEnd" v-on:input="updateFog"></input>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s4">
+                    <label>LookAt (X)</label>
+                    <p class="range-field">
+                        <input id="lookAtX" type="range" min="-500" max="500" step="1" v-model="lookAtX" v-on:input="updateLookAt"></input>
+                    </p>
+                </div>
+                <div class="col s4">
+                    <label>LookAt (Y)</label>
+                    <p class="range-field">
+                        <input id="lookAtY" type="range" min="-500" max="500" step="1" v-model="lookAtY" v-on:input="updateLookAt"></input>
+                    </p>
+                </div>
+                <div class="col s4">
+                    <label>LookAt (Z)</label>
+                    <p class="range-field">
+                        <input id="lookAtZ" type="range" min="-500" max="500" step="1" v-model="lookAtZ" v-on:input="updateLookAt"></input>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <select onchange="app.changeView(this.value);">
+                        <option value="" disabled selected>Select a View Option</option>
+                        <option value="top">Top View</option>
+                        <option value="front">Front View</option>
+                        <option value="back">Back View</option>
+                        <option value="left">Left View</option>
+                        <option value="right">Right View</option>
+                        <option value="free">Free View</option>
+                    </select>
+                    <label>View</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <a class="waves-effect waves-light btn-flat" v-on:click="zoomIn">Zoom In</a>
+                    <a class="waves-effect waves-light btn-flat" v-on:click="zoomOut">Zoom Out</a>
                 </div>
             </div>
         </div>
