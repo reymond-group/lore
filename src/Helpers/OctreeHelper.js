@@ -24,7 +24,8 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         super(renderer, geometryName, shaderName);
 
         this.defaults = {
-            visualize: false
+            visualize: false,
+            multiSelect: true
         }
 
         this.opts = Lore.Utils.extend(true, this.defaults, options);
@@ -171,7 +172,14 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         }
 
         let index = this.selected.length;
-        this.selected.push(item);
+
+        if (this.opts.multiSelect) {
+            this.selected.push(item);
+        } else {
+            this.selected[0] = item;
+            index = 0;
+        }
+
         this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
         this.raiseEvent('selectedchanged', {
             e: this.selected

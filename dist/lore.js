@@ -6632,7 +6632,8 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
         var _this13 = _possibleConstructorReturn(this, (OctreeHelper.__proto__ || Object.getPrototypeOf(OctreeHelper)).call(this, renderer, geometryName, shaderName));
 
         _this13.defaults = {
-            visualize: false
+            visualize: false,
+            multiSelect: true
         };
 
         _this13.opts = Lore.Utils.extend(true, _this13.defaults, options);
@@ -6793,7 +6794,14 @@ Lore.OctreeHelper = function (_Lore$HelperBase4) {
             }
 
             var index = this.selected.length;
-            this.selected.push(item);
+
+            if (this.opts.multiSelect) {
+                this.selected.push(item);
+            } else {
+                this.selected[0] = item;
+                index = 0;
+            }
+
             this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
             this.raiseEvent('selectedchanged', {
                 e: this.selected
