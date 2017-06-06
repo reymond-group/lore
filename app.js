@@ -2,58 +2,12 @@ var lore = Lore.init('loreCanvas', {
     clearColor: '#121212',
     limitRotationToHorizon: false,
     antialiasing: false,
-    coordinates: {
-        enabled: true,
-        options: {
-            position: new Lore.Vector3f(),
-            axis: {
-                x: {
-                    length: 50.0,
-                    color: Lore.Color.fromHex('#222222')
-                },
-                y: {
-                    length: 50.0,
-                    color: Lore.Color.fromHex('#222222')
-                },
-                z: {
-                    length: 50.0,
-                    color: Lore.Color.fromHex('#222222')
-                }
-            },
-            ticks: {
-                enabled: true,
-                x: {
-                    count: 10,
-                    length: 5.0,
-                    offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#1f1f1f')
-                },
-                y: {
-                    count: 10,
-                    length: 5.0,
-                    offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#1f1f1f')
-                },
-                z: {
-                    count: 10,
-                    length: 5.0,
-                    offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#1f1f1f')
-                }
-            },
-            box: {
-                enabled: true,
-                x: {
-                    color: Lore.Color.fromHex('#222222')
-                },
-                y: {
-                    color: Lore.Color.fromHex('#222222')
-                },
-                z: {
-                    color: Lore.Color.fromHex('#222222')
-                }
-            }
-        }
+});
+
+var coordinatesHelper = new Lore.CoordinatesHelper(lore, 'Coordinates', 'coordinates', {
+    position: new Lore.Vector3f(0, 0, 0),
+    box: {
+      enabled: false
     }
 });
 
@@ -71,7 +25,10 @@ var pointHelper = null;
 var _data = [];
 
 csvReader.addEventListener('loaded', function(data) {
-    pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'sphere');
+    pointHelper = new Lore.PointHelper(lore, 'TestGeometry', 'sphere', {
+        octreeThreshold: 250.0,
+        octreeMaxDepth: 10
+    });
     pointHelper.geometry.isVisible = true;
     data['normmag'] = new Float32Array(data['absmag'].length);
     _data = data;

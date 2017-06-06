@@ -53,6 +53,10 @@
             margin-top: 2px;
             margin-bottom: 2px;
         }
+
+        .info {
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
@@ -78,7 +82,11 @@
             </div>
             <div class="row">
                 <div class="col s12">
-                    <a class="waves-effect waves-light btn-flat" onclick="document.getElementById('csv').click()">Upload</a>
+                    <p class="info">Lore.js not only supports loading data from the web, but also from your local machine. Download an example dataset (around 120,000 stars surrounding Sol exported from the hYG database):</p>
+                    <p><a class="waves-effect waves-light btn" href="hygdata_v3.csv">Download</a></p>
+                    <p class="info">(source: http://www.astronexus.com/hyg)</p>
+                    <p class="info">Next, load the downloaded csv file, it will not be uploaded to a server.</p>
+                    <a class="waves-effect waves-light btn" onclick="document.getElementById('csv').click()">Load csv</a>
                 </div>
             </div>
             <div class="row">
@@ -89,6 +97,7 @@
                     </p>
                 </div>
             </div>
+            <!--
             <div class="row">
                 <div class="col s12">
                     <label>Distance to LookAt</label>
@@ -97,6 +106,7 @@
                     </p>
                 </div>
             </div>
+            -->
             <div class="row">
                 <div class="col s6">
                     <label>Fog Start Distance</label>
