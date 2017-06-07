@@ -64,22 +64,23 @@ Lore.Statistics = class Statistics {
      * @returns {Number[]} The normalized / scaled array.
      */
     static normalize(arr) {
-        let max = Number.MIN_VALUE;
-        let min = Number.MAX_VALUE;
+        let newArr = arr.slice();
+        let max = Number.NEGATIVE_INFINITY;
+        let min = Number.POSITIVE_INFINITY;
 
-        for (let i = 0; i < arr.length; i++) {
-            let val = arr[i];
+        for (let i = 0; i < newArr.length; i++) {
+            let val = newArr[i];
             if (val > max) max = val;
             if (val < min) min = val;
         }
 
         let diff = max - min;
 
-        for (let i = 0; i < arr.length; i++) {
-            arr[i] = (arr[i] - min) / diff;
+        for (let i = 0; i < newArr.length; i++) {
+            newArr[i] = (newArr[i] - min) / diff;
         }
-
-        return [min, max];
+        
+        return newArr;
     }
 
     /**

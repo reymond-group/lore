@@ -225,8 +225,8 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
             let b = c[i + 2];
 
             c[i] = Lore.Color.rgbToHsl(r, g, b)[0];
-            c[i + 1] = colors[1];
-            c[i + 2] = colors[2];
+            c[i + 1] = colors[i + 1];
+            c[i + 2] = colors[i + 2];
         }
 
         this.updateColors(c);
@@ -332,6 +332,54 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
 
         return new Lore.Vector3f(positions[index * 3], positions[index * 3 + 1],
             positions[index * 3 + 2]);
+    }
+
+    setHue(hue) {
+        let length = hue.length;
+        let c = new Float32Array(length * 3);
+        let colors = this.getAttribute('color');
+        let index = 0;
+        
+        for (let i = 0; i < length * 3; i += 3) {
+            c[i] = hue[index++];
+            c[i + 1] = colors[i + 1];
+            c[i + 2] = colors[i + 2];
+        }
+        
+
+        this.setColors(c);
+    }
+
+    setSaturation(saturation) {
+        let length = saturation.length;
+        let c = new Float32Array(length * 3);
+        let colors = this.getAttribute('color');
+        let index = 0;
+        
+        for (let i = 0; i < length * 3; i += 3) {
+            c[i] = colors[i];
+            c[i + 1] = saturation[index++];
+            c[i + 2] = colors[i + 2];
+        }
+        
+
+        this.setColors(c);
+    }
+
+    setSize(size) {
+        let length = size.length;
+        let c = new Float32Array(length * 3);
+        let colors = this.getAttribute('color');
+        let index = 0;
+        
+        for (let i = 0; i < length * 3; i += 3) {
+            c[i] = colors[i];
+            c[i + 1] = colors[i + 1];
+            c[i + 2] = size[index++];
+        }
+        
+
+        this.setColors(c);
     }
 
     setHSS(hue, saturation, size, length) {

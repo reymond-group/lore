@@ -43,7 +43,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
                 throw 'Types and cols must have the same number of elements.'
             }
         } else {
-            if (this.types.length !== this.cols.length) {
+            if (this.types.length !== this.cols.length || this.types.length + this.cols.length === 0) {
                 let values = lines[h].split(this.opts.separator);
                 
                 this.types = [];
@@ -101,7 +101,8 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
         }
 
         this.raiseEvent('loaded', this.columns);
-
+        console.log(this.columns);
+        console.log(this.types);
         return this;
     }
 
