@@ -40,11 +40,10 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
             'return;',
         '}',
         'float dist = abs(mv_pos.z - fogStart);',
-        'gl_PointSize = size;',
+        'gl_PointSize = point_size * size;',
         'if(fogEnd > 0.0) {',
             'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);',
         '}',
-        'hsv.g = 0.5 + 0.4 * rand(position.xy);',
         'vColor = hsv2rgb(hsv);',
     '}'
 ], [

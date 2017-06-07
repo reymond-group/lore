@@ -1,6 +1,13 @@
+/** A class representing a CSV file reader. */
 Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
-    constructor(elementId, options) {
-        super(elementId);
+    /**
+     * Creates an instance of CsvFileReader.
+     * @param {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
+     * @param {any} options Options. See documentation for details.
+     * @param {boolean} [local=true] A boolean indicating whether or not the source is local (a file input) or remote (a url).
+     */
+    constructor(source, options, local = true) {
+        super(source, local);
 
         this.defaults = {
             separator: ',',
@@ -16,6 +23,12 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
         this.cols = this.opts.cols;
     }
 
+    /**
+     * Called when the data is loaded, will raise the "loaded" event.
+     * 
+     * @param {any} data The data loaded from the file or url.
+     * @returns {Lore.CsvFileReader} Itself.
+     */
     loaded(data) {
         data = data.replace('\n\n', '\n');
         data = data.replace(/^\s+|\s+$/g, '');
@@ -76,7 +89,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
 
             if (init) {
                 for (let j = 0; j < this.cols.length; j++) {
-                    this.createArray(this.headers[j], this.types[j], length - h);
+                    this._createArray(this.headers[j], this.types[j], length - h);
                 }
 
                 init = false;
@@ -92,7 +105,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
         return this;
     }
 
-    createArray(index, type, length) {
+    _createArray(index, type, length) {
         if (type == 'Int8Array') {
             this.columns[index] = new Int8Array(length);
         } else if (type == 'Uint8Array') {

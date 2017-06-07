@@ -59,7 +59,7 @@ Lore.init = function (canvas, options) {
     Lore.getGrakaInfo(canvas);
 
     // Init UI
-    var ui = new Lore.UI(canvas);
+    // var ui = new Lore.UI(canvas);
 
     // Start the 3D stuff
     var cc = Lore.Color.fromHex(this.opts.clearColor);
@@ -123,14 +123,13 @@ Lore.DrawModes = {
     triangles: 4,
     traingleStrip: 5,
     triangleFan: 6
-};
 
-/** 
- * A class representing a Color. 
- * 
- * @property {Float32Array} components A typed array storing the components of this color (rgba).
- */
-Lore.Color = function () {
+    /** 
+     * A class representing a Color. 
+     * 
+     * @property {Float32Array} components A typed array storing the components of this color (rgba).
+     */
+};Lore.Color = function () {
     /**
      * Creates an instance of Color.
      * @param {Number} r The red component (0.0 - 1.0).
@@ -7435,51 +7434,94 @@ Lore.InRangeFilter = function (_Lore$FilterBase) {
     return InRangeFilter;
 }(Lore.FilterBase);
 
+/** 
+ * An abstract class representing the base for file reader implementations. 
+ * 
+ * @property {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
+ * */
 Lore.FileReaderBase = function () {
-    function FileReaderBase(elementId) {
+    /**
+     * Creates an instance of FileReaderBase.
+     * 
+     * @param {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
+     * @param {Boolean} [local=true] A boolean indicating whether or not the source is local (a file input) or remote (a url).
+     */
+    function FileReaderBase(source) {
+        var local = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
         _classCallCheck(this, FileReaderBase);
 
-        this.elementId = elementId;
-        this.element = document.getElementById(this.elementId);
-        this.eventListeners = {};
+        this.source = source;
+        this._eventListeners = {};
 
         var that = this;
 
-        this.element.addEventListener('click', function () {
-            this.value = null;
-        });
+        if (local) {
+            this.element = document.getElementById(this.source);
 
-        this.element.addEventListener('change', function () {
-            var fileReader = new FileReader();
+            this.element.addEventListener('click', function () {
+                this.value = null;
+            });
 
-            fileReader.onload = function () {
-                that.loaded(fileReader.result);
-            };
+            this.element.addEventListener('change', function () {
+                var fileReader = new FileReader();
 
-            fileReader.readAsBinaryString(this.files[0]);
-        });
+                fileReader.onload = function () {
+                    that.loaded(fileReader.result);
+                };
+
+                fileReader.readAsBinaryString(this.files[0]);
+            });
+        } else {
+            Lore.Utils.jsonp(source, function (response) {
+                that.loaded(response);
+            });
+        }
     }
+
+    /**
+     * Add an event listener.
+     * 
+     * @param {String} eventName The name of the event.
+     * @param {Function} callback A callback function associated with the event name.
+     */
+
 
     _createClass(FileReaderBase, [{
         key: 'addEventListener',
         value: function addEventListener(eventName, callback) {
-            if (!this.eventListeners[eventName]) {
-                this.eventListeners[eventName] = [];
+            if (!this._eventListeners[eventName]) {
+                this._eventListeners[eventName] = [];
             }
 
-            this.eventListeners[eventName].push(callback);
+            this._eventListeners[eventName].push(callback);
         }
+
+        /**
+         * Raise an event. To be called by inheriting classes.
+         * 
+         * @param {String} eventName The name of the event.
+         * @param {any} data Data to be passed to the handler.
+         */
+
     }, {
         key: 'raiseEvent',
         value: function raiseEvent(eventName, data) {
-            if (!this.eventListeners[eventName]) {
+            if (!this._eventListeners[eventName]) {
                 return;
             }
 
-            for (var i = 0; i < this.eventListeners[eventName].length; i++) {
-                this.eventListeners[eventName][i](data);
+            for (var i = 0; i < this._eventListeners[eventName].length; i++) {
+                this._eventListeners[eventName][i](data);
             }
         }
+
+        /**
+         * To be overwritten by inheriting classes.
+         * 
+         * @param {any} data 
+         */
+
     }, {
         key: 'loaded',
         value: function loaded(data) {}
@@ -7488,13 +7530,22 @@ Lore.FileReaderBase = function () {
     return FileReaderBase;
 }();
 
+/** A class representing a CSV file reader. */
 Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     _inherits(CsvFileReader, _Lore$FileReaderBase);
 
-    function CsvFileReader(elementId, options) {
+    /**
+     * Creates an instance of CsvFileReader.
+     * @param {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
+     * @param {any} options Options. See documentation for details.
+     * @param {boolean} [local=true] A boolean indicating whether or not the source is local (a file input) or remote (a url).
+     */
+    function CsvFileReader(source, options) {
+        var local = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
         _classCallCheck(this, CsvFileReader);
 
-        var _this15 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, elementId));
+        var _this15 = _possibleConstructorReturn(this, (CsvFileReader.__proto__ || Object.getPrototypeOf(CsvFileReader)).call(this, source, local));
 
         _this15.defaults = {
             separator: ',',
@@ -7510,6 +7561,14 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
         _this15.cols = _this15.opts.cols;
         return _this15;
     }
+
+    /**
+     * Called when the data is loaded, will raise the "loaded" event.
+     * 
+     * @param {any} data The data loaded from the file or url.
+     * @returns {Lore.CsvFileReader} Itself.
+     */
+
 
     _createClass(CsvFileReader, [{
         key: 'loaded',
@@ -7572,7 +7631,7 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
 
                 if (init) {
                     for (var _j = 0; _j < this.cols.length; _j++) {
-                        this.createArray(this.headers[_j], this.types[_j], length - h);
+                        this._createArray(this.headers[_j], this.types[_j], length - h);
                     }
 
                     init = false;
@@ -7588,8 +7647,8 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
             return this;
         }
     }, {
-        key: 'createArray',
-        value: function createArray(index, type, length) {
+        key: '_createArray',
+        value: function _createArray(index, type, length) {
             if (type == 'Int8Array') {
                 this.columns[index] = new Int8Array(length);
             } else if (type == 'Uint8Array') {
@@ -7761,6 +7820,28 @@ Lore.Utils = function () {
         value: function isFloat(n) {
             return Number(n) === n && n % 1 !== 0;
         }
+
+        /**
+         * A helper method enabling JSONP requests to an url.
+         * 
+         * @param {String} url An url.
+         * @param {Function} callback The callback to be called when the data is loaded.
+         */
+
+    }, {
+        key: 'jsonp',
+        value: function jsonp(url, callback) {
+            var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            window[callbackName] = function (response) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                callback(response);
+            };
+
+            var script = document.createElement('script');
+            script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+            document.body.appendChild(script);
+        }
     }]);
 
     return Utils;
@@ -7771,7 +7852,7 @@ Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('s
     type: new Lore.Uniform('type', 0.0, 'float'),
     fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
     fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float dist = abs(mv_pos.z - fogStart);', 'gl_PointSize = size;', 'if(fogEnd > 0.0) {', 'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);', '}', 'hsv.g = 0.5 + 0.4 * rand(position.xy);', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float dist = abs(mv_pos.z - fogStart);', 'gl_PointSize = point_size * size;', 'if(fogEnd > 0.0) {', 'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
 Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', { size: new Lore.Uniform('size', 5.0, 'float'),
     fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
@@ -7798,7 +7879,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_SPAN_MAX     8.0',
-                                                                                                                                                                                                                                                                                                                                                                          'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                                         'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
                                                                                                                                                                                                                                                                                                                                                                         '{',
                                                                                                                                                                                                                                                                                                                                                                             'fragCoord = fragCoord * resolution;',
                                                                                                                                                                                                                                                                                                                                                                             'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -7817,23 +7898,23 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                             'float lumaM  = dot(rgbM,  luma);',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                              'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                                             'vec2 dir;',
                                                                                                                                                                                                                                                                                                                                                                             'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
                                                                                                                                                                                                                                                                                                                                                                             'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                              'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                                             'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
                                                                                                                                                                                                                                                                                                                                                                             'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-                                                                                                                                                                                                                                                                                                                                                                              'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                             'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                              'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                                             'float lumaB = dot(rgbB, luma);',
                                                                                                                                                                                                                                                                                                                                                                             'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbA, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                             'else',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbB, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                         '}',
-                                                                                                                                                                                                                                                                                                                                                                          'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                                         'uniform sampler2D fbo_texture;',
                                                                                                                                                                                                                                                                                                                                                                         'varying vec2 f_texcoord;',
                                                                                                                                                                                                                                                                                                                                                                         'void main(void) {',
                                                                                                                                                                                                                                                                                                                                                                             'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
@@ -8456,10 +8537,10 @@ Lore.Octree = function () {
             var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
 
             // Calculte the distances to the other points in the same cell
-            var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
+            var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions
 
             // Sort the indices according to distance
-            var radixSort = new RadixSort();
+            );var radixSort = new RadixSort();
             var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
             // Sort the neighbours according to distance

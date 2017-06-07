@@ -1,45 +1,79 @@
+/** 
+ * An abstract class representing the base for file reader implementations. 
+ * 
+ * @property {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
+ * */
 Lore.FileReaderBase = class FileReaderBase {
-
-    constructor(elementId) {
-        this.elementId = elementId;
-        this.element = document.getElementById(this.elementId);
-        this.eventListeners = {};
+    /**
+     * Creates an instance of FileReaderBase.
+     * 
+     * @param {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
+     * @param {Boolean} [local=true] A boolean indicating whether or not the source is local (a file input) or remote (a url).
+     */
+    constructor(source, local = true) {
+        this.source = source;
+        this._eventListeners = {};
         
         let that = this;
 
-        this.element.addEventListener('click', function() {
-            this.value = null;
-        });
+        if (local) {
+            this.element = document.getElementById(this.source);
 
-        this.element.addEventListener('change', function() {
-            let fileReader = new FileReader();
+            this.element.addEventListener('click', function() {
+                this.value = null;
+            });
 
-            fileReader.onload = function() {
-                that.loaded(fileReader.result);
-            }
+            this.element.addEventListener('change', function() {
+                let fileReader = new FileReader();
 
-            fileReader.readAsBinaryString(this.files[0]);
-        });
+                fileReader.onload = function() {
+                    that.loaded(fileReader.result);
+                }
+
+                fileReader.readAsBinaryString(this.files[0]);
+            });
+        } else {
+            Lore.Utils.jsonp(source, function(response) {
+                that.loaded(response);
+            });
+        }
     }
 
+    /**
+     * Add an event listener.
+     * 
+     * @param {String} eventName The name of the event.
+     * @param {Function} callback A callback function associated with the event name.
+     */
     addEventListener(eventName, callback) {
-        if(!this.eventListeners[eventName]) {
-            this.eventListeners[eventName] = [];
+        if(!this._eventListeners[eventName]) {
+            this._eventListeners[eventName] = [];
         }
 
-        this.eventListeners[eventName].push(callback);
+        this._eventListeners[eventName].push(callback);
     }
 
+    /**
+     * Raise an event. To be called by inheriting classes.
+     * 
+     * @param {String} eventName The name of the event.
+     * @param {any} data Data to be passed to the handler.
+     */
     raiseEvent(eventName, data) {
-        if(!this.eventListeners[eventName]) {
+        if(!this._eventListeners[eventName]) {
             return;
         }
 
-        for(let i = 0; i < this.eventListeners[eventName].length; i++) {
-            this.eventListeners[eventName][i](data);
+        for(let i = 0; i < this._eventListeners[eventName].length; i++) {
+            this._eventListeners[eventName][i](data);
         }
     }
 
+    /**
+     * To be overwritten by inheriting classes.
+     * 
+     * @param {any} data 
+     */
     loaded(data) {
 
     }

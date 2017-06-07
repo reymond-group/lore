@@ -115,6 +115,25 @@ Lore.Utils = class Utils {
     static isFloat(n){
         return Number(n) === n && n % 1 !== 0;
     }
+
+    /**
+     * A helper method enabling JSONP requests to an url.
+     * 
+     * @param {String} url An url.
+     * @param {Function} callback The callback to be called when the data is loaded.
+     */
+    static jsonp(url, callback) {
+        let callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(response) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            callback(response);
+        };
+
+        let script = document.createElement('script');
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        document.body.appendChild(script);
+    }
 }
 
 Lore.Utils.DEG2RAD = Math.PI / 180.0; 
