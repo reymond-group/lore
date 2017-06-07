@@ -5,7 +5,9 @@
  * @property {Number[]} indices Indices associated with the data.
  * @property {Lore.Octree} octree The octree associated with the point cloud.
  * @property {Object} filters A map mapping filter names to Lore.Filter instances associated with this helper class.
- * @property {Number} pointSize The default point size of this data.
+ * @property {Number} pointSize The scaled and constrained point size of this data.
+ * @property {Number} pointScale The scale of the point size.
+ * @property {Number} rawPointSize The point size before scaling and constraints.
  * @property {Object} dimensions An object with the properties min and max, each a 3D vector containing the extremes.
  */
 Lore.PointHelper = class PointHelper extends Lore.HelperBase {
@@ -33,7 +35,9 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         this.geometry.setMode(Lore.DrawModes.points);
         this.initPointSize();
         this.filters = {};
-        this.pointSize = 1.0 * this.opts.pointScale;
+        this.pointScale = this.opts.pointScale;
+        this.rawPointSize = 1.0;
+        this.pointSize = this.rawPointSize * this.pointScale;
 
         this.dimensions = {
             min: new Lore.Vector3f(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
@@ -271,9 +275,31 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
-    // Returns the threshold for the raycaster
+    /**
+     * Set the global point size.
+     * 
+     * @param {Number} size The global point size.
+     * @returns {Number} The threshold for the raycaster.
+     */
     setPointSize(size) {
-        let pointSize = size * this.opts.pointScale;
+        this.rawPointSize = size;
+
+        this.updatePointSize();
+
+        let pointSize = this.rawPointSize * this.opts.pointScale;
+
+        if (pointSize > this.opts.maxPointSize) {
+            return 0.5 * (this.opts.maxPointSize / pointSize);
+        } else {
+            return 0.5;
+        }
+    }
+
+    /**
+     * Updates the displayed point size.
+     */
+    updatePointSize() {
+        let pointSize = this.rawPointSize * this.opts.pointScale;
         
         if (pointSize > this.opts.maxPointSize) {
             this.pointSize = this.opts.maxPointSize;
@@ -282,22 +308,46 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         }
 
         this.geometry.shader.uniforms.size.value = this.pointSize;
-        
-        if (pointSize > this.opts.maxPointSize) {
-            return 0.5 * (this.opts.maxPointSize / pointSize);
-        } else {
-            return 0.5;
-        }
     }
 
+    /**
+     * Get the global point size.
+     * 
+     * @returns {Number} The global point size.
+     */
     getPointSize() {
         return this.geometry.shader.uniforms.size.value;
     }
 
+    /**
+     * Get the global point scale.
+     * 
+     * @returns {Number} The global point size.
+     */
     getPointScale() {
         return this.opts.pointScale;
     }
 
+    /**
+     * Sets the global point scale.
+     * 
+     * @param {Number} pointScale The global point size.
+     * @returns {Lore.PointHelper} Itself.
+     */
+    setPointScale(pointScale) {
+        this.opts.pointScale = pointScale;
+        this.updatePointSize();
+
+        return this;
+    }
+
+    /**
+     * Sets the fog start and end distances, as seen from the camera.
+     * 
+     * @param {Number} fogStart The start distance of the fog.
+     * @param {Number} fogEnd The end distance of the fog.
+     * @returns {Lore.PointHelper} Itself.
+     */
     setFogDistance(fogStart, fogEnd) {
         this.geometry.shader.uniforms.fogStart.value = fogStart;
         this.geometry.shader.uniforms.fogEnd.value = fogEnd;
@@ -305,28 +355,80 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
+    /**
+     * Initialize the point size based on the current zoom.
+     * 
+     * @returns {Lore.PointHelper} Itself.
+     */
     initPointSize() {
         this.setPointSize(this.renderer.camera.zoom + 0.1);
 
         return this;
     }
 
+    /**
+     * Get the current cutoff value.
+     * 
+     * @returns {Number} The current cutoff value.
+     */
     getCutoff() {
         return this.geometry.shader.uniforms.cutoff.value;
     }
 
+    /**
+     * Set the cutoff value.
+     * 
+     * @param {Number} cutoff A cutoff value.
+     * @returns {Lore.PointHelper} Itself.
+     */
     setCutoff(cutoff) {
         this.geometry.shader.uniforms.cutoff.value = cutoff;
 
         return this;
     }
 
+    /**
+     * Get the hue for a given index.
+     * 
+     * @param {Number} index An index.
+     * @returns {Number} The hue of the specified index.
+     */
     getHue(index) {
         let colors = this.getAttribute('color');
 
         return colors[index * 3];
     }
 
+    /**
+     * Get the saturation for a given index.
+     * 
+     * @param {Number} index An index.
+     * @returns {Number} The saturation of the specified index.
+     */
+    getSaturation(index) {
+        let colors = this.getAttribute('color');
+
+        return colors[index * 3 + 1];
+    }
+
+    /**
+     * Get the size for a given index.
+     * 
+     * @param {Number} index An index.
+     * @returns {Number} The size of the specified index.
+     */
+    getSize(index) {
+        let colors = this.getAttribute('color');
+
+        return colors[index * 3 + 2];
+    }
+
+    /**
+     * Get the position for a given index.
+     * 
+     * @param {Number} index An index.
+     * @returns {Number} The position of the specified index.
+     */
     getPosition(index) {
         let positions = this.getAttribute('position');
 
@@ -334,54 +436,119 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
             positions[index * 3 + 2]);
     }
 
+    /**
+     * Set the hue. If a number is supplied, all the hues are set to the supplied number.
+     * 
+     * @param {TypedArray|Number} hue The hue to be set. If a number is supplied, all hues are set to its value.
+     */
     setHue(hue) {
-        let length = hue.length;
-        let c = new Float32Array(length * 3);
         let colors = this.getAttribute('color');
+        let c = null;
         let index = 0;
-        
-        for (let i = 0; i < length * 3; i += 3) {
-            c[i] = hue[index++];
-            c[i + 1] = colors[i + 1];
-            c[i + 2] = colors[i + 2];
+
+        if (typeof hue === 'number') {
+            let length = colors.length;
+
+            c = new Float32Array(length * 3);
+
+            for (let i = 0; i < length * 3; i += 3) {
+                c[i] = hue;
+                c[i + 1] = colors[i + 1];
+                c[i + 2] = colors[i + 2];
+            }
+        } else {
+            let length = hue.length;
+
+            c = new Float32Array(length * 3);
+
+            for (let i = 0; i < length * 3; i += 3) {
+                c[i] = hue[index++];
+                c[i + 1] = colors[i + 1];
+                c[i + 2] = colors[i + 2];
+            }
         }
-        
 
         this.setColors(c);
     }
 
+    /**
+     * Set the saturation. If a number is supplied, all the saturations are set to the supplied number.
+     * 
+     * @param {TypedArray|Number} hue The saturation to be set. If a number is supplied, all saturations are set to its value.
+     */
     setSaturation(saturation) {
-        let length = saturation.length;
-        let c = new Float32Array(length * 3);
         let colors = this.getAttribute('color');
+        let c = null;
         let index = 0;
-        
-        for (let i = 0; i < length * 3; i += 3) {
-            c[i] = colors[i];
-            c[i + 1] = saturation[index++];
-            c[i + 2] = colors[i + 2];
+
+        if (typeof saturation === 'number') {
+            let length = colors.length;
+
+            c = new Float32Array(length * 3);
+
+            for (let i = 0; i < length * 3; i += 3) {
+                c[i] = colors[i];
+                c[i + 1] = saturation;
+                c[i + 2] = colors[i + 2];
+            }
+        } else {
+            let length = saturation.length;
+
+            c = new Float32Array(length * 3);
+
+            for (let i = 0; i < length * 3; i += 3) {
+                c[i] = colors[i];
+                c[i + 1] = saturation[index++];
+                c[i + 2] = colors[i + 2];
+            }
         }
-        
 
         this.setColors(c);
     }
 
+    /**
+     * Set the size. If a number is supplied, all the sizes are set to the supplied number.
+     * 
+     * @param {TypedArray|Number} hue The size to be set. If a number is supplied, all sizes are set to its value.
+     */
     setSize(size) {
-        let length = size.length;
-        let c = new Float32Array(length * 3);
         let colors = this.getAttribute('color');
+        let c = null;
         let index = 0;
-        
-        for (let i = 0; i < length * 3; i += 3) {
-            c[i] = colors[i];
-            c[i + 1] = colors[i + 1];
-            c[i + 2] = size[index++];
+
+        if (typeof size === 'number') {
+            let length = colors.length;
+
+            c = new Float32Array(length * 3);
+
+            for (let i = 0; i < length * 3; i += 3) {
+                c[i] = colors[i];
+                c[i + 1] = colors[i + 1];
+                c[i + 2] = size;
+            }
+        } else {
+            let length = size.length;
+
+            c = new Float32Array(length * 3);
+
+            for (let i = 0; i < length * 3; i += 3) {
+                c[i] = colors[i];
+                c[i + 1] = colors[i + 1];
+                c[i + 2] = size[index++];
+            }
         }
-        
 
         this.setColors(c);
     }
 
+    /**
+     * Set the HSS values. Sets all indices to the same values.
+     * 
+     * @param {Number} hue A hue value.
+     * @param {Number} saturation A saturation value.
+     * @param {Number} size A size value.
+     * @param {Number} length The length of the arrays.
+     */
     setHSS(hue, saturation, size, length) {
         let c = new Float32Array(length * 3);
 
@@ -394,6 +561,14 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         this.setColors(c);
     }
 
+    /**
+     * Set the HSS values.
+     * 
+     * @param {TypedArray} hue An array of hue values.
+     * @param {TypedArray} saturation An array of saturation values.
+     * @param {TypedArray} size An array of size values.
+     * @param {Number} length The length of the arrays.
+     */
     setHSSFromArrays(hue, saturation, size, length) {
         let c = new Float32Array(length * 3);
         let index = 0;
@@ -413,6 +588,13 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         this.setColors(c);
     }
 
+    /**
+     * Add a filter to this point helper.
+     * 
+     * @param {String} name The name of the filter.
+     * @param {Lore.FilterBase} filter A filter instance.
+     * @returns {Lore.PointHelper} Itself.
+     */
     addFilter(name, filter) {
         filter.setGeometry(this.geometry);
         this.filters[name] = filter;
@@ -420,12 +602,24 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
         return this;
     }
 
+    /**
+     * Remove a filter by name.
+     * 
+     * @param {String} name The name of the filter to be removed.
+     * @returns {Lore.PointHelper} Itself.
+     */
     removeFilter(name) {
         delete this.filters[name];
 
         return this;
     }
 
+    /**
+     * Get a filter by name.
+     * 
+     * @param {String} name The name of a filter.
+     * @returns {Lore.FilterBase} A filter instance.
+     */
     getFilter(name) {
         return this.filters[name];
     }

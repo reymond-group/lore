@@ -364,7 +364,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
         let i = 0;
 
-        for (key in aabbs) {
+        for (var key in aabbs) {
             let c = aabbs[key].center.components;
             let k = i * 3;
 
@@ -400,7 +400,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
 
         let index = 0;
 
-        for (key in aabbs) {
+        for (var key in aabbs) {
             let corners = Lore.AABB.getCorners(aabbs[key]);
 
             p[index++] = corners[0][0];

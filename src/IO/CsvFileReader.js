@@ -101,8 +101,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
         }
 
         this.raiseEvent('loaded', this.columns);
-        console.log(this.columns);
-        console.log(this.types);
+        
         return this;
     }
 
