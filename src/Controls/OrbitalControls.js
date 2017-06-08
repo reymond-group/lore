@@ -214,6 +214,21 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
     }
 
     /**
+     * Set the zoom to a given value.
+     * 
+     * @param {Number} zoom The zoom value.
+     * @returns {Lore.OrbitalControls} Returns itself.
+     */
+    setZoom(zoom) {
+        this.camera.zoom = zoom;
+        this.camera.updateProjectionMatrix();
+        this.raiseEvent('zoomchanged', this.camera.zoom);
+        this.raiseEvent('updated');
+
+        return this;
+    }
+
+    /**
      * Set the camera to the top view (locks rotation).
      * 
      * @returns {Lore.OrbitalControls} Returns itself.

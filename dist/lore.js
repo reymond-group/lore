@@ -123,13 +123,14 @@ Lore.DrawModes = {
     triangles: 4,
     traingleStrip: 5,
     triangleFan: 6
+};
 
-    /** 
-     * A class representing a Color. 
-     * 
-     * @property {Float32Array} components A typed array storing the components of this color (rgba).
-     */
-};Lore.Color = function () {
+/** 
+ * A class representing a Color. 
+ * 
+ * @property {Float32Array} components A typed array storing the components of this color (rgba).
+ */
+Lore.Color = function () {
     /**
      * Creates an instance of Color.
      * @param {Number} r The red component (0.0 - 1.0).
@@ -335,7 +336,20 @@ Lore.DrawModes = {
     return Color;
 }();
 
+/** 
+ * A class representing the WebGL renderer. 
+ * 
+ * @property {Object} opts An object containing options.
+ * @property {Lore.CameraBase} camera The camera associated with this renderer.
+ * @property {Lore.ControlsBase} controls The controls associated with this renderer.
+ */
 Lore.Renderer = function () {
+
+    /**
+     * Creates an instance of Renderer.
+     * @param {String} targetId The id of a canvas element.
+     * @param {any} options The options.
+     */
     function Renderer(targetId, options) {
         _classCallCheck(this, Renderer);
 
@@ -345,6 +359,7 @@ Lore.Renderer = function () {
             fpsElement: document.getElementById('fps'),
             clearColor: Lore.Color.fromHex('#000000'),
             clearDepth: 1.0,
+            radius: 500,
             center: new Lore.Vector3f(),
             enableDepthTest: true
         };
@@ -375,8 +390,13 @@ Lore.Renderer = function () {
         // Attach the controls last
         var center = options.center ? options.center : new Lore.Vector3f();
 
-        that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
+        this.controls = new Lore.OrbitalControls(that, this.opts.radius || 500, center);
     }
+
+    /**
+     * Initialize and start the renderer.
+     */
+
 
     _createClass(Renderer, [{
         key: 'init',
@@ -471,6 +491,11 @@ Lore.Renderer = function () {
             this.ready = true;
             this.animate();
         }
+
+        /**
+         * Disables the context menu on the canvas element. 
+         */
+
     }, {
         key: 'disableContextMenu',
         value: function disableContextMenu() {
@@ -482,6 +507,13 @@ Lore.Renderer = function () {
                 }
             });
         }
+
+        /**
+         * Sets the clear color of this renderer.
+         * 
+         * @param {Lore.Color} color The clear color.
+         */
+
     }, {
         key: 'setClearColor',
         value: function setClearColor(color) {
@@ -491,16 +523,40 @@ Lore.Renderer = function () {
 
             this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
         }
+
+        /**
+         * Get the actual width of the canvas.
+         * 
+         * @returns {Number} The width of the canvas.
+         */
+
     }, {
         key: 'getWidth',
         value: function getWidth() {
             return this.canvas.offsetWidth;
         }
+
+        /**
+         * Get the actual height of the canvas.
+         * 
+         * @returns {Number} The height of the canvas.
+         */
+
     }, {
         key: 'getHeight',
         value: function getHeight() {
             return this.canvas.offsetHeight;
         }
+
+        /**
+         * Update the viewport. Should be called when the canvas is resized.
+         * 
+         * @param {Number} x The horizontal offset of the viewport.
+         * @param {Number} y The vertical offset of the viewport.
+         * @param {Number} width The width of the viewport.
+         * @param {Number} height The height of the viewport.
+         */
+
     }, {
         key: 'updateViewport',
         value: function updateViewport(x, y, width, height) {
@@ -517,6 +573,11 @@ Lore.Renderer = function () {
             this.effect = new Lore.Effect(this, 'fxaaEffect');
             this.effect.shader.uniforms.resolution.setValue([width, height]);
         }
+
+        /**
+         * The main rendering loop. 
+         */
+
     }, {
         key: 'animate',
         value: function animate() {
@@ -551,6 +612,15 @@ Lore.Renderer = function () {
             this.camera.isProjectionMatrixStale = false;
             this.camera.isViewMatrixStale = false;
         }
+
+        /**
+         * Creates and adds a geometry to the scene graph.
+         * 
+         * @param {String} name The name of the geometry.
+         * @param {String} shaderName The name of the shader used to render the geometry.
+         * @returns {Lore.Geometry} The created geometry.
+         */
+
     }, {
         key: 'createGeometry',
         value: function createGeometry(name, shaderName) {
@@ -562,11 +632,25 @@ Lore.Renderer = function () {
 
             return geometry;
         }
+
+        /**
+         * Set the maximum frames per second of this renderer.
+         * 
+         * @param {Number} fps Maximum frames per second.
+         */
+
     }, {
         key: 'setMaxFps',
         value: function setMaxFps(fps) {
             this.maxFps = 1000 / fps;
         }
+
+        /**
+         * Get the device pixel ratio.
+         * 
+         * @returns {Number} The device pixel ratio.
+         */
+
     }, {
         key: 'getDevicePixelRatio',
         value: function getDevicePixelRatio() {
@@ -2277,6 +2361,24 @@ Lore.OrbitalControls = function (_Lore$ControlsBase) {
         key: 'zoomOut',
         value: function zoomOut() {
             this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
+            this.camera.updateProjectionMatrix();
+            this.raiseEvent('zoomchanged', this.camera.zoom);
+            this.raiseEvent('updated');
+
+            return this;
+        }
+
+        /**
+         * Set the zoom to a given value.
+         * 
+         * @param {Number} zoom The zoom value.
+         * @returns {Lore.OrbitalControls} Returns itself.
+         */
+
+    }, {
+        key: 'setZoom',
+        value: function setZoom(zoom) {
+            this.camera.zoom = zoom;
             this.camera.updateProjectionMatrix();
             this.raiseEvent('zoomchanged', this.camera.zoom);
             this.raiseEvent('updated');
@@ -8160,7 +8262,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
                                                                                                                                                                                                                                                                                                                                                                         '#define FXAA_SPAN_MAX     8.0',
-                                                                                                                                                                                                                                                                                                                                                                         'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                                          'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
                                                                                                                                                                                                                                                                                                                                                                         '{',
                                                                                                                                                                                                                                                                                                                                                                             'fragCoord = fragCoord * resolution;',
                                                                                                                                                                                                                                                                                                                                                                             'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -8179,23 +8281,23 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lor
                                                                                                                                                                                                                                                                                                                                                                             'float lumaM  = dot(rgbM,  luma);',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
                                                                                                                                                                                                                                                                                                                                                                             'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                             'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                                              'vec2 dir;',
                                                                                                                                                                                                                                                                                                                                                                             'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
                                                                                                                                                                                                                                                                                                                                                                             'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                             'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                                              'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
                                                                                                                                                                                                                                                                                                                                                                             'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-                                                                                                                                                                                                                                                                                                                                                                             'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                              'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                             'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                              'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                             'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                                              'float lumaB = dot(rgbB, luma);',
                                                                                                                                                                                                                                                                                                                                                                             'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbA, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                             'else',
                                                                                                                                                                                                                                                                                                                                                                                 'return vec4(rgbB, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                         '}',
-                                                                                                                                                                                                                                                                                                                                                                         'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                                          'uniform sampler2D fbo_texture;',
                                                                                                                                                                                                                                                                                                                                                                         'varying vec2 f_texcoord;',
                                                                                                                                                                                                                                                                                                                                                                         'void main(void) {',
                                                                                                                                                                                                                                                                                                                                                                             'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
@@ -8818,10 +8920,10 @@ Lore.Octree = function () {
             var cellDistances = this.getCellDistancesToPoint(p.x, p.y, p.z, locCode);
 
             // Calculte the distances to the other points in the same cell
-            var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions
+            var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
 
             // Sort the indices according to distance
-            );var radixSort = new RadixSort();
+            var radixSort = new RadixSort();
             var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
             // Sort the neighbours according to distance

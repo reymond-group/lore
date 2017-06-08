@@ -1,5 +1,17 @@
+/** 
+ * A class representing the WebGL renderer. 
+ * 
+ * @property {Object} opts An object containing options.
+ * @property {Lore.CameraBase} camera The camera associated with this renderer.
+ * @property {Lore.ControlsBase} controls The controls associated with this renderer.
+ */
 Lore.Renderer = class Renderer {
 
+    /**
+     * Creates an instance of Renderer.
+     * @param {String} targetId The id of a canvas element.
+     * @param {any} options The options.
+     */
     constructor(targetId, options) {
         this.defaults = {
             antialiasing: true,
@@ -7,6 +19,7 @@ Lore.Renderer = class Renderer {
             fpsElement: document.getElementById('fps'),
             clearColor: Lore.Color.fromHex('#000000'),
             clearDepth: 1.0,
+            radius: 500,
             center: new Lore.Vector3f(),
             enableDepthTest: true
         }
@@ -37,9 +50,12 @@ Lore.Renderer = class Renderer {
         // Attach the controls last
         let center = options.center ? options.center : new Lore.Vector3f();
 
-        that.controls = options.controls || new Lore.OrbitalControls(that, 1200, center);
+        this.controls = new Lore.OrbitalControls(that, this.opts.radius || 500, center);
     }
 
+    /**
+     * Initialize and start the renderer.
+     */
     init() {
         let _this = this;
 
@@ -135,6 +151,9 @@ Lore.Renderer = class Renderer {
         this.animate();
     }
 
+    /**
+     * Disables the context menu on the canvas element. 
+     */
     disableContextMenu() {
         // Disable context menu on right click
         this.canvas.addEventListener('contextmenu', function (e) {
@@ -145,6 +164,11 @@ Lore.Renderer = class Renderer {
         });
     }
 
+    /**
+     * Sets the clear color of this renderer.
+     * 
+     * @param {Lore.Color} color The clear color.
+     */
     setClearColor(color) {
         this.opts.clearColor = color;
         
@@ -153,14 +177,32 @@ Lore.Renderer = class Renderer {
         this.gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
     }
 
+    /**
+     * Get the actual width of the canvas.
+     * 
+     * @returns {Number} The width of the canvas.
+     */
     getWidth() {
         return this.canvas.offsetWidth;
     }
-
+    
+    /**
+     * Get the actual height of the canvas.
+     * 
+     * @returns {Number} The height of the canvas.
+     */
     getHeight() {
         return this.canvas.offsetHeight;
     }
 
+    /**
+     * Update the viewport. Should be called when the canvas is resized.
+     * 
+     * @param {Number} x The horizontal offset of the viewport.
+     * @param {Number} y The vertical offset of the viewport.
+     * @param {Number} width The width of the viewport.
+     * @param {Number} height The height of the viewport.
+     */
     updateViewport(x, y, width, height) {
         // width *= this.devicePixelRatio;
         // height *= this.devicePixelRatio;
@@ -176,6 +218,9 @@ Lore.Renderer = class Renderer {
         this.effect.shader.uniforms.resolution.setValue([width, height]);
     }
 
+    /**
+     * The main rendering loop. 
+     */
     animate() {
         let that = this;
 
@@ -209,6 +254,13 @@ Lore.Renderer = class Renderer {
         this.camera.isViewMatrixStale = false;
     }
 
+    /**
+     * Creates and adds a geometry to the scene graph.
+     * 
+     * @param {String} name The name of the geometry.
+     * @param {String} shaderName The name of the shader used to render the geometry.
+     * @returns {Lore.Geometry} The created geometry.
+     */
     createGeometry(name, shaderName) {
         let shader = Lore.getShader(shaderName);
         shader.init(this.gl);
@@ -219,10 +271,20 @@ Lore.Renderer = class Renderer {
         return geometry;
     }
 
+    /**
+     * Set the maximum frames per second of this renderer.
+     * 
+     * @param {Number} fps Maximum frames per second.
+     */
     setMaxFps(fps) {
         this.maxFps = 1000 / fps;
     }
 
+    /**
+     * Get the device pixel ratio.
+     * 
+     * @returns {Number} The device pixel ratio.
+     */
     getDevicePixelRatio() {
         return window.devicePixelRatio || 1;
     }
