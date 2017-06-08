@@ -263,7 +263,7 @@ Lore.OctreeHelper = class OctreeHelper extends Lore.HelperBase {
         if (!this.hovered || this.selectedContains(this.hovered.index)) {
             return;
         }
-
+        
         this.addSelected({
             distance: this.hovered.distance,
             index: this.hovered.index,

@@ -353,23 +353,14 @@ Lore.ControlsBase = class ControlsBase {
      * @param {Function} callback A callback function to be called on the event being fired.
      */
     removeEventListener(eventName, callback) {
-        console.log('remove event listener called');
-        
         if (!this._eventListeners.hasOwnProperty(eventName)) {
             return;
-        }
-
-        console.log('removing event listeners ...');
-
-        for (var i = 0; i < this._eventListeners[eventName].length; i++) {
-            console.log(eventName, this._eventListeners[eventName][i], callback, this._eventListeners[eventName] == callback);
         }
 
         let index = this._eventListeners[eventName].indexOf(callback);
  
         if (index > -1) {
             this._eventListeners[eventName].splice(index, 1);
-            console.log('removed handler!');
         }
     }
 
