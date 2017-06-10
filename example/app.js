@@ -11,13 +11,18 @@
     fileReader.addEventListener('loaded', function(data) {
         original_data = data;
 
-        pointHelper = new Lore.PointHelper(lore, 'FlyBaby', 'sphere');
+        pointHelper = new Lore.PointHelper(lore, 'FlyBaby', 'default');
 
-        let norm = Lore.Statistics.normalize(data['Sytox Green']);
+        //let norm = Lore.Statistics.normalize(data['Sytox Green']);
+        let norm = 1.0;
+
+        for (var i = 0; i < data['z'].length; i++) {
+            data['z'][i] *= 10;
+        }
 
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], 0.8, norm, 1.0);
         pointHelper.setPointScale(2.0);
-        pointHelper.setFogDistance(1500, 2250);
+        pointHelper.setFogDistance(0, 500);
         
         lore.controls.setLookAt(pointHelper.getCenter());
 
@@ -33,7 +38,7 @@
                 indicator.style.opacity = 1.0;
                 indicator.style.left = (e.e.screenPosition[0] - 18) + 'px';
                 indicator.style.top = (e.e.screenPosition[1] - 90) + 'px';
-                data.innerHTML = original_data['id'][e.e.index];
+                data.innerHTML = original_data['x'][e.e.index];
             } else {
                 indicator.style.opacity = 0.0;
                 data.innerHTML = '';

@@ -71,7 +71,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
             let headerNames = lines[0].split(this.opts.separator);
 
             for (let i = 0; i < this.cols.length; i++) {
-                this.headers[i] = headerNames[this.cols[i]];
+                this.headers[i] = headerNames[this.cols[i]].trim();
             }
         } else {
             for (let i = 0; i < this.cols.length; i++) {

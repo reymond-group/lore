@@ -7998,7 +7998,7 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
                 var headerNames = lines[0].split(this.opts.separator);
 
                 for (var _i13 = 0; _i13 < this.cols.length; _i13++) {
-                    this.headers[_i13] = headerNames[this.cols[_i13]];
+                    this.headers[_i13] = headerNames[this.cols[_i13]].trim();
                 }
             } else {
                 for (var _i14 = 0; _i14 < this.cols.length; _i14++) {
