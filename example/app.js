@@ -27,13 +27,16 @@
 
         octreeHelper.addEventListener('hoveredchanged', function(e) {
             let indicator = document.getElementById('indicator');
+            let data = document.getElementById('data');
 
             if (e.e) {
                 indicator.style.opacity = 1.0;
                 indicator.style.left = (e.e.screenPosition[0] - 18) + 'px';
-                indicator.style.top = (e.e.screenPosition[1] - 75) + 'px';
+                indicator.style.top = (e.e.screenPosition[1] - 90) + 'px';
+                data.innerHTML = original_data['id'][e.e.index];
             } else {
                 indicator.style.opacity = 0.0;
+                data.innerHTML = '';
             }
         });
     });
