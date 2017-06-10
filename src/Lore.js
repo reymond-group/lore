@@ -1,4 +1,8 @@
-var Lore = {
+/**
+ * The Lore namespace.
+ * @typicalname Lore
+ */
+let Lore = {
     Version: '1.0.0'
 };
 

@@ -8,6 +8,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/**
+ * The Lore namespace.
+ * @typicalname Lore
+ */
 var Lore = {
     Version: '1.0.0'
 };
@@ -5591,8 +5595,7 @@ Lore.Ray = function () {
 }();
 
 /** A class wrapping a radix sort for floats. */
-
-var RadixSort = function () {
+Lore.RadixSort = function () {
     /**
      * Creates an instance of RadixSort.
      * 
@@ -5816,8 +5819,6 @@ var RadixSort = function () {
  * @property {Lore.Shader} shader The shader associated with this helper.
  * @property {Lore.Geometry} geometry The geometry associated with this helper.
  */
-
-
 Lore.HelperBase = function (_Lore$Node3) {
     _inherits(HelperBase, _Lore$Node3);
 
@@ -8923,7 +8924,7 @@ Lore.Octree = function () {
             var pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions);
 
             // Sort the indices according to distance
-            var radixSort = new RadixSort();
+            var radixSort = new Lore.RadixSort();
             var sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
             // Sort the neighbours according to distance

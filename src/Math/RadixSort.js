@@ -1,5 +1,5 @@
 /** A class wrapping a radix sort for floats. */
-class RadixSort {
+Lore.RadixSort = class RadixSort {
     /**
      * Creates an instance of RadixSort.
      * 

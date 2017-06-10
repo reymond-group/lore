@@ -576,7 +576,7 @@ Lore.Octree = class Octree {
         let pointDistances = this.pointDistancesSq(p.x, p.y, p.z, locCode, positions)
 
         // Sort the indices according to distance
-        let radixSort = new RadixSort();
+        let radixSort = new Lore.RadixSort();
         let sortedPointDistances = radixSort.sort(pointDistances.distancesSq, true);
 
         // Sort the neighbours according to distance

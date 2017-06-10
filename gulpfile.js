@@ -77,7 +77,9 @@ var files = [
 
 gulp.task('doc', function (cb) {
     var config = require('./jsdocConfig.json');
-    gulp.src(filesInclMd, {read: false})
+    var paths = filesInclMd.slice();
+    paths.push('README.md');
+    gulp.src(paths, {read: false})
         .pipe(jsdoc(config, cb))
 });
 
