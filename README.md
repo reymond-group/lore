@@ -1,6 +1,10 @@
 ![Lore](https://github.com/reymond-group/lore/blob/master/logo.png?raw=true)
 # Lore
 Current Version: 1.0.0 Beta ([Starbreaker](https://www.youtube.com/watch?v=nr8pgN195Zw))
+### Teaser
+3.75 million data points rendered interactively in the browser (Data downloaded from [FlyCircuit](http://www.flycircuit.tw/)).
+
+![FlyBrain](https://github.com/reymond-group/lore/blob/master/example/example2.png?raw=true)
 ### Building Lore
 If you decide not to use the ready-to-go scripts in `dist`, you can (edit and) build the project by running:
 ```bash
