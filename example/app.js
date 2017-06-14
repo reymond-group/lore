@@ -16,13 +16,15 @@
         //let norm = Lore.Statistics.normalize(data['Sytox Green']);
         let norm = 1.0;
 
+        /*
         for (var i = 0; i < data['z'].length; i++) {
             data['z'][i] *= 10;
         }
+        */
 
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], 0.8, norm, 1.0);
         pointHelper.setPointScale(2.0);
-        pointHelper.setFogDistance(0, 500);
+        pointHelper.setFogDistance(275, 800);
         
         lore.controls.setLookAt(pointHelper.getCenter());
 
