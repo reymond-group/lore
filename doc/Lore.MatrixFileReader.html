@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Lore.js - Documentation</title>
+    <title>MatrixFileReader - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,130 +27,438 @@
 
 <div id="main">
     
-    <h1 class="page-title">Lore.js</h1>
+    <h1 class="page-title">MatrixFileReader</h1>
     
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * The Lore namespace.
- * @typicalname Lore
- */
-let Lore = {
-    Version: '1.0.0'
-};
-
-if (typeof define === 'function' &amp;&amp; define.amd) {
-    define('lore', Lore);
-} else if (typeof exports !== 'undefined' &amp;&amp; typeof module !== 'undefined') {
-    module.exports = Lore;
-}
-
-// By Shmiddty from stackoverflow
-function Enum(a){
-  let i = Object
-    .keys(a)
-    .reduce((o,k)=>(o[a[k]]=k,o),{});
-
-  return Object.freeze(
-    Object.keys(a).reduce(
-      (o,k)=>(o[k]=a[k],o), v=>i[v]
-    )
-  );
-}
-
-Lore.Mouse = Enum({
-    Left: 0,
-    Middle: 1,
-    Right: 2
-});
-
-Lore.Keyboard = Enum({
-    Backspace: 8,
-    Tab: 9,
-    Enter: 13,
-    Shift: 16,
-    Ctrl: 17,
-    Alt: 18,
-    Esc: 27
-});
-
-Lore.Shaders = {};
-
-Lore.getShader = function (shaderName) {
-    return Lore.Shaders[shaderName].clone();
-}
-
-Lore.init = function(canvas, options) {
-    this.opts = Lore.Utils.extend(true, Lore.defaults, options);
+        <h2>
+            <span class="ancestors"><a href="global.html#Lore">Lore</a>.</span>
+        
+        MatrixFileReader
+        </h2>
+        
+            <div class="class-description"><p>A class representing a matrix file reader.</p></div>
+        
     
-    Lore.getGrakaInfo(canvas);
+</header>
+
+<article>
+    <div class="container-overview">
     
-    // Init UI
-    // var ui = new Lore.UI(canvas);
+        
+
     
-    // Start the 3D stuff
-    var cc = Lore.Color.fromHex(this.opts.clearColor);
-
-    var renderer = new Lore.Renderer(canvas, {
-        clearColor: cc,
-        verbose: true,
-        fps: document.getElementById('fps'),
-        center: new Lore.Vector3f(125, 125, 125),
-        antialiasing: this.opts.antialiasing
-    });
-   
-    renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);
-
-    renderer.render = function(camera, geometries) {
-        for(var key in geometries) {
-            geometries[key].draw(renderer);
-        }
-    }
-
-    return renderer;
-}
-
-Lore.getGrakaInfo = function(targetId) {
-    let canvas = document.getElementById(targetId);
-    let gl = canvas.getContext('webgl') || 
-            canvas.getContext('experimental-webgl');
-
-    let info = {
-        renderer: '',
-        vendor: ''
-    };
-
-    let dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    
-    if (dbgRenderInfo != null) {
-        info.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
-        info.vendor   = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
-    }
-
-    return info;
-}
-
-Lore.supportsHighQuality = function(targetId) {
-    let info = Lore.getGrakaInfo(targetId);
+    <h2>Constructor</h2>
     
 
-    return false;
-}
+    <h4 class="name" id="MatrixFileReader"><span class="type-signature"></span>new MatrixFileReader<span class="signature">(source, options, local<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
-Lore.defaults = {
-    clearColor: '#121212',
-    limitRotationToHorizon: false,
-    antialiasing: false
-};
-</code></pre>
-        </article>
-    </section>
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="IO_MatrixFileReader.js.html">IO/MatrixFileReader.js</a>, <a href="IO_MatrixFileReader.js.html#line2">line 2</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Creates an instance of MatrixFileReader.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>source</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">any</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Options. See documentation for details.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>local</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>A boolean indicating whether or not the source is local (a file input) or remote (a url).</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="loaded"><span class="type-signature"></span>loaded<span class="signature">(data)</span><span class="type-signature"> &rarr; {<a href="Lore.MatrixFileReader.html">Lore.MatrixFileReader</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="IO_MatrixFileReader.js.html">IO/MatrixFileReader.js</a>, <a href="IO_MatrixFileReader.js.html#line40">line 40</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Called when the data is loaded, will raise the &quot;loaded&quot; event.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">any</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The data loaded from the file or url.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Itself.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Lore.MatrixFileReader.html">Lore.MatrixFileReader</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

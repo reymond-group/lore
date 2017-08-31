@@ -361,6 +361,9 @@ The Lore namespace.
     * [.CsvFileReader](#Lore.CsvFileReader)
         * [new Lore.CsvFileReader(source, options, [local])](#new_Lore.CsvFileReader_new)
         * [.loaded(data)](#Lore.CsvFileReader+loaded) ⇒ <code>[CsvFileReader](#Lore.CsvFileReader)</code>
+    * [.MatrixFileReader](#Lore.MatrixFileReader)
+        * [new Lore.MatrixFileReader(source, options, [local])](#new_Lore.MatrixFileReader_new)
+        * [.loaded(data)](#Lore.MatrixFileReader+loaded) ⇒ <code>[MatrixFileReader](#Lore.MatrixFileReader)</code>
     * [.Utils](#Lore.Utils)
         * [.extend()](#Lore.Utils.extend) ⇒ <code>object</code>
         * [.arrayContains(array, value)](#Lore.Utils.arrayContains) ⇒ <code>boolean</code>
@@ -4505,6 +4508,41 @@ Called when the data is loaded, will raise the "loaded" event.
 
 **Kind**: instance method of <code>[CsvFileReader](#Lore.CsvFileReader)</code>  
 **Returns**: <code>[CsvFileReader](#Lore.CsvFileReader)</code> - Itself.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| data | <code>any</code> | The data loaded from the file or url. |
+
+<a name="Lore.MatrixFileReader"></a>
+
+### Lore.MatrixFileReader
+A class representing a matrix file reader.
+
+**Kind**: static class of <code>[Lore](#Lore)</code>  
+
+* [.MatrixFileReader](#Lore.MatrixFileReader)
+    * [new Lore.MatrixFileReader(source, options, [local])](#new_Lore.MatrixFileReader_new)
+    * [.loaded(data)](#Lore.MatrixFileReader+loaded) ⇒ <code>[MatrixFileReader](#Lore.MatrixFileReader)</code>
+
+<a name="new_Lore.MatrixFileReader_new"></a>
+
+#### new Lore.MatrixFileReader(source, options, [local])
+Creates an instance of MatrixFileReader.
+
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| source | <code>String</code> |  | The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true. |
+| options | <code>any</code> |  | Options. See documentation for details. |
+| [local] | <code>boolean</code> | <code>true</code> | A boolean indicating whether or not the source is local (a file input) or remote (a url). |
+
+<a name="Lore.MatrixFileReader+loaded"></a>
+
+#### matrixFileReader.loaded(data) ⇒ <code>[MatrixFileReader](#Lore.MatrixFileReader)</code>
+Called when the data is loaded, will raise the "loaded" event.
+
+**Kind**: instance method of <code>[MatrixFileReader](#Lore.MatrixFileReader)</code>  
+**Returns**: <code>[MatrixFileReader](#Lore.MatrixFileReader)</code> - Itself.  
 
 | Param | Type | Description |
 | --- | --- | --- |

@@ -127,14 +127,13 @@ Lore.DrawModes = {
     triangles: 4,
     traingleStrip: 5,
     triangleFan: 6
-};
 
-/** 
- * A class representing a Color. 
- * 
- * @property {Float32Array} components A typed array storing the components of this color (rgba).
- */
-Lore.Color = function () {
+    /** 
+     * A class representing a Color. 
+     * 
+     * @property {Float32Array} components A typed array storing the components of this color (rgba).
+     */
+};Lore.Color = function () {
     /**
      * Creates an instance of Color.
      * @param {Number} r The red component (0.0 - 1.0).
@@ -5467,6 +5466,8 @@ Lore.Statistics = function () {
 
             var diff = max - min;
 
+            console.log(min, max, diff);
+
             for (var _i = 0; _i < newArr.length; _i++) {
                 newArr[_i] = (newArr[_i] - min) / diff;
             }
@@ -8060,6 +8061,179 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
     }]);
 
     return CsvFileReader;
+}(Lore.FileReaderBase);
+
+/** A class representing a matrix file reader. */
+Lore.MatrixFileReader = function (_Lore$FileReaderBase2) {
+    _inherits(MatrixFileReader, _Lore$FileReaderBase2);
+
+    /**
+     * Creates an instance of MatrixFileReader.
+     * @param {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
+     * @param {any} options Options. See documentation for details.
+     * @param {boolean} [local=true] A boolean indicating whether or not the source is local (a file input) or remote (a url).
+     */
+    function MatrixFileReader(source, options) {
+        var local = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
+        _classCallCheck(this, MatrixFileReader);
+
+        var _this16 = _possibleConstructorReturn(this, (MatrixFileReader.__proto__ || Object.getPrototypeOf(MatrixFileReader)).call(this, source, local));
+
+        _this16.defaults = {
+            elementSeperator: '\t',
+            valueSeparator: ';',
+            replaceNaNWith: 'NaN',
+            skipNaN: true,
+            types: []
+        };
+
+        _this16.opts = Lore.Utils.extend(true, _this16.defaults, options);
+        _this16.types = _this16.opts.types;
+        _this16.columns = {};
+
+        if (_this16.types.length === 0) {
+            throw 'When reading data from a file, the types have to be specified.';
+        }
+
+        // Add the types for the indices
+        _this16.opts.types.unshift('Int32Array');
+        _this16.opts.types.unshift('Int32Array');
+        _this16.opts.types.unshift('Int32Array');
+        return _this16;
+    }
+
+    /**
+     * Called when the data is loaded, will raise the "loaded" event.
+     * 
+     * @param {any} data The data loaded from the file or url.
+     * @returns {Lore.MatrixFileReader} Itself.
+     */
+
+
+    _createClass(MatrixFileReader, [{
+        key: 'loaded',
+        value: function loaded(data) {
+            data = data.replace('\n\n', '\n');
+            data = data.replace(/^\s+|\s+$/g, '');
+
+            if (this.opts.replaceNaNWith !== 'NaN') {
+                data = data.replace('NaN', this.opts.replaceNaNWith);
+            }
+
+            var lines = data.split('\n');
+            var nRows = lines.length;
+            var nColumns = lines[0].split(this.opts.elementSeperator).length;
+            // Including the indices (x, y, z), therefore + 3
+            var nValues = lines[0].split(this.opts.elementSeperator)[0].split(this.opts.valueSeparator).length + 3;
+
+            if (this.types.length !== nValues || this.types.length + nValues === 0) {
+                var values = lines[0].split(this.opts.valueSeparator);
+
+                this.types = [];
+                for (var _i16 = 0; _i16 < values.length; _i16++) {
+                    if (Lore.Utils.isFloat(parseFloat(values[_i16], 10))) {
+                        this.types.push('Float32Array');
+                    } else if (Lore.Utils.isInt(parseFloat(values[_i16], 10))) {
+                        this.types.push('Int32Array');
+                    } else {
+                        this.types.push('StringArray');
+                    }
+                }
+            }
+
+            for (var i = 0; i < nValues; i++) {
+                this._createArray(i, this.types[i], nRows * nColumns);
+            }
+
+            var actualLength = 0;
+
+            for (var i = 0; i < nRows; i++) {
+                var row = lines[i].split(this.opts.elementSeperator);
+
+                if (row.length === 0) {
+                    continue;
+                }
+
+                for (var j = 0; j < nColumns; j++) {
+                    if (!row[j]) {
+                        continue;
+                    }
+
+                    var _values3 = row[j].split(this.opts.valueSeparator);
+
+                    if (this.opts.skipNaN) {
+                        var skip = false;
+
+                        for (var k = 0; k < _values3.length; k++) {
+                            if (isNaN(_values3[k])) {
+                                skip = true;
+                                break;
+                            }
+                        }
+
+                        if (skip) {
+                            continue;
+                        }
+                    }
+
+                    this.columns[0][actualLength] = i;
+                    this.columns[1][actualLength] = j;
+                    // Set zero for 2D matrix
+                    this.columns[2][actualLength] = 0;
+
+                    for (var k = 0; k < _values3.length; k++) {
+                        this.columns[k + 3][actualLength] = _values3[k];
+                    }
+
+                    actualLength++;
+                }
+            }
+
+            this._resizeArrays(actualLength);
+
+            this.raiseEvent('loaded', this.columns);
+
+            return this;
+        }
+    }, {
+        key: '_resizeArrays',
+        value: function _resizeArrays(length) {
+            // Might need polyfill
+            for (var i = 0; i < this.columns.length; i++) {
+                this.columns[i] = this.columns[i].slice(0, length);
+            }
+        }
+    }, {
+        key: '_createArray',
+        value: function _createArray(index, type, length) {
+            if (type == 'Int8Array') {
+                this.columns[index] = new Int8Array(length);
+            } else if (type == 'Uint8Array') {
+                this.columns[index] = new Uint8Array(length);
+            } else if (type == 'Uint8ClampedArray') {
+                this.columns[index] = new Uint8ClampedArray(length);
+            } else if (type == 'Int16Array') {
+                this.columns[index] = new Int16Array(length);
+            } else if (type == 'Uint16Array') {
+                this.columns[index] = new Uint16Array(length);
+            } else if (type == 'Int32Array') {
+                this.columns[index] = new Int32Array(length);
+            } else if (type == 'Uint32Array') {
+                this.columns[index] = new Uint32Array(length);
+            } else if (type == 'Float32Array') {
+                this.columns[index] = new Float32Array(length);
+            } else if (type == 'Float64Array') {
+                this.columns[index] = new Float64Array(length);
+            } else {
+                this.columns[index] = new Array(length);
+            }
+
+            return this;
+        }
+    }]);
+
+    return MatrixFileReader;
 }(Lore.FileReaderBase);
 
 /** A utility class containing static methods. */

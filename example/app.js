@@ -11,7 +11,7 @@
     fileReader.addEventListener('loaded', function(data) {
         original_data = data;
 
-        pointHelper = new Lore.PointHelper(lore, 'FlyBaby', 'default');
+        pointHelper = new Lore.PointHelper(lore, 'FlyBaby', 'sphere');
 
         //let norm = Lore.Statistics.normalize(data['Sytox Green']);
         let norm = 1.0;
@@ -22,9 +22,10 @@
         }
         */
 
-        pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], 0.8, norm, 1.0);
-        pointHelper.setPointScale(2.0);
-        pointHelper.setFogDistance(275, 800);
+        pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], 0.8, norm, 1.0)
+        pointHelper.setRGB(data['r'], data['g'], data['b']);
+        pointHelper.setPointScale(5.0);
+        pointHelper.setFogDistance(500, 2000);
         
         lore.controls.setLookAt(pointHelper.getCenter());
 
@@ -40,7 +41,7 @@
                 indicator.style.opacity = 1.0;
                 indicator.style.left = (e.e.screenPosition[0] - 18) + 'px';
                 indicator.style.top = (e.e.screenPosition[1] - 90) + 'px';
-                data.innerHTML = original_data['x'][e.e.index];
+                data.innerHTML = e.e.index;
             } else {
                 indicator.style.opacity = 0.0;
                 data.innerHTML = '';

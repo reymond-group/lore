@@ -47,6 +47,7 @@ var files = [
     'src/Filters/InRangeFilter.js',
     'src/IO/FileReaderBase.js',
     'src/IO/CsvFileReader.js',
+    'src/IO/MatrixFileReader.js',
     'src/Utils/Utils.js',
     'src/Shaders/Default.js',
     'src/Shaders/DefaultAnimated.js',
