@@ -53,6 +53,8 @@ var files = [
     'src/Shaders/DefaultAnimated.js',
     'src/Shaders/Coordinates.js',
     'src/Shaders/Tree.js',
+    'src/Shaders/Circle.js',
+    'src/Shaders/SimpleSphere.js',
     'src/Shaders/Sphere.js',
     'src/Shaders/DefaultEffect.js',
     'src/Shaders/FXAAEffect.js',

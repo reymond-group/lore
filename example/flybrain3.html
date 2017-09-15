@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Lore.js Example</title>
+
+        <style>
+            body {
+                margin: 0px;
+                padding: 0px;
+                height: 100%;
+                user-select: none;
+            }
+
+            #lore {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+            }
+
+            #indicator {
+                position: absolute;
+                pointer-events: none;
+                z-index: 999;
+                font-size: 1em;
+                color: #fff;
+                opacity: 0.0;
+                text-shadow: 0px 0px 2px rgba(0, 0, 0, 1.0);
+                transition: opacity ease-in .05s; 
+            }
+
+            #data {
+                position: absolute;
+                pointer-events: none;
+                z-index: 1000;
+                top: 10px;
+                right: 10px;
+                font-size: 0.9em;
+                color: #fff;
+                text-shadow: 0px 0px 10px rgba(0, 0, 0, 1.0);
+                font-family: Arial, Helvetica, sans-serif;
+                text-align: right;
+            }
+
+            #instructions {
+                z-index: 10002;
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                padding: 10px;
+                background-color: rgba(255, 255, 255, 0.9);
+                font-family: Consolas, 'Ubuntu Mono Regular', Courier New, Courier, monospace;
+                font-size: 0.75em;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="instructions">
+            <p>
+                <b>Load File:</b>&nbsp;&nbsp;<input id="input-upload" type="file"></input>
+            </p>
+            <p>
+                <b>Set Cutoff:</b>&nbsp;&nbsp;<input id="input-cutoff" type="range" min="400" max="800" value="400"></input>
+            </p>
+            <p>
+                <button id="button-frontview">Toggle Front-View</button>
+            </p>
+            <p>
+                <b>Key Commands:</b>&nbsp;&nbsp;1 Filter Red&nbsp;&nbsp;2 Filter Orange&nbsp;&nbsp;3 Filter Yellow&nbsp;&nbsp;4 Filter Green&nbsp;&nbsp;5 Filter Blue&nbsp;&nbsp;6 Filter Purple&nbsp;&nbsp;0 Reset
+            </p>
+        </div>
+        <div id="indicator"><div id="data"></div></div>
+        <canvas id="lore"></canvas>
+        <script src="../dist/lore.js"></script>
+        <script src="flybrain3.js"></script>
+    </body>
+
+</html> 

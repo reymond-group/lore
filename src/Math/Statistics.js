@@ -76,8 +76,6 @@ Lore.Statistics = class Statistics {
 
         let diff = max - min;
 
-        console.log(min, max, diff);
-
         for (let i = 0; i < newArr.length; i++) {
             newArr[i] = (newArr[i] - min) / diff;
         }
