@@ -11,7 +11,7 @@
     fileReader.addEventListener('loaded', function(data) {
         original_data = data;
         pointHelper = new Lore.PointHelper(lore, 'FlyBaby', 'sphere');
-        pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], Lore.Statistics.normalize(original_data['Coumarin_basal']), 1.0, 1.0)
+        pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], Lore.Statistics.normalize(original_data['Sytox Green']), 1.0, 1.0)
         pointHelper.setPointScale(5.0);
         pointHelper.setFogDistance(500, 2000);
         
@@ -26,7 +26,7 @@
             if (e.e) {
                 indicator.style.opacity = 1.0;
                 indicator.style.left = (e.e.screenPosition[0] - 18) + 'px';
-                indicator.style.top = (e.e.screenPosition[1] - 90) + 'px';
+                indicator.style.top = (e.e.screenPosition[1] - 70) + 'px';
                 data.innerHTML = e.e.index;
             } else {
                 indicator.style.opacity = 0.0;
@@ -37,7 +37,7 @@
 
     document.addEventListener('keydown', function(e) {
         if (e.keyCode === 48) {
-            let norm = Lore.Statistics.normalize(original_data['Sytox Green']);
+            let norm = Lore.Statistics.normalize(original_data['density_15']);
             pointHelper.setHue(norm);
         } else if (e.keyCode === 49) {
             let norm = Lore.Statistics.normalize(original_data['Sytox Green']);
@@ -65,12 +65,6 @@
             pointHelper.setHue(norm);
         } else if (e.keyCode == 57) {
             let norm = Lore.Statistics.normalize(original_data['Cy3_cell']);
-            pointHelper.setHue(norm);
-        } else if (e.keyCode == 58) {
-            let norm = Lore.Statistics.normalize(original_data['density_15']);
-            pointHelper.setHue(norm);
-        } else if (e.keyCode == 59) {
-            let norm = Lore.Statistics.normalize(original_data['density_30']);
             pointHelper.setHue(norm);
         }
     });

@@ -18,13 +18,6 @@
                 height: 100%;
             }
 
-            #input-upload {
-                position: absolute;
-                bottom: 5px;
-                right: 5px;
-                color: #fff;
-            }
-
             #indicator {
                 position: absolute;
                 pointer-events: none;
@@ -40,7 +33,7 @@
                 position: absolute;
                 pointer-events: none;
                 z-index: 1000;
-                top: 10px;
+                bottom: 10px;
                 right: 10px;
                 font-size: 0.9em;
                 color: #fff;
@@ -48,14 +41,33 @@
                 font-family: Arial, Helvetica, sans-serif;
                 text-align: right;
             }
+
+            #instructions {
+                z-index: 10002;
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                padding: 10px;
+                background-color: rgba(255, 255, 255, 0.9);
+                font-family: Consolas, 'Ubuntu Mono Regular', Courier New, Courier, monospace;
+                font-size: 0.75em;
+            }
         </style>
     </head>
 
     <body>
+        <div id="instructions">
+            <p>
+                <b>Load File:</b>&nbsp;&nbsp;<input id="input-upload" type="file"></input>
+            </p>
+            <p>
+                <b>Key Commands:</b>&nbsp;&nbsp;1 Sytox Green&nbsp;&nbsp;2 Coumarin_nuclear&nbsp;&nbsp;3 Coumarin_apical&nbsp;&nbsp;4 Coumarin_basal&nbsp;&nbsp;5 Coumarin_cell&nbsp;&nbsp;6 Cy3_nuclear&nbsp;&nbsp;7 Cy3_apical&nbsp;&nbsp;8 Cy3_basal&nbsp;&nbsp;9 Cy3_cell&nbsp;&nbsp;0 density_15
+            </p>
+        </div>
         <div id="data"></div>
         <div id="indicator">&#8675;</div>
         <canvas id="lore"></canvas>
-        <input id="input-upload" type="file"></input>
         <script src="../dist/lore.js"></script>
         <script src="larva.js"></script>
     </body>

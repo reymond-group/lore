@@ -1,18 +1,15 @@
 {
-  "name": "lore",
+  "name": "lore-engine",
   "version": "1.0.0",
   "description": "A WebGL based 3D data visualization engine.",
-  "main": "gulpfile.js",
+  "main": "./dist/lore.js",
   "directories": {
     "example": "example"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/daenuprobst/smilesDrawer.git"
-  },
+  "repository": "git+https://github.com/daenuprobst/smilesDrawer.git",
   "author": "Daniel Probst, Reymond Group, University of Bern",
   "license": "MIT",
   "bugs": {
@@ -31,5 +28,6 @@
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^2.0.1",
     "gulp-util": "^3.0.8"
-  }
+  },
+  "private": false
 }

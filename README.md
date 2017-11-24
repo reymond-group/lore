@@ -14,6 +14,11 @@ Current Version: 1.0.0 ([Starbreaker](https://www.youtube.com/watch?v=nr8pgN195Z
     </tbody>
 </table>
 
+### Installation
+You can either download or clone this repository and use the JavaScript file in the dist folder, or you can use yarn to install the package lore-engine:
+```
+yarn install lore-engine
+```
 
 Browsing the SureChEMBL database (containing > 12 million datapoints): [Faerun](http://faerun.gdb.tools).
 

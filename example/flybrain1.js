@@ -7,6 +7,7 @@
         cols: [0, 1, 2, 3],
         types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Float32Array']
     });
+    
     let pointHelper = null;
     let octreeHelper = null;
     let original_data = null;
@@ -23,21 +24,6 @@
 
         octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper, {
             visualize: false
-        });
-
-        octreeHelper.addEventListener('hoveredchanged', function(e) {
-            let indicator = document.getElementById('indicator');
-            let data = document.getElementById('data');
-
-            if (e.e) {
-                indicator.style.opacity = 1.0;
-                indicator.style.left = (e.e.screenPosition[0] - 2) + 'px';
-                indicator.style.top = (e.e.screenPosition[1] - 10) + 'px';
-                data.innerHTML = '(' + original_data['x'][e.e.index] + ',' + original_data['y'][e.e.index] + ',' + original_data['z'][e.e.index] + ')';
-            } else {
-                indicator.style.opacity = 0.0;
-                data.innerHTML = '';
-            }
         });
     });
 
