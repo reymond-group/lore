@@ -3,7 +3,18 @@
 Current Version: 1.0.0 ([Starbreaker](https://www.youtube.com/watch?v=nr8pgN195Zw))
 
 ### Teasers
-![](http://doc.gdb.tools/fun/img/lore_faerun.gif)
+<table style="width=100%">
+    <tbody>
+        <tr>
+            <td><img src="http://doc.gdb.tools/fun/img/lore_faerun_small.gif"></img></td>
+            <td><img src="http://doc.gdb.tools/fun/img/lore_faerun2_small.gif"></img></td>
+            <td><img src="http://doc.gdb.tools/fun/img/lore_flybrain_small.gif"></img></td>
+            <td><img src="http://doc.gdb.tools/fun/img/lore_larva_small.gif"></img></td>
+        </tr>
+    </tbody>
+</table>
+
+
 Browsing the SureChEMBL database (containing > 12 million datapoints): [Faerun](http://faerun.gdb.tools).
 
 See the examples folder for more details.
