@@ -1,4 +1,7 @@
 ![Lore](https://github.com/reymond-group/lore/blob/master/logo.png?raw=true)
+
+If you use this code or application, please cite the original paper published by Bioinformatics: ![10.1093/bioinformatics/btx760](http://dx.doi.org/10.1093/bioinformatics/btx760)
+
 # Lore
 Current Version: 1.0.0 ([Starbreaker](https://www.youtube.com/watch?v=nr8pgN195Zw))
 
