@@ -76,6 +76,11 @@ The Lore namespace.
         * [.update(gl)](#Lore.Attribute+update)
         * [.createBuffer(gl, program, bufferType, drawMode)](#Lore.Attribute+createBuffer)
         * [.bind(gl)](#Lore.Attribute+bind)
+    * [.Graph](#Lore.Graph)
+        * [new Lore.Graph(distanceMatrix)](#new_Lore.Graph_new)
+        * [.getAdjacencyMatrix()](#Lore.Graph+getAdjacencyMatrix) ⇒ <code>Array</code>
+        * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
+        * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
     * [.ControlsBase](#Lore.ControlsBase)
         * [new Lore.ControlsBase(renderer, [lookAt], [enableVR])](#new_Lore.ControlsBase_new)
         * [.initWebVR()](#Lore.ControlsBase+initWebVR)
@@ -1208,6 +1213,61 @@ Bind the buffer of this attribute. The attribute must exist in the current shade
 | Param | Type | Description |
 | --- | --- | --- |
 | gl | <code>WebGLRenderingContext</code> | The WebGL rendering context. |
+
+<a name="Lore.Graph"></a>
+
+### Lore.Graph
+A class representing the molecular graph.
+
+**Kind**: static class of <code>[Lore](#Lore)</code>  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| distanceMatrix | <code>Array.&lt;Array&gt;</code> | The distance matrix of this graph. |
+
+
+* [.Graph](#Lore.Graph)
+    * [new Lore.Graph(distanceMatrix)](#new_Lore.Graph_new)
+    * [.getAdjacencyMatrix()](#Lore.Graph+getAdjacencyMatrix) ⇒ <code>Array</code>
+    * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
+    * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
+
+<a name="new_Lore.Graph_new"></a>
+
+#### new Lore.Graph(distanceMatrix)
+The constructor of the class Graph.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| distanceMatrix | <code>Array</code> | The distance matrix of a graph. |
+
+<a name="Lore.Graph+getAdjacencyMatrix"></a>
+
+#### graph.getAdjacencyMatrix() ⇒ <code>Array</code>
+Returns the adjacency matrix of this graph.
+
+**Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
+**Returns**: <code>Array</code> - The adjacency matrix of this graph.  
+<a name="Lore.Graph+getEdgeList"></a>
+
+#### graph.getEdgeList() ⇒ <code>Array</code>
+Returns an edge list of this graph.
+
+**Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
+**Returns**: <code>Array</code> - An array of edges in the form of [vertexId, vertexId, edgeWeight].  
+<a name="Lore.Graph+kkLayout"></a>
+
+#### graph.kkLayout(radius) ⇒ <code>Array</code>
+Positiones the (sub)graph using Kamada and Kawais algorithm for drawing general undirected graphs. https://pdfs.semanticscholar.org/b8d3/bca50ccc573c5cb99f7d201e8acce6618f04.pdf
+
+**Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
+**Returns**: <code>Array</code> - An array of vertex positions of the form [ x, y ].  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| radius | <code>Number</code> | <code>500</code> | The radius within which to initialize the vertices. |
 
 <a name="Lore.ControlsBase"></a>
 

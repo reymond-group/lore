@@ -1,5 +1,7 @@
 'use strict';
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -1696,6 +1698,341 @@ Lore.Effect = function () {
     return Effect;
 }();
 
+/** 
+ * A class representing the molecular graph. 
+ * 
+ * @property {Array[]} distanceMatrix The distance matrix of this graph.
+ */
+Lore.Graph = function () {
+    /**
+     * The constructor of the class Graph.
+     * 
+     * @param {Array} distanceMatrix The distance matrix of a graph.
+     */
+    function Graph(distanceMatrix) {
+        _classCallCheck(this, Graph);
+
+        this.distanceMatrix = distanceMatrix;
+    }
+
+    /**
+     * Returns the adjacency matrix of this graph.
+     * 
+     * @returns {Array} The adjacency matrix of this graph.
+     */
+
+
+    _createClass(Graph, [{
+        key: 'getAdjacencyMatrix',
+        value: function getAdjacencyMatrix() {
+            var length = this.distanceMatrix.length;
+            var adjacencyMatrix = Array(length);
+
+            for (var i = 0; i < length; i++) {
+                adjacencyMatrix[i] = Array(length);
+
+                for (var j = 0; j < length; j++) {
+                    adjacencyMatrix[i][j] = this.distanceMatrix[i][j] > 0 ? 1 : 0;
+                }
+            }
+
+            return adjacencyMatrix;
+        }
+
+        /**
+         * Returns an edge list of this graph.
+         * 
+         * @returns {Array} An array of edges in the form of [vertexId, vertexId, edgeWeight].
+         */
+
+    }, {
+        key: 'getEdgeList',
+        value: function getEdgeList() {
+            var length = this.distanceMatrix.length;
+            var edgeList = Array();
+
+            for (var i = 0; i < length - 1; i++) {
+                for (var j = i; j < length; j++) {
+                    if (this.distanceMatrix[i][j] > 0) {
+                        edgeList.push([i, j, this.distanceMatrix[i][j]]);
+                    }
+                }
+            }
+
+            return edgeList;
+        }
+
+        /**
+         * Positiones the (sub)graph using Kamada and Kawais algorithm for drawing general undirected graphs. https://pdfs.semanticscholar.org/b8d3/bca50ccc573c5cb99f7d201e8acce6618f04.pdf
+         * 
+         * @param {Number} radius The radius within which to initialize the vertices.
+         * @return {Array} An array of vertex positions of the form [ x, y ].
+         */
+
+    }, {
+        key: 'kkLayout',
+        value: function kkLayout() {
+            var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 500;
+
+            var edgeStrength = 20.0;
+
+            var matDist = this.distanceMatrix;
+            var length = this.distanceMatrix.length;
+
+            // Initialize the positions. Place all vertices on a ring around the center
+            var halfR = void 0;
+            var angle = 2 * Math.PI / length;
+            var a = 0.0;
+            var arrPositionX = new Float32Array(length);
+            var arrPositionY = new Float32Array(length);
+            var arrPositioned = Array(length);
+
+            radius /= 2.0;
+
+            var i = length;
+            while (i--) {
+                arrPositionX[i] = radius + Math.cos(a) * radius;
+                arrPositionY[i] = radius + Math.sin(a) * radius;
+                arrPositioned[i] = false;
+                a += angle;
+            }
+
+            // Create the matrix containing the lengths
+            var matLength = Array(length);
+            i = length;
+            while (i--) {
+                matLength[i] = new Array(length);
+                var j = length;
+                while (j--) {
+                    matLength[i][j] = matDist[i][j];
+                }
+            }
+
+            // Create the matrix containing the spring strenghts
+            var matStrength = Array(length);
+            i = length;
+            while (i--) {
+                matStrength[i] = Array(length);
+                var j = length;
+                while (j--) {
+                    matStrength[i][j] = edgeStrength * Math.pow(matDist[i][j], -2.0);
+                }
+            }
+
+            // Create the matrix containing the energies
+            var matEnergy = Array(length);
+            var arrEnergySumX = new Float32Array(length);
+            var arrEnergySumY = new Float32Array(length);
+            i = length;
+            while (i--) {
+                matEnergy[i] = Array(length);
+            }
+
+            i = length;
+            var ux = void 0,
+                uy = void 0,
+                dEx = void 0,
+                dEy = void 0,
+                vx = void 0,
+                vy = void 0,
+                denom = void 0;
+
+            while (i--) {
+                ux = arrPositionX[i];
+                uy = arrPositionY[i];
+                dEx = 0.0;
+                dEy = 0.0;
+                var _j = length;
+                while (_j--) {
+                    if (i === _j) {
+                        continue;
+                    }
+                    vx = arrPositionX[_j];
+                    vy = arrPositionY[_j];
+                    denom = 1.0 / Math.sqrt((ux - vx) * (ux - vx) + (uy - vy) * (uy - vy));
+                    matEnergy[i][_j] = [matStrength[i][_j] * (ux - vx - matLength[i][_j] * (ux - vx) * denom), matStrength[i][_j] * (uy - vy - matLength[i][_j] * (uy - vy) * denom)];
+                    matEnergy[_j][i] = matEnergy[i][_j];
+                    dEx += matEnergy[i][_j][0];
+                    dEy += matEnergy[i][_j][1];
+                }
+                arrEnergySumX[i] = dEx;
+                arrEnergySumY[i] = dEy;
+            }
+
+            console.log(arrEnergySumX, arrEnergySumY);
+            console.log(matStrength, matLength);
+
+            // Utility functions, maybe inline them later
+            var energy = function energy(index) {
+                return [arrEnergySumX[index] * arrEnergySumX[index] + arrEnergySumY[index] * arrEnergySumY[index], arrEnergySumX[index], arrEnergySumY[index]];
+            };
+
+            var highestEnergy = function highestEnergy() {
+                var maxEnergy = 0.0;
+                var maxEnergyId = 0;
+                var maxDEX = 0.0;
+                var maxDEY = 0.0;
+
+                i = length;
+                while (i--) {
+                    var _energy = energy(i),
+                        _energy2 = _slicedToArray(_energy, 3),
+                        _delta = _energy2[0],
+                        _dEX = _energy2[1],
+                        _dEY = _energy2[2];
+
+                    if (_delta > maxEnergy) {
+                        maxEnergy = _delta;
+                        maxEnergyId = i;
+                        maxDEX = _dEX;
+                        maxDEY = _dEY;
+                    }
+                }
+
+                return [maxEnergyId, maxEnergy, maxDEX, maxDEY];
+            };
+
+            var update = function update(index, dEX, dEY) {
+                var dxx = 0.0;
+                var dyy = 0.0;
+                var dxy = 0.0;
+                var ux = arrPositionX[index];
+                var uy = arrPositionY[index];
+                var arrL = matLength[index];
+                var arrK = matStrength[index];
+
+                i = length;
+                while (i--) {
+                    if (i === index) {
+                        continue;
+                    }
+
+                    var _vx = arrPositionX[i];
+                    var _vy = arrPositionY[i];
+                    var l = arrL[i];
+                    var k = arrK[i];
+                    var m = (ux - _vx) * (ux - _vx);
+                    var _denom = 1.0 / Math.pow(m + (uy - _vy) * (uy - _vy), 1.5);
+
+                    dxx += k * (1 - l * (uy - _vy) * (uy - _vy) * _denom);
+                    dyy += k * (1 - l * m * _denom);
+                    dxy += k * (l * (ux - _vx) * (uy - _vy) * _denom);
+                }
+
+                // Prevent division by zero
+                if (dxx === 0) {
+                    dxx = 0.1;
+                }
+
+                if (dyy === 0) {
+                    dyy = 0.1;
+                }
+
+                if (dxy === 0) {
+                    dxy = 0.1;
+                }
+
+                var dy = dEX / dxx + dEY / dxy;
+                dy /= dxy / dxx - dyy / dxy; // had to split this onto two lines because the syntax highlighter went crazy.
+                var dx = -(dxy * dy + dEX) / dxx;
+
+                arrPositionX[index] += dx;
+                arrPositionY[index] += dy;
+
+                // Update the energies
+                var arrE = matEnergy[index];
+                dEX = 0.0;
+                dEY = 0.0;
+
+                ux = arrPositionX[index];
+                uy = arrPositionY[index];
+
+                var vx = void 0,
+                    vy = void 0,
+                    prevEx = void 0,
+                    prevEy = void 0,
+                    denom = void 0;
+
+                i = length;
+                while (i--) {
+                    if (index === i) {
+                        continue;
+                    }
+                    vx = arrPositionX[i];
+                    vy = arrPositionY[i];
+                    // Store old energies
+                    prevEx = arrE[i][0];
+                    prevEy = arrE[i][1];
+                    denom = 1.0 / Math.sqrt((ux - vx) * (ux - vx) + (uy - vy) * (uy - vy));
+                    dx = arrK[i] * (ux - vx - arrL[i] * (ux - vx) * denom);
+                    dy = arrK[i] * (uy - vy - arrL[i] * (uy - vy) * denom);
+
+                    arrE[i] = [dx, dy];
+                    dEX += dx;
+                    dEY += dy;
+                    arrEnergySumX[i] += dx - prevEx;
+                    arrEnergySumY[i] += dy - prevEy;
+                }
+                arrEnergySumX[index] = dEX;
+                arrEnergySumY[index] = dEY;
+            };
+
+            // Setting parameters
+            var threshold = 0.1;
+            var innerThreshold = 0.1;
+            var maxIteration = 200;
+            var maxInnerIteration = 50;
+            var maxEnergy = 1e9;
+
+            // Setting up variables for the while loops
+            var maxEnergyId = 0;
+            var dEX = 0.0;
+            var dEY = 0.0;
+            var delta = 0.0;
+            var iteration = 0;
+            var innerIteration = 0;
+
+            while (maxEnergy > threshold && maxIteration > iteration) {
+                iteration++;
+
+                var _highestEnergy = highestEnergy();
+
+                var _highestEnergy2 = _slicedToArray(_highestEnergy, 4);
+
+                maxEnergyId = _highestEnergy2[0];
+                maxEnergy = _highestEnergy2[1];
+                dEX = _highestEnergy2[2];
+                dEY = _highestEnergy2[3];
+
+                delta = maxEnergy;
+                innerIteration = 0;
+                while (delta > innerThreshold && maxInnerIteration > innerIteration) {
+                    innerIteration++;
+                    update(maxEnergyId, dEX, dEY);
+
+                    var _energy3 = energy(maxEnergyId);
+
+                    var _energy4 = _slicedToArray(_energy3, 3);
+
+                    delta = _energy4[0];
+                    dEX = _energy4[1];
+                    dEY = _energy4[2];
+                }
+            }
+
+            var positions = Array(length);
+
+            i = length;
+            while (i--) {
+                positions[i] = [arrPositionX[i], arrPositionY[i]];
+            }
+
+            return positions;
+        }
+    }]);
+
+    return Graph;
+}();
 /** 
  * An abstract class representing the base for controls implementations. 
  * 
@@ -8013,15 +8350,15 @@ Lore.CsvFileReader = function (_Lore$FileReaderBase) {
                 }
 
                 if (init) {
-                    for (var _j = 0; _j < this.cols.length; _j++) {
-                        this._createArray(this.headers[_j], this.types[_j], length - h);
+                    for (var _j2 = 0; _j2 < this.cols.length; _j2++) {
+                        this._createArray(this.headers[_j2], this.types[_j2], length - h);
                     }
 
                     init = false;
                 }
 
-                for (var _j2 = 0; _j2 < this.cols.length; _j2++) {
-                    this.columns[this.headers[_j2]][_i15 - h] = _values2[this.cols[_j2]];
+                for (var _j3 = 0; _j3 < this.cols.length; _j3++) {
+                    this.columns[this.headers[_j3]][_i15 - h] = _values2[this.cols[_j3]];
                 }
             }
 
