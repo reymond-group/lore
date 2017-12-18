@@ -18,26 +18,44 @@
 <body>
   <div id="data"></div>
   <script src="../dist/lore.js"></script>
-  <canvas id="output" width="500" height="500"></canvas>
+  <script src="lesmiserables.edges.js"></script>
+  <script src="celegans.edges.js"></script>
+  <canvas id="output" width="1000" height="1000"></canvas>
   <script>
-    let graph = new Lore.Graph([
-      [0, 6, 10, 0, 0, 0, 0, 0, 0, 0],
-      [6, 0, 12, 11, 14, 0, 0, 0, 0, 0],
-      [10, 12, 0, 12, 0, 0, 8, 16, 0, 0],
-      [0, 11, 12, 0, 0, 6, 3, 0, 0, 0],
-      [0, 14, 0, 0, 0, 4, 0, 0, 6, 0],
-      [0, 0, 0, 6, 4, 0, 0, 0, 12, 0],
-      [0, 0, 8, 3, 0, 0, 0, 0, 16, 6],
-      [0, 0, 16, 0, 0, 0, 0, 0, 0, 8],
-      [0, 0, 0, 0, 6, 12, 16, 0, 0, 13],
-      [0, 0, 0, 0, 0, 0, 6, 8, 13, 0]
-    ]);
+    // let graph = new Lore.Graph([
+    //   [0, 6, 10, 0, 0, 0, 0, 0, 0, 0],
+    //   [6, 0, 12, 11, 14, 0, 0, 0, 0, 0],
+    //   [10, 12, 0, 12, 0, 0, 8, 16, 0, 0],
+    //   [0, 11, 12, 0, 0, 6, 3, 0, 0, 0],
+    //   [0, 14, 0, 0, 0, 4, 0, 0, 6, 0],
+    //   [0, 0, 0, 6, 4, 0, 0, 0, 12, 0],
+    //   [0, 0, 8, 3, 0, 0, 0, 0, 16, 6],
+    //   [0, 0, 16, 0, 0, 0, 0, 0, 0, 8],
+    //   [0, 0, 0, 0, 6, 12, 16, 0, 0, 13],
+    //   [0, 0, 0, 0, 0, 0, 6, 8, 13, 0]
+    // ]);
 
-    let positions = graph.kkLayout();
+    let graph = Lore.Graph.fromEdgeList(lesmiserables, true, true);
+
+    let positions = graph.kkLayout(1000);
+    let edges = graph.getEdgeList();
     let canvas = document.getElementById('output');
     let ctx = canvas.getContext('2d');
 
+    for (var i = 0; i < edges.length; i++) {
+      let a = positions[edges[i][0]];
+      let b = positions[edges[i][1]];
+
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+      ctx.moveTo(a[0] + 2.5, a[1] + 2.5);
+      ctx.lineTo(b[0] + 2.5, b[1] + 2.5);
+      ctx.stroke();
+    }
+
     for (var i = 0; i < positions.length; i++) {
+      ctx.fillStyle = '#FF0000';
+      ctx.fillText(i, positions[i][0] + 8, positions[i][1] + 5);
       ctx.fillRect(positions[i][0], positions[i][1], 5, 5);
     }
 

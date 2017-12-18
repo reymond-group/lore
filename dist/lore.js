@@ -1707,36 +1707,50 @@ Lore.Graph = function () {
     /**
      * The constructor of the class Graph.
      * 
-     * @param {Array} distanceMatrix The distance matrix of a graph.
+     * @param {Array[]} adjacencyMatrix The weighted adjacency matrix of a graph.
+     * @param {Array[]} distanceMatrix The distance matrix of a graph.
+     * @param {Number} diameter The diameter of the graph.
      */
-    function Graph(distanceMatrix) {
+    function Graph(adjacencyMatrix) {
         _classCallCheck(this, Graph);
 
-        this.distanceMatrix = distanceMatrix;
+        this.adjacencyMatrix = adjacencyMatrix;
+
+        // Replace zeros with infinity
+        for (var i = 0; i < this.adjacencyMatrix.length; i++) {
+            for (var j = 0; j < this.adjacencyMatrix.length; j++) {
+                if (this.adjacencyMatrix[i][j] === 0) {
+                    this.adjacencyMatrix[i][j] = Infinity;
+                }
+            }
+        }
+
+        this.distanceMatrix = this.getDistanceMatrix();
+        this.diameter = this.getDiameter();
     }
 
     /**
-     * Returns the adjacency matrix of this graph.
+     * Returns the unweighted adjacency matrix of this graph.
      * 
-     * @returns {Array} The adjacency matrix of this graph.
+     * @returns {Array} The unweighted adjacency matrix of this graph.
      */
 
 
     _createClass(Graph, [{
-        key: 'getAdjacencyMatrix',
-        value: function getAdjacencyMatrix() {
-            var length = this.distanceMatrix.length;
-            var adjacencyMatrix = Array(length);
+        key: 'getUnweightedAdjacencyMatrix',
+        value: function getUnweightedAdjacencyMatrix() {
+            var length = this.adjacencyMatrix.length;
+            var unweightedAdjacencyMatrix = Array(length);
 
             for (var i = 0; i < length; i++) {
-                adjacencyMatrix[i] = Array(length);
+                unweightedAdjacencyMatrix[i] = Array(length);
 
                 for (var j = 0; j < length; j++) {
-                    adjacencyMatrix[i][j] = this.distanceMatrix[i][j] > 0 ? 1 : 0;
+                    unweightedAdjacencyMatrix[i][j] = this.adjacencyMatrix[i][j] > 0 ? 1 : 0;
                 }
             }
 
-            return adjacencyMatrix;
+            return unweightedAdjacencyMatrix;
         }
 
         /**
@@ -1748,13 +1762,13 @@ Lore.Graph = function () {
     }, {
         key: 'getEdgeList',
         value: function getEdgeList() {
-            var length = this.distanceMatrix.length;
+            var length = this.adjacencyMatrix.length;
             var edgeList = Array();
 
             for (var i = 0; i < length - 1; i++) {
                 for (var j = i; j < length; j++) {
-                    if (this.distanceMatrix[i][j] > 0) {
-                        edgeList.push([i, j, this.distanceMatrix[i][j]]);
+                    if (this.adjacencyMatrix[i][j] !== Infinity) {
+                        edgeList.push([i, j, this.adjacencyMatrix[i][j]]);
                     }
                 }
             }
@@ -1774,7 +1788,7 @@ Lore.Graph = function () {
         value: function kkLayout() {
             var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 500;
 
-            var edgeStrength = 20.0;
+            var edgeStrength = 2.0;
 
             var matDist = this.distanceMatrix;
             var length = this.distanceMatrix.length;
@@ -1786,6 +1800,9 @@ Lore.Graph = function () {
             var arrPositionX = new Float32Array(length);
             var arrPositionY = new Float32Array(length);
             var arrPositioned = Array(length);
+            var l = radius / (2 * this.diameter);
+            console.log('l: ' + l);
+            console.log('diameter: ' + this.diameter);
 
             radius /= 2.0;
 
@@ -1804,7 +1821,7 @@ Lore.Graph = function () {
                 matLength[i] = new Array(length);
                 var j = length;
                 while (j--) {
-                    matLength[i][j] = matDist[i][j];
+                    matLength[i][j] = l * matDist[i][j];
                 }
             }
 
@@ -1859,9 +1876,6 @@ Lore.Graph = function () {
                 arrEnergySumY[i] = dEy;
             }
 
-            console.log(arrEnergySumX, arrEnergySumY);
-            console.log(matStrength, matLength);
-
             // Utility functions, maybe inline them later
             var energy = function energy(index) {
                 return [arrEnergySumX[index] * arrEnergySumX[index] + arrEnergySumY[index] * arrEnergySumY[index], arrEnergySumX[index], arrEnergySumY[index]];
@@ -1909,14 +1923,14 @@ Lore.Graph = function () {
 
                     var _vx = arrPositionX[i];
                     var _vy = arrPositionY[i];
-                    var l = arrL[i];
+                    var _l = arrL[i];
                     var k = arrK[i];
                     var m = (ux - _vx) * (ux - _vx);
                     var _denom = 1.0 / Math.pow(m + (uy - _vy) * (uy - _vy), 1.5);
 
-                    dxx += k * (1 - l * (uy - _vy) * (uy - _vy) * _denom);
-                    dyy += k * (1 - l * m * _denom);
-                    dxy += k * (l * (ux - _vx) * (uy - _vy) * _denom);
+                    dxx += k * (1 - _l * (uy - _vy) * (uy - _vy) * _denom);
+                    dyy += k * (1 - _l * m * _denom);
+                    dxy += k * (_l * (ux - _vx) * (uy - _vy) * _denom);
                 }
 
                 // Prevent division by zero
@@ -1980,7 +1994,7 @@ Lore.Graph = function () {
             // Setting parameters
             var threshold = 0.1;
             var innerThreshold = 0.1;
-            var maxIteration = 200;
+            var maxIteration = 2000;
             var maxInnerIteration = 50;
             var maxEnergy = 1e9;
 
@@ -2028,6 +2042,126 @@ Lore.Graph = function () {
             }
 
             return positions;
+        }
+    }, {
+        key: 'getDiameter',
+        value: function getDiameter() {
+            var diameter = 0;
+
+            for (var i = 0; i < this.distanceMatrix.length - 1; i++) {
+                for (var j = i; j < this.distanceMatrix.length; j++) {
+                    if (this.distanceMatrix[i][j] > diameter && this.distanceMatrix[i][j] < Infinity) {
+                        diameter = this.distanceMatrix[i][j];
+                    }
+                }
+            }
+
+            return diameter;
+        }
+
+        /**
+         * Get the distance matrix of the graph.
+         * 
+         * @returns {Array[]} The distance matrix of the graph.
+         */
+
+    }, {
+        key: 'getDistanceMatrix',
+        value: function getDistanceMatrix() {
+            var length = this.adjacencyMatrix.length;
+            var dist = Array(length);
+
+            for (var i = 0; i < length; i++) {
+                dist[i] = Array(length);
+                dist[i].fill(Infinity);
+            }
+
+            for (var i = 0; i < length; i++) {
+                for (var j = 0; j < length; j++) {
+                    if (this.adjacencyMatrix[i][j] < Infinity) {
+                        dist[i][j] = this.adjacencyMatrix[i][j];
+                    }
+                }
+            }
+
+            for (var k = 0; k < length; k++) {
+                for (var i = 0; i < length; i++) {
+                    for (var j = 0; j < length; j++) {
+                        if (dist[i][j] > dist[i][k] + dist[k][j]) {
+                            dist[i][j] = dist[i][k] + dist[k][j];
+                        }
+                    }
+                }
+            }
+
+            return dist;
+        }
+
+        /**
+         * Returns a new graph object. Vertex ids have to be 0 to n.
+         * 
+         * @param {Array[]} edgeList An edge list in the form [ [ vertexId, vertexId, weight ], ... ].
+         * @param {Boolean} invertWeights Whether or not to invert the weights.
+         * @param {Boolean} logWeights Apply log() to the weights.
+         * @returns {Graph} A graph object.
+         */
+
+    }], [{
+        key: 'fromEdgeList',
+        value: function fromEdgeList(edgeList) {
+            var invertWeights = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+            var logWeigths = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+            // Get the max vertex id.
+            var max = 0;
+            for (var i = 0; i < edgeList.length; i++) {
+                if (edgeList[i][0] > max) {
+                    max = edgeList[i][0];
+                }
+
+                if (edgeList[i][1] > max) {
+                    max = edgeList[i][1];
+                }
+            }
+
+            max++;
+
+            if (invertWeights) {
+                var maxWeight = 0;
+
+                for (var i = 0; i < edgeList.length; i++) {
+                    if (edgeList[i][2] > maxWeight) {
+                        maxWeight = edgeList[i][2];
+                    }
+                }
+
+                maxWeight++;
+
+                for (var i = 0; i < edgeList.length; i++) {
+                    edgeList[i][2] = maxWeight - edgeList[i][2];
+                }
+            }
+
+            if (logWeigths) {
+                for (var i = 0; i < edgeList.length; i++) {
+                    edgeList[i][2] = Math.log(edgeList[i][2]);
+                }
+            }
+
+            var adjacencyMatrix = Array(max);
+
+            for (var i = 0; i < max; i++) {
+                adjacencyMatrix[i] = Array(max);
+                adjacencyMatrix[i].fill(0);
+            }
+
+            for (var i = 0; i < edgeList.length; i++) {
+                var edge = edgeList[i];
+                adjacencyMatrix[edge[0]][edge[1]] = edge[2];
+                adjacencyMatrix[edge[1]][edge[0]] = edge[2];
+            }
+
+            return new Lore.Graph(adjacencyMatrix);
         }
     }]);
 

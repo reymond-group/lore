@@ -77,10 +77,14 @@ The Lore namespace.
         * [.createBuffer(gl, program, bufferType, drawMode)](#Lore.Attribute+createBuffer)
         * [.bind(gl)](#Lore.Attribute+bind)
     * [.Graph](#Lore.Graph)
-        * [new Lore.Graph(distanceMatrix)](#new_Lore.Graph_new)
-        * [.getAdjacencyMatrix()](#Lore.Graph+getAdjacencyMatrix) ⇒ <code>Array</code>
-        * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
-        * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
+        * [new Lore.Graph(adjacencyMatrix, distanceMatrix, diameter)](#new_Lore.Graph_new)
+        * _instance_
+            * [.getUnweightedAdjacencyMatrix()](#Lore.Graph+getUnweightedAdjacencyMatrix) ⇒ <code>Array</code>
+            * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
+            * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
+            * [.getDistanceMatrix()](#Lore.Graph+getDistanceMatrix) ⇒ <code>Array.&lt;Array&gt;</code>
+        * _static_
+            * [.fromEdgeList(edgeList, invertWeights, logWeights)](#Lore.Graph.fromEdgeList) ⇒ <code>Graph</code>
     * [.ControlsBase](#Lore.ControlsBase)
         * [new Lore.ControlsBase(renderer, [lookAt], [enableVR])](#new_Lore.ControlsBase_new)
         * [.initWebVR()](#Lore.ControlsBase+initWebVR)
@@ -1228,28 +1232,34 @@ A class representing the molecular graph.
 
 
 * [.Graph](#Lore.Graph)
-    * [new Lore.Graph(distanceMatrix)](#new_Lore.Graph_new)
-    * [.getAdjacencyMatrix()](#Lore.Graph+getAdjacencyMatrix) ⇒ <code>Array</code>
-    * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
-    * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
+    * [new Lore.Graph(adjacencyMatrix, distanceMatrix, diameter)](#new_Lore.Graph_new)
+    * _instance_
+        * [.getUnweightedAdjacencyMatrix()](#Lore.Graph+getUnweightedAdjacencyMatrix) ⇒ <code>Array</code>
+        * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
+        * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
+        * [.getDistanceMatrix()](#Lore.Graph+getDistanceMatrix) ⇒ <code>Array.&lt;Array&gt;</code>
+    * _static_
+        * [.fromEdgeList(edgeList, invertWeights, logWeights)](#Lore.Graph.fromEdgeList) ⇒ <code>Graph</code>
 
 <a name="new_Lore.Graph_new"></a>
 
-#### new Lore.Graph(distanceMatrix)
+#### new Lore.Graph(adjacencyMatrix, distanceMatrix, diameter)
 The constructor of the class Graph.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| distanceMatrix | <code>Array</code> | The distance matrix of a graph. |
+| adjacencyMatrix | <code>Array.&lt;Array&gt;</code> | The weighted adjacency matrix of a graph. |
+| distanceMatrix | <code>Array.&lt;Array&gt;</code> | The distance matrix of a graph. |
+| diameter | <code>Number</code> | The diameter of the graph. |
 
-<a name="Lore.Graph+getAdjacencyMatrix"></a>
+<a name="Lore.Graph+getUnweightedAdjacencyMatrix"></a>
 
-#### graph.getAdjacencyMatrix() ⇒ <code>Array</code>
-Returns the adjacency matrix of this graph.
+#### graph.getUnweightedAdjacencyMatrix() ⇒ <code>Array</code>
+Returns the unweighted adjacency matrix of this graph.
 
 **Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
-**Returns**: <code>Array</code> - The adjacency matrix of this graph.  
+**Returns**: <code>Array</code> - The unweighted adjacency matrix of this graph.  
 <a name="Lore.Graph+getEdgeList"></a>
 
 #### graph.getEdgeList() ⇒ <code>Array</code>
@@ -1268,6 +1278,27 @@ Positiones the (sub)graph using Kamada and Kawais algorithm for drawing general 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | radius | <code>Number</code> | <code>500</code> | The radius within which to initialize the vertices. |
+
+<a name="Lore.Graph+getDistanceMatrix"></a>
+
+#### graph.getDistanceMatrix() ⇒ <code>Array.&lt;Array&gt;</code>
+Get the distance matrix of the graph.
+
+**Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
+**Returns**: <code>Array.&lt;Array&gt;</code> - The distance matrix of the graph.  
+<a name="Lore.Graph.fromEdgeList"></a>
+
+#### Graph.fromEdgeList(edgeList, invertWeights, logWeights) ⇒ <code>Graph</code>
+Returns a new graph object. Vertex ids have to be 0 to n.
+
+**Kind**: static method of <code>[Graph](#Lore.Graph)</code>  
+**Returns**: <code>Graph</code> - A graph object.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| edgeList | <code>Array.&lt;Array&gt;</code> |  | An edge list in the form [ [ vertexId, vertexId, weight ], ... ]. |
+| invertWeights | <code>Boolean</code> | <code>false</code> | Whether or not to invert the weights. |
+| logWeights | <code>Boolean</code> |  | Apply log() to the weights. |
 
 <a name="Lore.ControlsBase"></a>
 
