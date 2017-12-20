@@ -81,10 +81,10 @@ The Lore namespace.
         * _instance_
             * [.getUnweightedAdjacencyMatrix()](#Lore.Graph+getUnweightedAdjacencyMatrix) ⇒ <code>Array</code>
             * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
-            * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
+            * [.kkLayout(radius, logWeights, squareWeights, norm)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
             * [.getDistanceMatrix()](#Lore.Graph+getDistanceMatrix) ⇒ <code>Array.&lt;Array&gt;</code>
         * _static_
-            * [.fromEdgeList(edgeList, invertWeights, logWeights)](#Lore.Graph.fromEdgeList) ⇒ <code>Graph</code>
+            * [.fromEdgeList(edgeList, invertWeights)](#Lore.Graph.fromEdgeList) ⇒ <code>Graph</code>
     * [.ControlsBase](#Lore.ControlsBase)
         * [new Lore.ControlsBase(renderer, [lookAt], [enableVR])](#new_Lore.ControlsBase_new)
         * [.initWebVR()](#Lore.ControlsBase+initWebVR)
@@ -1236,10 +1236,10 @@ A class representing the molecular graph.
     * _instance_
         * [.getUnweightedAdjacencyMatrix()](#Lore.Graph+getUnweightedAdjacencyMatrix) ⇒ <code>Array</code>
         * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
-        * [.kkLayout(radius)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
+        * [.kkLayout(radius, logWeights, squareWeights, norm)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
         * [.getDistanceMatrix()](#Lore.Graph+getDistanceMatrix) ⇒ <code>Array.&lt;Array&gt;</code>
     * _static_
-        * [.fromEdgeList(edgeList, invertWeights, logWeights)](#Lore.Graph.fromEdgeList) ⇒ <code>Graph</code>
+        * [.fromEdgeList(edgeList, invertWeights)](#Lore.Graph.fromEdgeList) ⇒ <code>Graph</code>
 
 <a name="new_Lore.Graph_new"></a>
 
@@ -1269,7 +1269,7 @@ Returns an edge list of this graph.
 **Returns**: <code>Array</code> - An array of edges in the form of [vertexId, vertexId, edgeWeight].  
 <a name="Lore.Graph+kkLayout"></a>
 
-#### graph.kkLayout(radius) ⇒ <code>Array</code>
+#### graph.kkLayout(radius, logWeights, squareWeights, norm) ⇒ <code>Array</code>
 Positiones the (sub)graph using Kamada and Kawais algorithm for drawing general undirected graphs. https://pdfs.semanticscholar.org/b8d3/bca50ccc573c5cb99f7d201e8acce6618f04.pdf
 
 **Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
@@ -1278,6 +1278,9 @@ Positiones the (sub)graph using Kamada and Kawais algorithm for drawing general 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | radius | <code>Number</code> | <code>500</code> | The radius within which to initialize the vertices. |
+| logWeights | <code>Boolean</code> | <code>false</code> | Apply log() to the weights before layouting. |
+| squareWeights | <code>Boolean</code> | <code>false</code> | Apply pow(x,2) to the weights before layouting. |
+| norm | <code>Boolean</code> |  | Normalize the edge weights before layouting and after log() or exp(). |
 
 <a name="Lore.Graph+getDistanceMatrix"></a>
 
@@ -1288,7 +1291,7 @@ Get the distance matrix of the graph.
 **Returns**: <code>Array.&lt;Array&gt;</code> - The distance matrix of the graph.  
 <a name="Lore.Graph.fromEdgeList"></a>
 
-#### Graph.fromEdgeList(edgeList, invertWeights, logWeights) ⇒ <code>Graph</code>
+#### Graph.fromEdgeList(edgeList, invertWeights) ⇒ <code>Graph</code>
 Returns a new graph object. Vertex ids have to be 0 to n.
 
 **Kind**: static method of <code>[Graph](#Lore.Graph)</code>  
@@ -1298,7 +1301,6 @@ Returns a new graph object. Vertex ids have to be 0 to n.
 | --- | --- | --- | --- |
 | edgeList | <code>Array.&lt;Array&gt;</code> |  | An edge list in the form [ [ vertexId, vertexId, weight ], ... ]. |
 | invertWeights | <code>Boolean</code> | <code>false</code> | Whether or not to invert the weights. |
-| logWeights | <code>Boolean</code> |  | Apply log() to the weights. |
 
 <a name="Lore.ControlsBase"></a>
 

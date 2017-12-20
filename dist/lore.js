@@ -1780,6 +1780,9 @@ Lore.Graph = function () {
          * Positiones the (sub)graph using Kamada and Kawais algorithm for drawing general undirected graphs. https://pdfs.semanticscholar.org/b8d3/bca50ccc573c5cb99f7d201e8acce6618f04.pdf
          * 
          * @param {Number} radius The radius within which to initialize the vertices.
+         * @param {Boolean} logWeights Apply log() to the weights before layouting.
+         * @param {Boolean} squareWeights Apply pow(x,2) to the weights before layouting.
+         * @param {Boolean} norm Normalize the edge weights before layouting and after log() or exp().
          * @return {Array} An array of vertex positions of the form [ x, y ].
          */
 
@@ -1787,11 +1790,58 @@ Lore.Graph = function () {
         key: 'kkLayout',
         value: function kkLayout() {
             var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 500;
+            var logWeights = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+            var squareWeights = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+            var normalizeWeights = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
-            var edgeStrength = 2.0;
+            var edgeStrength = 50.0;
 
             var matDist = this.distanceMatrix;
             var length = this.distanceMatrix.length;
+
+            // Transform data
+            if (logWeights) {
+                for (var i = 0; i < length; i++) {
+                    for (var j = 0; j < length; j++) {
+                        if (matDist[i][j] !== Infinity) {
+                            matDist[i][j] = Math.log(matDist[i][j]);
+                        }
+                    }
+                }
+            }
+
+            if (normalizeWeights) {
+                for (var i = 0; i < length; i++) {
+                    for (var j = 0; j < length; j++) {
+                        if (matDist[i][j] !== Infinity && matDist[i][j] !== 0) {
+                            matDist[i][j] = Math.pow(matDist[i][j], 2.0);
+                        }
+                    }
+                }
+            }
+
+            console.log(matDist);
+
+            // Normalize the edge weights
+            if (normalizeWeights) {
+                var maxWeight = 0;
+
+                for (var i = 0; i < length; i++) {
+                    for (var j = 0; j < length; j++) {
+                        if (matDist[i][j] > maxWeight && matDist[i][j] !== Infinity) {
+                            maxWeight = matDist[i][j];
+                        }
+                    }
+                }
+
+                for (var i = 0; i < length; i++) {
+                    for (var j = 0; j < length; j++) {
+                        if (matDist[i][j] !== Infinity) {
+                            matDist[i][j] = matDist[i][j] / maxWeight;
+                        }
+                    }
+                }
+            }
 
             // Initialize the positions. Place all vertices on a ring around the center
             var halfR = void 0;
@@ -1810,6 +1860,7 @@ Lore.Graph = function () {
             while (i--) {
                 arrPositionX[i] = radius + Math.cos(a) * radius;
                 arrPositionY[i] = radius + Math.sin(a) * radius;
+
                 arrPositioned[i] = false;
                 a += angle;
             }
@@ -1867,7 +1918,7 @@ Lore.Graph = function () {
                     vx = arrPositionX[_j];
                     vy = arrPositionY[_j];
                     denom = 1.0 / Math.sqrt((ux - vx) * (ux - vx) + (uy - vy) * (uy - vy));
-                    matEnergy[i][_j] = [matStrength[i][_j] * (ux - vx - matLength[i][_j] * (ux - vx) * denom), matStrength[i][_j] * (uy - vy - matLength[i][_j] * (uy - vy) * denom)];
+                    matEnergy[i][_j] = [matStrength[i][_j] * (ux - vx - matLength[i][_j] * (ux - vx) * denom) || 0.0, matStrength[i][_j] * (uy - vy - matLength[i][_j] * (uy - vy) * denom) || 0.0];
                     matEnergy[_j][i] = matEnergy[i][_j];
                     dEx += matEnergy[i][_j][0];
                     dEy += matEnergy[i][_j][1];
@@ -1928,9 +1979,9 @@ Lore.Graph = function () {
                     var m = (ux - _vx) * (ux - _vx);
                     var _denom = 1.0 / Math.pow(m + (uy - _vy) * (uy - _vy), 1.5);
 
-                    dxx += k * (1 - _l * (uy - _vy) * (uy - _vy) * _denom);
-                    dyy += k * (1 - _l * m * _denom);
-                    dxy += k * (_l * (ux - _vx) * (uy - _vy) * _denom);
+                    dxx += k * (1 - _l * (uy - _vy) * (uy - _vy) * _denom) || 0.0;
+                    dyy += k * (1 - _l * m * _denom) || 0.0;
+                    dxy += k * (_l * (ux - _vx) * (uy - _vy) * _denom) || 0.0;
                 }
 
                 // Prevent division by zero
@@ -1978,8 +2029,8 @@ Lore.Graph = function () {
                     prevEx = arrE[i][0];
                     prevEy = arrE[i][1];
                     denom = 1.0 / Math.sqrt((ux - vx) * (ux - vx) + (uy - vy) * (uy - vy));
-                    dx = arrK[i] * (ux - vx - arrL[i] * (ux - vx) * denom);
-                    dy = arrK[i] * (uy - vy - arrL[i] * (uy - vy) * denom);
+                    dx = arrK[i] * (ux - vx - arrL[i] * (ux - vx) * denom) || 0.0;
+                    dy = arrK[i] * (uy - vy - arrL[i] * (uy - vy) * denom) || 0.0;
 
                     arrE[i] = [dx, dy];
                     dEX += dx;
@@ -1994,8 +2045,8 @@ Lore.Graph = function () {
             // Setting parameters
             var threshold = 0.1;
             var innerThreshold = 0.1;
-            var maxIteration = 2000;
-            var maxInnerIteration = 50;
+            var maxIteration = 6000;
+            var maxInnerIteration = 10;
             var maxEnergy = 1e9;
 
             // Setting up variables for the while loops
@@ -2017,6 +2068,7 @@ Lore.Graph = function () {
                 maxEnergy = _highestEnergy2[1];
                 dEX = _highestEnergy2[2];
                 dEY = _highestEnergy2[3];
+
 
                 delta = maxEnergy;
                 innerIteration = 0;
@@ -2041,7 +2093,9 @@ Lore.Graph = function () {
                 positions[i] = [arrPositionX[i], arrPositionY[i]];
             }
 
-            return positions;
+            var edgeList = this.getEdgeList();
+
+            return [positions, edgeList];
         }
     }, {
         key: 'getDiameter',
@@ -2102,7 +2156,6 @@ Lore.Graph = function () {
          * 
          * @param {Array[]} edgeList An edge list in the form [ [ vertexId, vertexId, weight ], ... ].
          * @param {Boolean} invertWeights Whether or not to invert the weights.
-         * @param {Boolean} logWeights Apply log() to the weights.
          * @returns {Graph} A graph object.
          */
 
@@ -2110,7 +2163,6 @@ Lore.Graph = function () {
         key: 'fromEdgeList',
         value: function fromEdgeList(edgeList) {
             var invertWeights = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-            var logWeigths = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
             // Get the max vertex id.
             var max = 0;
@@ -2139,12 +2191,6 @@ Lore.Graph = function () {
 
                 for (var i = 0; i < edgeList.length; i++) {
                     edgeList[i][2] = maxWeight - edgeList[i][2];
-                }
-            }
-
-            if (logWeigths) {
-                for (var i = 0; i < edgeList.length; i++) {
-                    edgeList[i][2] = Math.log(edgeList[i][2]);
                 }
             }
 

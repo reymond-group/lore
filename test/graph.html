@@ -20,8 +20,10 @@
   <script src="../dist/lore.js"></script>
   <script src="lesmiserables.edges.js"></script>
   <script src="celegans.edges.js"></script>
-  <canvas id="output" width="1000" height="1000"></canvas>
+  <script src="compounds.edges.js"></script>
+  <canvas id="output" width="1500" height="1500"></canvas>
   <script>
+
     // let graph = new Lore.Graph([
     //   [0, 6, 10, 0, 0, 0, 0, 0, 0, 0],
     //   [6, 0, 12, 11, 14, 0, 0, 0, 0, 0],
@@ -35,10 +37,9 @@
     //   [0, 0, 0, 0, 0, 0, 6, 8, 13, 0]
     // ]);
 
-    let graph = Lore.Graph.fromEdgeList(lesmiserables, true, true);
+    let graph = Lore.Graph.fromEdgeList(compounds, true, false);
 
-    let positions = graph.kkLayout(1000);
-    let edges = graph.getEdgeList();
+    let [positions, edges] = graph.kkLayout(1500, false, false, false);
     let canvas = document.getElementById('output');
     let ctx = canvas.getContext('2d');
 
@@ -48,15 +49,17 @@
 
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
-      ctx.moveTo(a[0] + 2.5, a[1] + 2.5);
-      ctx.lineTo(b[0] + 2.5, b[1] + 2.5);
+      ctx.lineWidth = 0.5; //edges[i][2];
+      
+      ctx.moveTo(a[0] + 1.0, a[1] + 1.0);
+      ctx.lineTo(b[0] + 1.0, b[1] + 1.0);
       ctx.stroke();
     }
 
     for (var i = 0; i < positions.length; i++) {
       ctx.fillStyle = '#FF0000';
-      ctx.fillText(i, positions[i][0] + 8, positions[i][1] + 5);
-      ctx.fillRect(positions[i][0], positions[i][1], 5, 5);
+      // ctx.fillText(i, positions[i][0] + 8, positions[i][1] + 5);
+      ctx.fillRect(positions[i][0], positions[i][1], 2.0, 2.0);
     }
 
   </script>
