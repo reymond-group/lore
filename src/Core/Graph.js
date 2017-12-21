@@ -68,6 +68,172 @@ Lore.Graph = class Graph {
   }
 
   /**
+   * 
+   */
+  forceLayout(radius = 1000) {
+    let k = 0.001;
+    let ke = 100.0;
+
+    let matDist = this.distanceMatrix.slice();
+    let length = matDist.length;
+    let nNeighbours = new Int16Array(length);
+
+    // Get the number of neighbours
+    for (var i = 0; i < length; i++) {
+      nNeighbours[i] = this.adjacencyMatrix[i].reduce((acc, val) => (val !== Infinity) ? ++acc : acc, 0);
+    }
+
+    // Normalize distance matrix
+    let max = 0.0;
+
+    for (var i = 0; i < length; i++) {
+      for (var j = 0; j < length; j++) {
+        if (matDist[i][j] > max) {
+          max = matDist[i][j];
+        }
+      }
+    }
+
+    for (var i = 0; i < length; i++) {
+      for (var j = 0; j < length; j++) {
+        matDist[i][j] = matDist[i][j] / max;
+      }
+    }
+
+    // Forces
+    let fx = new Float32Array(length);
+    let fy = new Float32Array(length);
+
+    // Positions
+    let px = new Float32Array(length);
+    let py = new Float32Array(length);
+
+    // Initialize positions to random values
+    for (var i = 0; i < length; i++) {
+      px[i] = Math.random() * radius;
+      py[i] = Math.random() * radius;
+    }
+
+    for (var n = 0; n < 200; n++) {
+      // Spring forces
+      for (var i = 0; i < length - 1; i++) {
+        for (var j = i + 1; j < length; j++) {
+          if (matDist[i][j] === Infinity) {
+            continue;
+          }
+
+          let dx = px[i] - px[j];
+          let dy = py[i] - py[j];
+
+          let d = Math.sqrt(Math.pow(dx, 2.0) + Math.pow(dy, 2.0));
+
+          if (d === 0) {
+            d = 0.01;
+          }
+
+          // Normalize dx and dy to d
+          dx /= d;
+          dy /= d;
+
+          // Hooke's law, F=kX, is the force between x and y
+          let f = k * (matDist[i][j] * radius - d);
+
+          if (this.adjacencyMatrix[i][j] !== Infinity) {
+            f *= length;
+          }
+
+          fx[i] += f * dx;
+          fy[i] += f * dy;
+
+          fx[j] += -f * dx;
+          fy[j] += -f * dy;
+        }
+      }
+
+      // Repulsive forces between vertices
+      for (var i = 0; i < length - 1; i++) {
+        for (var j = i; j < length; j++) {
+          for (var j = i; j < length; j++) {
+            if (this.adjacencyMatrix[i][j] !== Infinity) {
+              continue;
+            }
+            
+            let dx = px[i] - px[j];
+            let dy = py[i] - py[j];
+
+            let dSquared = Math.pow(dx, 2.0) + Math.pow(dy, 2.0);
+            let d = Math.sqrt(dSquared);
+
+            if (d === 0) {
+              d = 0.01;
+            }
+
+            if (dSquared === 0) {
+              dSquared = 0.01;
+            }
+
+            // Normalize dx and dy to d
+            dx /= d;
+            dy /= d;
+
+            // Coulomb's law, F = k_e * q1 * q2 / r^2, is the force between x and y
+            let f = ke * (nNeighbours[i] * nNeighbours[j] / dSquared);
+
+            fx[i] += f * dx;
+            fy[i] += f * dy;
+
+            fx[j] += -f * dx;
+            fy[j] += -f * dy;
+          }
+        }
+      }
+
+      // Move the vertices
+      for (var i = 0; i < length; i++) {
+        if (fx[i] > 5) fx[i] = 5;
+        if (fx[i] < -5) fx[i] = -5;
+        if (fy[i] > 5) fy[i] = 5;
+        if (fy[i] < -5) fy[i] = -5;
+        
+        
+        px[i] += fx[i];
+        py[i] += fy[i];
+      }
+
+      // Reset force and position deltas
+      for (var i = 0; i < length; i++) {
+        fx[i] = 0.0;
+        fy[i] = 0.0;
+      }
+    }
+
+    // Move the graph to the center
+    let avgX = 0.0;
+    let avgY = 0.0;
+
+    for (var i = 0; i < length; i++) {
+      avgX += px[i];
+      avgY += py[i];  
+    }
+
+    avgX /= length;
+    avgY /= length;
+
+    for (var i = 0; i < length; i++) {
+      px[i] = px[i] + (avgX - radius / 2.0);
+      py[i] = py[i] + (avgY - radius / 2.0); 
+    }
+
+    let positions = Array(length);
+
+    for (var i = 0; i < length; i++) {
+      positions[i] = [px[i], py[i]];
+    }
+
+    return [positions, this.getEdgeList()];
+  }
+
+  /**
    * Positiones the (sub)graph using Kamada and Kawais algorithm for drawing general undirected graphs. https://pdfs.semanticscholar.org/b8d3/bca50ccc573c5cb99f7d201e8acce6618f04.pdf
    * 
    * @param {Number} radius The radius within which to initialize the vertices.
@@ -108,7 +274,7 @@ Lore.Graph = class Graph {
     // Normalize the edge weights
     if (normalizeWeights) {
       let maxWeight = 0;
-      
+
       for (var i = 0; i < length; i++) {
         for (var j = 0; j < length; j++) {
           if (matDist[i][j] > maxWeight && matDist[i][j] !== Infinity) {
@@ -340,7 +506,7 @@ Lore.Graph = class Graph {
         update(maxEnergyId, dEX, dEY);
         [delta, dEX, dEY] = energy(maxEnergyId);
       }
-    } 
+    }
 
     let positions = Array(length);
 
@@ -349,9 +515,7 @@ Lore.Graph = class Graph {
       positions[i] = [arrPositionX[i], arrPositionY[i]];
     }
 
-    let edgeList = this.getEdgeList();
-
-    return [ positions, edgeList ];
+    return [positions, this.getEdgeList()];
   }
 
   getDiameter() {

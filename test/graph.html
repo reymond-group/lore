@@ -21,7 +21,7 @@
   <script src="lesmiserables.edges.js"></script>
   <script src="celegans.edges.js"></script>
   <script src="compounds.edges.js"></script>
-  <canvas id="output" width="1500" height="1500"></canvas>
+  <canvas id="output" width="1200" height="1200"></canvas>
   <script>
 
     // let graph = new Lore.Graph([
@@ -39,7 +39,7 @@
 
     let graph = Lore.Graph.fromEdgeList(compounds, true, false);
 
-    let [positions, edges] = graph.kkLayout(1500, false, false, false);
+    let [positions, edges] = graph.forceLayout(1000); // graph.kkLayout(1500, false, false, false);
     let canvas = document.getElementById('output');
     let ctx = canvas.getContext('2d');
 
@@ -48,9 +48,9 @@
       let b = positions[edges[i][1]];
 
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
-      ctx.lineWidth = 0.5; //edges[i][2];
-      
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.lineWidth = edges[i][2];
+      ctx.lineCap = 'round';
       ctx.moveTo(a[0] + 1.0, a[1] + 1.0);
       ctx.lineTo(b[0] + 1.0, b[1] + 1.0);
       ctx.stroke();

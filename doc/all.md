@@ -81,6 +81,7 @@ The Lore namespace.
         * _instance_
             * [.getUnweightedAdjacencyMatrix()](#Lore.Graph+getUnweightedAdjacencyMatrix) ⇒ <code>Array</code>
             * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
+            * [.forceLayout()](#Lore.Graph+forceLayout)
             * [.kkLayout(radius, logWeights, squareWeights, norm)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
             * [.getDistanceMatrix()](#Lore.Graph+getDistanceMatrix) ⇒ <code>Array.&lt;Array&gt;</code>
         * _static_
@@ -1236,6 +1237,7 @@ A class representing the molecular graph.
     * _instance_
         * [.getUnweightedAdjacencyMatrix()](#Lore.Graph+getUnweightedAdjacencyMatrix) ⇒ <code>Array</code>
         * [.getEdgeList()](#Lore.Graph+getEdgeList) ⇒ <code>Array</code>
+        * [.forceLayout()](#Lore.Graph+forceLayout)
         * [.kkLayout(radius, logWeights, squareWeights, norm)](#Lore.Graph+kkLayout) ⇒ <code>Array</code>
         * [.getDistanceMatrix()](#Lore.Graph+getDistanceMatrix) ⇒ <code>Array.&lt;Array&gt;</code>
     * _static_
@@ -1267,6 +1269,10 @@ Returns an edge list of this graph.
 
 **Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
 **Returns**: <code>Array</code> - An array of edges in the form of [vertexId, vertexId, edgeWeight].  
+<a name="Lore.Graph+forceLayout"></a>
+
+#### graph.forceLayout()
+**Kind**: instance method of <code>[Graph](#Lore.Graph)</code>  
 <a name="Lore.Graph+kkLayout"></a>
 
 #### graph.kkLayout(radius, logWeights, squareWeights, norm) ⇒ <code>Array</code>
