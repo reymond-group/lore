@@ -37,19 +37,37 @@
     //   [0, 0, 0, 0, 0, 0, 6, 8, 13, 0]
     // ]);
 
-    let graph = Lore.Graph.fromEdgeList(compounds, true, false);
+    let dummy = [
+      [0, 1, 1],
+      [1, 2, 1],
+      [2, 3, 2],
+      [3, 4, 1],
+      [4, 5, 2],
+      [5, 0, 1],
+      [5, 6, 1],
+      [6, 7, 1],
+      [7, 8, 1],
+      [8, 4, 1]
+    ]
 
-    let [positions, edges] = graph.forceLayout(1000); // graph.kkLayout(1500, false, false, false);
+    // let tree = Lore.Tree.fromEdgeList(compounds);
+    // let positions = tree.layout();
+
+    let graph = Lore.Graph.fromEdgeList(dummy, true);
+    [positions, edges] = graph.forceLayout(1000, 1.5, 1.0);
+
+    console.log(positions);
+
     let canvas = document.getElementById('output');
     let ctx = canvas.getContext('2d');
 
-    for (var i = 0; i < edges.length; i++) {
-      let a = positions[edges[i][0]];
-      let b = positions[edges[i][1]];
+    for (var i = 0; i < dummy.length; i++) {
+      let a = positions[dummy[i][0]];
+      let b = positions[dummy[i][1]];
 
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.lineWidth = edges[i][2];
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.lineWidth = dummy[i][2]; //1.0; 
       ctx.lineCap = 'round';
       ctx.moveTo(a[0] + 1.0, a[1] + 1.0);
       ctx.lineTo(b[0] + 1.0, b[1] + 1.0);
@@ -57,7 +75,7 @@
     }
 
     for (var i = 0; i < positions.length; i++) {
-      ctx.fillStyle = '#FF0000';
+      ctx.fillStyle = '#000000';
       // ctx.fillText(i, positions[i][0] + 8, positions[i][1] + 5);
       ctx.fillRect(positions[i][0], positions[i][1], 2.0, 2.0);
     }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>IO/MatrixFileReader.js - Documentation</title>
+    <title>Tree - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -27,175 +27,436 @@
 
 <div id="main">
     
-    <h1 class="page-title">IO/MatrixFileReader.js</h1>
+    <h1 class="page-title">Tree</h1>
     
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/** A class representing a matrix file reader. */
-Lore.MatrixFileReader = class MatrixFileReader extends Lore.FileReaderBase {
-    /**
-     * Creates an instance of MatrixFileReader.
-     * @param {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
-     * @param {any} options Options. See documentation for details.
-     * @param {boolean} [local=true] A boolean indicating whether or not the source is local (a file input) or remote (a url).
-     */
-    constructor(source, options, local = true) {
-        super(source, local);
-
-        this.defaults = {
-            elementSeperator: '\t',
-            valueSeparator: ';',
-            replaceNaNWith: 'NaN',
-            skipNaN: true,
-            types: []
-        }
-
-        this.opts = Lore.Utils.extend(true, this.defaults, options);
-        this.types = this.opts.types;
-        this.columns = {};
-
-        if (this.types.length === 0) {
-            throw('When reading data from a file, the types have to be specified.');
-        }
-
-        // Add the types for the indices
-        this.opts.types.unshift('Int32Array');
-        this.opts.types.unshift('Int32Array');
-        this.opts.types.unshift('Int32Array');
-    }
-
-    /**
-     * Called when the data is loaded, will raise the "loaded" event.
-     * 
-     * @param {any} data The data loaded from the file or url.
-     * @returns {Lore.MatrixFileReader} Itself.
-     */
-    loaded(data) {
-        data = data.replace('\n\n', '\n');
-        data = data.replace(/^\s+|\s+$/g, '');
-
-        if (this.opts.replaceNaNWith !== 'NaN') {
-            data = data.replace('NaN', this.opts.replaceNaNWith);
-        }
-
-        let lines = data.split('\n');
-        let nRows = lines.length;
-        let nColumns = lines[0].split(this.opts.elementSeperator).length;
-        // Including the indices (x, y, z), therefore + 3
-        let nValues = lines[0].split(this.opts.elementSeperator)[0].split(this.opts.valueSeparator).length + 3;
+        <h2>
+            <span class="ancestors"><a href="global.html#Lore">Lore</a>.</span>
         
-        if (this.types.length !== nValues || this.types.length + nValues === 0) {
-            let values = lines[0].split(this.opts.valueSeparator);
+        Tree
+        </h2>
+        
+            <div class="class-description"><p>A class representing a tree.</p></div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="Tree"><span class="type-signature"></span>new Tree<span class="signature">(tree, weights)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Core_Tree.js.html">Core/Tree.js</a>, <a href="Core_Tree.js.html#line6">line 6</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
             
-            this.types = [];
-            for (let i = 0; i &lt; values.length; i++) {
-                if(Lore.Utils.isFloat(parseFloat(values[i], 10))) {
-                    this.types.push('Float32Array');
-                } else if (Lore.Utils.isInt(parseFloat(values[i], 10))) {
-                    this.types.push('Int32Array');
-                } else {
-                    this.types.push('StringArray');
-                }
-            }
-        }
-        
-        for (var i = 0; i &lt; nValues; i++) {
-            this._createArray(i, this.types[i], nRows * nColumns);
-        }
+                <td class="name"><code>tree</code></td>
+            
 
-        let actualLength = 0;
-
-        for (var i = 0; i &lt; nRows; i++) {
-            let row = lines[i].split(this.opts.elementSeperator);
-
-            if (row.length === 0) {
-                continue;
-            }
-
-            for (var j = 0; j &lt; nColumns; j++) {
-                if(!row[j]) {
-                    continue;
-                }
+            <td class="type">
+            
                 
-                let values = row[j].split(this.opts.valueSeparator);
+<span class="param-type">Array</span>
 
-                if (this.opts.skipNaN) {
-                    let skip = false;
 
-                    for (var k = 0; k &lt; values.length; k++) {
-                        if (isNaN(values[k])) {
-                            skip = true;
-                            break;
-                        }
-                    }
+            
+            </td>
 
-                    if (skip) {
-                        continue;
-                    }
-                }
+            
 
-                this.columns[0][actualLength] = i;
-                this.columns[1][actualLength] = j;
-                // Set zero for 2D matrix
-                this.columns[2][actualLength] = 0;
+            
 
-                for (var k = 0; k &lt; values.length; k++) {
-                    this.columns[k + 3][actualLength] = values[k];
-                }
+            <td class="description last"><p>An array of arrays where the index is the node id and the inner arrays contain the neighbours.</p></td>
+        </tr>
 
-                actualLength++;
-            }
-        }
+    
+    </tbody>
+</table>
 
-        this._resizeArrays(actualLength);
 
-        this.raiseEvent('loaded', this.columns);
+
+
+
+
+<div class="description">
+    <p>The constructor of the class Tree.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
         
-        return this;
-    }
+        <th>Name</th>
+        
 
-    _resizeArrays(length) {
-        // Might need polyfill
-        for (var i = 0; i &lt; this.columns.length; i++) {
-            this.columns[i] = this.columns[i].slice(0, length);
-        }
-    }
+        <th>Type</th>
 
-    _createArray(index, type, length) {
-        if (type == 'Int8Array') {
-            this.columns[index] = new Int8Array(length);
-        } else if (type == 'Uint8Array') {
-            this.columns[index] = new Uint8Array(length);
-        } else if (type == 'Uint8ClampedArray') {
-            this.columns[index] = new Uint8ClampedArray(length);
-        } else if (type == 'Int16Array') {
-            this.columns[index] = new Int16Array(length);
-        } else if (type == 'Uint16Array') {
-            this.columns[index] = new Uint16Array(length);
-        } else if (type == 'Int32Array') {
-            this.columns[index] = new Int32Array(length);
-        } else if (type == 'Uint32Array') {
-            this.columns[index] = new Uint32Array(length);
-        } else if (type == 'Float32Array') {
-            this.columns[index] = new Float32Array(length);
-        } else if (type == 'Float64Array') {
-            this.columns[index] = new Float64Array(length);
-        } else {
-            this.columns[index] = new Array(length);
-        }
+        
 
-        return this;
-    }
-}
-</code></pre>
-        </article>
-    </section>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>tree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Array></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array of arrays where the index is the node id and the inner arrays contain the neighbours.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>weights</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Array></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array of arrays where the index is the node id and the inner arrays contain the weights in the same order as tree contains neighbours.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id=".fromEdgeList"><span class="type-signature">(static) </span>fromEdgeList<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Core_Tree.js.html">Core/Tree.js</a>, <a href="Core_Tree.js.html#line81">line 81</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Create a tree from an edge list.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="layout"><span class="type-signature"></span>layout<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Core_Tree.js.html">Core/Tree.js</a>, <a href="Core_Tree.js.html#line21">line 21</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>Layout the tree</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

@@ -76,6 +76,12 @@ The Lore namespace.
         * [.update(gl)](#Lore.Attribute+update)
         * [.createBuffer(gl, program, bufferType, drawMode)](#Lore.Attribute+createBuffer)
         * [.bind(gl)](#Lore.Attribute+bind)
+    * [.Tree](#Lore.Tree)
+        * [new Lore.Tree(tree, weights)](#new_Lore.Tree_new)
+        * _instance_
+            * [.layout()](#Lore.Tree+layout)
+        * _static_
+            * [.fromEdgeList()](#Lore.Tree.fromEdgeList)
     * [.Graph](#Lore.Graph)
         * [new Lore.Graph(adjacencyMatrix, distanceMatrix, diameter)](#new_Lore.Graph_new)
         * _instance_
@@ -1219,6 +1225,49 @@ Bind the buffer of this attribute. The attribute must exist in the current shade
 | --- | --- | --- |
 | gl | <code>WebGLRenderingContext</code> | The WebGL rendering context. |
 
+<a name="Lore.Tree"></a>
+
+### Lore.Tree
+A class representing a tree.
+
+**Kind**: static class of <code>[Lore](#Lore)</code>  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| tree | <code>Array</code> | An array of arrays where the index is the node id and the inner arrays contain the neighbours. |
+
+
+* [.Tree](#Lore.Tree)
+    * [new Lore.Tree(tree, weights)](#new_Lore.Tree_new)
+    * _instance_
+        * [.layout()](#Lore.Tree+layout)
+    * _static_
+        * [.fromEdgeList()](#Lore.Tree.fromEdgeList)
+
+<a name="new_Lore.Tree_new"></a>
+
+#### new Lore.Tree(tree, weights)
+The constructor of the class Tree.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| tree | <code>Array.&lt;Array&gt;</code> | An array of arrays where the index is the node id and the inner arrays contain the neighbours. |
+| weights | <code>Array.&lt;Array&gt;</code> | An array of arrays where the index is the node id and the inner arrays contain the weights in the same order as tree contains neighbours. |
+
+<a name="Lore.Tree+layout"></a>
+
+#### tree.layout()
+Layout the tree
+
+**Kind**: instance method of <code>[Tree](#Lore.Tree)</code>  
+<a name="Lore.Tree.fromEdgeList"></a>
+
+#### Tree.fromEdgeList()
+Create a tree from an edge list.
+
+**Kind**: static method of <code>[Tree](#Lore.Tree)</code>  
 <a name="Lore.Graph"></a>
 
 ### Lore.Graph

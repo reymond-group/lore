@@ -20,6 +20,7 @@ var files = [
     'src/Core/Geometry.js',
     'src/Core/Attribute.js',
     'src/Core/Effect.js',
+    'src/Core/Tree.js',
     'src/Core/Graph.js',
     'src/Controls/ControlsBase.js',
     'src/Controls/OrbitalControls.js',

@@ -37,7 +37,7 @@ Lore.Graph = class Graph {
     let unweightedAdjacencyMatrix = Array(length);
 
     for (var i = 0; i < length; i++) {
-      unweightedAdjacencyMatrix[i] = Array(length);
+      unweightedAdjacencyMatrix[i] = new Uint8Array(length);
 
       for (var j = 0; j < length; j++) {
         unweightedAdjacencyMatrix[i][j] = this.adjacencyMatrix[i][j] > 0 ? 1 : 0;
@@ -70,9 +70,9 @@ Lore.Graph = class Graph {
   /**
    * 
    */
-  forceLayout(radius = 1000) {
-    let k = 0.001;
-    let ke = 100.0;
+  forceLayout(radius = 1000, q = 1.5, zoom = 1.0) {
+    let k = 0.01;
+    let ke = 1000.0;
 
     let matDist = this.distanceMatrix.slice();
     let length = matDist.length;
@@ -81,6 +81,13 @@ Lore.Graph = class Graph {
     // Get the number of neighbours
     for (var i = 0; i < length; i++) {
       nNeighbours[i] = this.adjacencyMatrix[i].reduce((acc, val) => (val !== Infinity) ? ++acc : acc, 0);
+    }
+
+    // Square distances
+    for (var i = 0; i < length; i++) {
+      for (var j = 0; j < length; j++) {
+        matDist[i][j] = Math.pow(matDist[i][j], q);
+      }
     }
 
     // Normalize distance matrix
@@ -96,6 +103,7 @@ Lore.Graph = class Graph {
 
     for (var i = 0; i < length; i++) {
       for (var j = 0; j < length; j++) {
+        // Added math pow to decrease influence of long distances
         matDist[i][j] = matDist[i][j] / max;
       }
     }
@@ -114,7 +122,7 @@ Lore.Graph = class Graph {
       py[i] = Math.random() * radius;
     }
 
-    for (var n = 0; n < 200; n++) {
+    for (var n = 0; n < 2000; n++) {
       // Spring forces
       for (var i = 0; i < length - 1; i++) {
         for (var j = i + 1; j < length; j++) {
@@ -177,7 +185,7 @@ Lore.Graph = class Graph {
             dy /= d;
 
             // Coulomb's law, F = k_e * q1 * q2 / r^2, is the force between x and y
-            let f = ke * (nNeighbours[i] * nNeighbours[j] / dSquared);
+            let f = ke / dSquared;
 
             fx[i] += f * dx;
             fy[i] += f * dy;
@@ -190,12 +198,9 @@ Lore.Graph = class Graph {
 
       // Move the vertices
       for (var i = 0; i < length; i++) {
-        if (fx[i] > 5) fx[i] = 5;
-        if (fx[i] < -5) fx[i] = -5;
-        if (fy[i] > 5) fy[i] = 5;
-        if (fy[i] < -5) fy[i] = -5;
-        
-        
+        fx[i] = Math.min(Math.max(-1, fx[i]), 1);
+        fy[i] = Math.min(Math.max(-1, fy[i]), 1);
+
         px[i] += fx[i];
         py[i] += fy[i];
       }
@@ -212,6 +217,10 @@ Lore.Graph = class Graph {
     let avgY = 0.0;
 
     for (var i = 0; i < length; i++) {
+      // Zoom
+      px[i] *= zoom;
+      py[i] *= zoom;
+
       avgX += px[i];
       avgY += py[i];  
     }
@@ -220,8 +229,8 @@ Lore.Graph = class Graph {
     avgY /= length;
 
     for (var i = 0; i < length; i++) {
-      px[i] = px[i] + (avgX - radius / 2.0);
-      py[i] = py[i] + (avgY - radius / 2.0); 
+      px[i] = px[i] - (avgX - radius / 2.0);
+      py[i] = py[i] - (avgY - radius / 2.0);
     }
 
     let positions = Array(length);
@@ -268,8 +277,6 @@ Lore.Graph = class Graph {
         }
       }
     }
-
-    console.log(matDist);
 
     // Normalize the edge weights
     if (normalizeWeights) {
@@ -542,7 +549,7 @@ Lore.Graph = class Graph {
     let dist = Array(length);
 
     for (var i = 0; i < length; i++) {
-      dist[i] = Array(length);
+      dist[i] = new Float32Array(length);
       dist[i].fill(Infinity);
     }
 
@@ -608,7 +615,7 @@ Lore.Graph = class Graph {
     let adjacencyMatrix = Array(max);
 
     for (var i = 0; i < max; i++) {
-      adjacencyMatrix[i] = Array(max);
+      adjacencyMatrix[i] = new Float32Array(max);
       adjacencyMatrix[i].fill(0);
     }
 

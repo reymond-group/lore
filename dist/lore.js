@@ -1699,6 +1699,132 @@ Lore.Effect = function () {
 }();
 
 /** 
+ * A class representing a tree. 
+ * 
+ * @property {Array} tree An array of arrays where the index is the node id and the inner arrays contain the neighbours.
+ */
+Lore.Tree = function () {
+    /**
+     * The constructor of the class Tree.
+     * 
+     * @param {Array[]} tree An array of arrays where the index is the node id and the inner arrays contain the neighbours.
+     * @param {Array[]} weights An array of arrays where the index is the node id and the inner arrays contain the weights in the same order as tree contains neighbours.
+     */
+    function Tree(tree, weights) {
+        _classCallCheck(this, Tree);
+
+        this.tree = tree;
+        this.weights = weights;
+    }
+
+    /**
+     * Layout the tree
+     */
+
+
+    _createClass(Tree, [{
+        key: 'layout',
+        value: function layout() {
+            var root = 0;
+            var visited = new Uint8Array(this.tree.length);
+            var pX = new Float32Array(this.tree.length);
+            var pY = new Float32Array(this.tree.length);
+            var queue = [root];
+            visited[root] = 1;
+            var current = null;
+
+            // Position initial node
+            pX[root] = 20.0;
+            pY[root] = 10.0;
+
+            while (queue.length > 0) {
+                current = queue.shift();
+
+                var offset = 0;
+                for (var i = 0; i < this.tree[current].length; i++) {
+                    var child = this.tree[current][i];
+
+                    if (visited[child] === 0) {
+                        // Do some positioning
+
+                        pX[child] = pX[current] + this.weights[current][i] * 5.0;
+                        pY[child] = pY[current] + offset++ * 10.0 * this.weights[current][i];
+
+                        var fX = 0.0;
+                        var fY = 0.0;
+
+                        for (var j = 0; j < length; j++) {
+                            if (visited[j] === 0) {
+                                continue;
+                            }
+
+                            var distSquared = Math.pow(pX[j] - pX[child], 2.0) + Math.pow(pY[j] - pY[child], 2.0);
+                            var dist = Math.sqrt(distSquared);
+
+                            var fAttractive = 1000 / distSquared;
+                        }
+
+                        // Done with positioning
+
+                        visited[child] = 1;
+                        queue.push(child);
+                    }
+                }
+            }
+
+            var positions = Array(this.tree.length);
+
+            for (var i = 0; i < this.tree.length; i++) {
+                positions[i] = [pX[i], pY[i]];
+            }
+
+            return positions;
+        }
+
+        /**
+         * Create a tree from an edge list. 
+         */
+
+    }], [{
+        key: 'fromEdgeList',
+        value: function fromEdgeList(edgeList) {
+            var length = 0;
+
+            for (var i = 0; i < edgeList.length; i++) {
+                if (edgeList[i][0] > length) {
+                    length = edgeList[i][0];
+                }
+
+                if (edgeList[i][1] > length) {
+                    length = edgeList[i][1];
+                }
+            }
+
+            length++;
+
+            var neighbours = Array(length);
+            var weights = Array(length);
+
+            for (var i = 0; i < length; i++) {
+                neighbours[i] = Array();
+                weights[i] = Array();
+            }
+
+            for (var i = 0; i < edgeList.length; i++) {
+                neighbours[edgeList[i][0]].push(edgeList[i][1]);
+                neighbours[edgeList[i][1]].push(edgeList[i][0]);
+
+                weights[edgeList[i][0]].push(edgeList[i][2]);
+                weights[edgeList[i][1]].push(edgeList[i][2]);
+            }
+
+            return new Lore.Tree(neighbours, weights);
+        }
+    }]);
+
+    return Tree;
+}();
+/** 
  * A class representing the molecular graph. 
  * 
  * @property {Array[]} distanceMatrix The distance matrix of this graph.
@@ -1743,7 +1869,7 @@ Lore.Graph = function () {
             var unweightedAdjacencyMatrix = Array(length);
 
             for (var i = 0; i < length; i++) {
-                unweightedAdjacencyMatrix[i] = Array(length);
+                unweightedAdjacencyMatrix[i] = new Uint8Array(length);
 
                 for (var j = 0; j < length; j++) {
                     unweightedAdjacencyMatrix[i][j] = this.adjacencyMatrix[i][j] > 0 ? 1 : 0;
@@ -1784,9 +1910,11 @@ Lore.Graph = function () {
         key: 'forceLayout',
         value: function forceLayout() {
             var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1000;
+            var q = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1.5;
+            var zoom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1.0;
 
-            var k = 0.001;
-            var ke = 100.0;
+            var k = 0.01;
+            var ke = 1000.0;
 
             var matDist = this.distanceMatrix.slice();
             var length = matDist.length;
@@ -1797,6 +1925,14 @@ Lore.Graph = function () {
                 nNeighbours[i] = this.adjacencyMatrix[i].reduce(function (acc, val) {
                     return val !== Infinity ? ++acc : acc;
                 }, 0);
+            }
+
+            // Square distances
+            for (var i = 0; i < length; i++) {
+                for (var j = 0; j < length; j++) {
+                    // matDist[i][j] = Math.pow(matDist[i][j], 1.5);
+                    matDist[i][j] = Math.pow(matDist[i][j], q);
+                }
             }
 
             // Normalize distance matrix
@@ -1812,6 +1948,7 @@ Lore.Graph = function () {
 
             for (var i = 0; i < length; i++) {
                 for (var j = 0; j < length; j++) {
+                    // Added math pow to decrease influence of long distances
                     matDist[i][j] = matDist[i][j] / max;
                 }
             }
@@ -1830,7 +1967,7 @@ Lore.Graph = function () {
                 py[i] = Math.random() * radius;
             }
 
-            for (var n = 0; n < 200; n++) {
+            for (var n = 0; n < 2000; n++) {
                 // Spring forces
                 for (var i = 0; i < length - 1; i++) {
                     for (var j = i + 1; j < length; j++) {
@@ -1893,7 +2030,7 @@ Lore.Graph = function () {
                             _dy /= _d;
 
                             // Coulomb's law, F = k_e * q1 * q2 / r^2, is the force between x and y
-                            var _f = ke * (nNeighbours[i] * nNeighbours[j] / dSquared);
+                            var _f = ke / dSquared;
 
                             fx[i] += _f * _dx;
                             fy[i] += _f * _dy;
@@ -1906,10 +2043,8 @@ Lore.Graph = function () {
 
                 // Move the vertices
                 for (var i = 0; i < length; i++) {
-                    if (fx[i] > 5) fx[i] = 5;
-                    if (fx[i] < -5) fx[i] = -5;
-                    if (fy[i] > 5) fy[i] = 5;
-                    if (fy[i] < -5) fy[i] = -5;
+                    fx[i] = Math.min(Math.max(-1, fx[i]), 1);
+                    fy[i] = Math.min(Math.max(-1, fy[i]), 1);
 
                     px[i] += fx[i];
                     py[i] += fy[i];
@@ -1927,6 +2062,10 @@ Lore.Graph = function () {
             var avgY = 0.0;
 
             for (var i = 0; i < length; i++) {
+                // Zoom
+                px[i] *= zoom;
+                py[i] *= zoom;
+
                 avgX += px[i];
                 avgY += py[i];
             }
@@ -1935,8 +2074,8 @@ Lore.Graph = function () {
             avgY /= length;
 
             for (var i = 0; i < length; i++) {
-                px[i] = px[i] + (avgX - radius / 2.0);
-                py[i] = py[i] + (avgY - radius / 2.0);
+                px[i] = px[i] - (avgX - radius / 2.0);
+                py[i] = py[i] - (avgY - radius / 2.0);
             }
 
             var positions = Array(length);
@@ -1991,8 +2130,6 @@ Lore.Graph = function () {
                     }
                 }
             }
-
-            console.log(matDist);
 
             // Normalize the edge weights
             if (normalizeWeights) {
@@ -2296,7 +2433,7 @@ Lore.Graph = function () {
             var dist = Array(length);
 
             for (var i = 0; i < length; i++) {
-                dist[i] = Array(length);
+                dist[i] = new Float32Array(length);
                 dist[i].fill(Infinity);
             }
 
@@ -2367,7 +2504,7 @@ Lore.Graph = function () {
             var adjacencyMatrix = Array(max);
 
             for (var i = 0; i < max; i++) {
-                adjacencyMatrix[i] = Array(max);
+                adjacencyMatrix[i] = new Float32Array(max);
                 adjacencyMatrix[i].fill(0);
             }
 
@@ -7140,21 +7277,21 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             var index = 0;
 
             if (typeof hue === 'number') {
-                var length = colors.length;
+                var _length = colors.length;
 
-                c = new Float32Array(length * 3);
+                c = new Float32Array(_length * 3);
 
-                for (var i = 0; i < length * 3; i += 3) {
+                for (var i = 0; i < _length * 3; i += 3) {
                     c[i] = hue;
                     c[i + 1] = colors[i + 1];
                     c[i + 2] = colors[i + 2];
                 }
             } else {
-                var _length = hue.length;
+                var _length2 = hue.length;
 
-                c = new Float32Array(_length * 3);
+                c = new Float32Array(_length2 * 3);
 
-                for (var _i4 = 0; _i4 < _length * 3; _i4 += 3) {
+                for (var _i4 = 0; _i4 < _length2 * 3; _i4 += 3) {
                     c[_i4] = hue[index++];
                     c[_i4 + 1] = colors[_i4 + 1];
                     c[_i4 + 2] = colors[_i4 + 2];
@@ -7178,21 +7315,21 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             var index = 0;
 
             if (typeof saturation === 'number') {
-                var length = colors.length;
+                var _length3 = colors.length;
 
-                c = new Float32Array(length * 3);
+                c = new Float32Array(_length3 * 3);
 
-                for (var i = 0; i < length * 3; i += 3) {
+                for (var i = 0; i < _length3 * 3; i += 3) {
                     c[i] = colors[i];
                     c[i + 1] = saturation;
                     c[i + 2] = colors[i + 2];
                 }
             } else {
-                var _length2 = saturation.length;
+                var _length4 = saturation.length;
 
-                c = new Float32Array(_length2 * 3);
+                c = new Float32Array(_length4 * 3);
 
-                for (var _i5 = 0; _i5 < _length2 * 3; _i5 += 3) {
+                for (var _i5 = 0; _i5 < _length4 * 3; _i5 += 3) {
                     c[_i5] = colors[_i5];
                     c[_i5 + 1] = saturation[index++];
                     c[_i5 + 2] = colors[_i5 + 2];
@@ -7216,21 +7353,21 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             var index = 0;
 
             if (typeof size === 'number') {
-                var length = colors.length;
+                var _length5 = colors.length;
 
-                c = new Float32Array(length * 3);
+                c = new Float32Array(_length5 * 3);
 
-                for (var i = 0; i < length * 3; i += 3) {
+                for (var i = 0; i < _length5 * 3; i += 3) {
                     c[i] = colors[i];
                     c[i + 1] = colors[i + 1];
                     c[i + 2] = size;
                 }
             } else {
-                var _length3 = size.length;
+                var _length6 = size.length;
 
-                c = new Float32Array(_length3 * 3);
+                c = new Float32Array(_length6 * 3);
 
-                for (var _i6 = 0; _i6 < _length3 * 3; _i6 += 3) {
+                for (var _i6 = 0; _i6 < _length6 * 3; _i6 += 3) {
                     c[_i6] = colors[_i6];
                     c[_i6 + 1] = colors[_i6 + 1];
                     c[_i6 + 2] = size[index++];
