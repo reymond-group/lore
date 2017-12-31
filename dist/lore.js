@@ -1910,11 +1910,11 @@ Lore.Graph = function () {
         key: 'forceLayout',
         value: function forceLayout() {
             var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1000;
-            var q = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1.5;
-            var zoom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1.0;
-
-            var k = 0.01;
-            var ke = 1000.0;
+            var iterations = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1000;
+            var q = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1.5;
+            var k = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0.01;
+            var ke = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 1000.0;
+            var zoom = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 1.0;
 
             var matDist = this.distanceMatrix.slice();
             var length = matDist.length;
@@ -1930,7 +1930,6 @@ Lore.Graph = function () {
             // Square distances
             for (var i = 0; i < length; i++) {
                 for (var j = 0; j < length; j++) {
-                    // matDist[i][j] = Math.pow(matDist[i][j], 1.5);
                     matDist[i][j] = Math.pow(matDist[i][j], q);
                 }
             }
@@ -1967,7 +1966,7 @@ Lore.Graph = function () {
                 py[i] = Math.random() * radius;
             }
 
-            for (var n = 0; n < 2000; n++) {
+            for (var n = 0; n < iterations; n++) {
                 // Spring forces
                 for (var i = 0; i < length - 1; i++) {
                     for (var j = i + 1; j < length; j++) {
@@ -2022,7 +2021,7 @@ Lore.Graph = function () {
                             }
 
                             if (dSquared === 0) {
-                                dSquared = 0.01;
+                                dSquared = 0.05;
                             }
 
                             // Normalize dx and dy to d
@@ -2043,8 +2042,12 @@ Lore.Graph = function () {
 
                 // Move the vertices
                 for (var i = 0; i < length; i++) {
-                    fx[i] = Math.min(Math.max(-1, fx[i]), 1);
-                    fy[i] = Math.min(Math.max(-1, fy[i]), 1);
+
+                    // fx[i] = Math.min(Math.max(-1, fx[i]), 1);
+                    // fy[i] = Math.min(Math.max(-1, fy[i]), 1);
+
+                    fx[i] = Math.sign(fx[i]) * Math.sqrt(Math.abs(fx[i]));
+                    fy[i] = Math.sign(fy[i]) * Math.sqrt(Math.abs(fy[i]));
 
                     px[i] += fx[i];
                     py[i] += fy[i];

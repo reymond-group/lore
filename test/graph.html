@@ -21,6 +21,7 @@
   <script src="lesmiserables.edges.js"></script>
   <script src="celegans.edges.js"></script>
   <script src="compounds.edges.js"></script>
+  <script src="compounds.morgan.edges.js"></script>
   <canvas id="output" width="1200" height="1200"></canvas>
   <script>
 
@@ -53,31 +54,31 @@
     // let tree = Lore.Tree.fromEdgeList(compounds);
     // let positions = tree.layout();
 
-    let graph = Lore.Graph.fromEdgeList(dummy, true);
-    [positions, edges] = graph.forceLayout(1000, 1.5, 1.0);
+    let graph = Lore.Graph.fromEdgeList(morganCompounds, false);
+    [positions, edges] = graph.forceLayout(1000, 1000, 1.5, 0.001, 500.0, 1.0);
 
     console.log(positions);
 
     let canvas = document.getElementById('output');
     let ctx = canvas.getContext('2d');
 
-    for (var i = 0; i < dummy.length; i++) {
-      let a = positions[dummy[i][0]];
-      let b = positions[dummy[i][1]];
+    for (var i = 0; i < morganCompounds.length; i++) {
+      let a = positions[morganCompounds[i][0]];
+      let b = positions[morganCompounds[i][1]];
 
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.lineWidth = dummy[i][2]; //1.0; 
+      ctx.lineWidth = 1.0; // morganCompounds[i][2];
       ctx.lineCap = 'round';
-      ctx.moveTo(a[0] + 1.0, a[1] + 1.0);
-      ctx.lineTo(b[0] + 1.0, b[1] + 1.0);
+      ctx.moveTo(a[0] + 4.0, a[1] + 4.0);
+      ctx.lineTo(b[0] + 4.0, b[1] + 4.0);
       ctx.stroke();
     }
 
     for (var i = 0; i < positions.length; i++) {
       ctx.fillStyle = '#000000';
       // ctx.fillText(i, positions[i][0] + 8, positions[i][1] + 5);
-      ctx.fillRect(positions[i][0], positions[i][1], 2.0, 2.0);
+      ctx.fillRect(positions[i][0], positions[i][1], 8.0, 8.0);
     }
 
   </script>

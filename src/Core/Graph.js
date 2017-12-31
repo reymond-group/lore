@@ -70,10 +70,7 @@ Lore.Graph = class Graph {
   /**
    * 
    */
-  forceLayout(radius = 1000, q = 1.5, zoom = 1.0) {
-    let k = 0.01;
-    let ke = 1000.0;
-
+  forceLayout(radius = 1000, iterations = 1000, q = 1.5, k = 0.01, ke = 1000.0, zoom = 1.0) {
     let matDist = this.distanceMatrix.slice();
     let length = matDist.length;
     let nNeighbours = new Int16Array(length);
@@ -122,7 +119,7 @@ Lore.Graph = class Graph {
       py[i] = Math.random() * radius;
     }
 
-    for (var n = 0; n < 2000; n++) {
+    for (var n = 0; n < iterations; n++) {
       // Spring forces
       for (var i = 0; i < length - 1; i++) {
         for (var j = i + 1; j < length; j++) {
@@ -147,7 +144,7 @@ Lore.Graph = class Graph {
           let f = k * (matDist[i][j] * radius - d);
 
           if (this.adjacencyMatrix[i][j] !== Infinity) {
-            f *= length;
+             f *= length;
           }
 
           fx[i] += f * dx;
@@ -177,7 +174,7 @@ Lore.Graph = class Graph {
             }
 
             if (dSquared === 0) {
-              dSquared = 0.01;
+              dSquared = 0.05;
             }
 
             // Normalize dx and dy to d
@@ -198,8 +195,13 @@ Lore.Graph = class Graph {
 
       // Move the vertices
       for (var i = 0; i < length; i++) {
-        fx[i] = Math.min(Math.max(-1, fx[i]), 1);
-        fy[i] = Math.min(Math.max(-1, fy[i]), 1);
+        
+
+        // fx[i] = Math.min(Math.max(-1, fx[i]), 1);
+        // fy[i] = Math.min(Math.max(-1, fy[i]), 1);
+
+        fx[i] = Math.sign(fx[i]) * Math.sqrt(Math.abs(fx[i]));
+        fy[i] = Math.sign(fy[i]) * Math.sqrt(Math.abs(fy[i]));
 
         px[i] += fx[i];
         py[i] += fy[i];
