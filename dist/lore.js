@@ -270,6 +270,31 @@ Lore.DrawModes = {
         }
 
         /**
+         * Converts HSL to RGB.
+         * 
+         * @static
+         * @param {Number} h The hue component.
+         * @param {Number} s The saturation component.
+         * @param {Number} l The lightness component.
+         * @returns {String} A hex string representing the color (#RRGGBB).
+         */
+
+    }, {
+        key: 'hslToHex',
+        value: function hslToHex(h, s, l) {
+            var _Lore$Color$hslToRgb = Lore.Color.hslToRgb(h, s, l),
+                _Lore$Color$hslToRgb2 = _slicedToArray(_Lore$Color$hslToRgb, 3),
+                r = _Lore$Color$hslToRgb2[0],
+                g = _Lore$Color$hslToRgb2[1],
+                b = _Lore$Color$hslToRgb2[2];
+
+            return '#' + [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)].map(function (e) {
+                var hex = e.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        /**
          * Converts RGB to HSL.
          * 
          * @static
@@ -6202,13 +6227,30 @@ Lore.Statistics = function () {
     }
 
     _createClass(Statistics, null, [{
-        key: 'randomNormal',
+        key: 'transpose2dArray',
+
+        /**
+         * Transposes an array of arrays (2d array).
+         
+         * @param {Array} arr The 2d array to be transposed.
+         * @returns {Array} The transpose of the 2d array.
+         */
+        value: function transpose2dArray(arr) {
+            return arr[0].map(function (col, i) {
+                return arr.map(function (row) {
+                    return row[i];
+                });
+            });
+        }
 
         /**
          * Returns a normally distributed (pseudo) random number.
          * 
          * @returns {Number} A normally distributed (pseudo) random number.
          */
+
+    }, {
+        key: 'randomNormal',
         value: function randomNormal() {
             var val = void 0,
                 u = void 0,

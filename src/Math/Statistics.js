@@ -1,6 +1,16 @@
 /** A helper class containing statistics methods. */
 Lore.Statistics = class Statistics {
     /**
+     * Transposes an array of arrays (2d array).
+     
+     * @param {Array} arr The 2d array to be transposed.
+     * @returns {Array} The transpose of the 2d array.
+     */
+    static transpose2dArray(arr) {
+      return arr[0].map((col, i) => arr.map(row => row[i]));
+    }
+
+    /**
      * Returns a normally distributed (pseudo) random number.
      * 
      * @returns {Number} A normally distributed (pseudo) random number.

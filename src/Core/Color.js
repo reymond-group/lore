@@ -121,6 +121,23 @@ Lore.Color = class Color {
     }
 
     /**
+     * Converts HSL to RGB.
+     * 
+     * @static
+     * @param {Number} h The hue component.
+     * @param {Number} s The saturation component.
+     * @param {Number} l The lightness component.
+     * @returns {String} A hex string representing the color (#RRGGBB).
+     */
+    static hslToHex(h, s, l) {
+      let [r, g, b] = Lore.Color.hslToRgb(h, s, l);
+      return '#' + [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)].map(e => {
+        const hex = e.toString(16);
+        return hex.length === 1 ? '0' + hex : hex
+      }).join('')
+    }
+
+    /**
      * Converts RGB to HSL.
      * 
      * @static

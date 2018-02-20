@@ -16,6 +16,7 @@ The Lore namespace.
             * [.fromHex(hex)](#Lore.Color.fromHex) ⇒ <code>[Color](#Lore.Color)</code>
             * [.hueToRgb(p, q, t)](#Lore.Color.hueToRgb) ⇒ <code>Number</code>
             * [.hslToRgb(h, s, l)](#Lore.Color.hslToRgb) ⇒ <code>Array.&lt;Number&gt;</code>
+            * [.hslToHex(h, s, l)](#Lore.Color.hslToHex) ⇒ <code>String</code>
             * [.rgbToHsl(r, g, b)](#Lore.Color.rgbToHsl) ⇒ <code>Array.&lt;Number&gt;</code>
             * [.gdbHueShift(hue)](#Lore.Color.gdbHueShift) ⇒ <code>Number</code>
     * [.Renderer](#Lore.Renderer)
@@ -268,6 +269,7 @@ The Lore namespace.
         * [.setOrthographic(left, right, top, bottom, near, far)](#Lore.ProjectionMatrix+setOrthographic) ⇒ <code>ProjectionMatrix</code>
         * [.setPerspective(fov, aspect, near, far)](#Lore.ProjectionMatrix+setPerspective) ⇒ <code>ProjectionMatrix</code>
     * [.Statistics](#Lore.Statistics)
+        * [.transpose2dArray(arr)](#Lore.Statistics.transpose2dArray) ⇒ <code>Array</code>
         * [.randomNormal()](#Lore.Statistics.randomNormal) ⇒ <code>Number</code>
         * [.randomNormalInRange(a, b)](#Lore.Statistics.randomNormalInRange) ⇒ <code>Number</code>
         * [.randomNormalScaled(mean, sd)](#Lore.Statistics.randomNormalScaled) ⇒ <code>Number</code>
@@ -457,6 +459,7 @@ A class representing a Color.
         * [.fromHex(hex)](#Lore.Color.fromHex) ⇒ <code>[Color](#Lore.Color)</code>
         * [.hueToRgb(p, q, t)](#Lore.Color.hueToRgb) ⇒ <code>Number</code>
         * [.hslToRgb(h, s, l)](#Lore.Color.hslToRgb) ⇒ <code>Array.&lt;Number&gt;</code>
+        * [.hslToHex(h, s, l)](#Lore.Color.hslToHex) ⇒ <code>String</code>
         * [.rgbToHsl(r, g, b)](#Lore.Color.rgbToHsl) ⇒ <code>Array.&lt;Number&gt;</code>
         * [.gdbHueShift(hue)](#Lore.Color.gdbHueShift) ⇒ <code>Number</code>
 
@@ -521,6 +524,20 @@ Converts HSL to RGB.
 
 **Kind**: static method of <code>[Color](#Lore.Color)</code>  
 **Returns**: <code>Array.&lt;Number&gt;</code> - An array containing the r, g and b values ([r, g, b]).  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| h | <code>Number</code> | The hue component. |
+| s | <code>Number</code> | The saturation component. |
+| l | <code>Number</code> | The lightness component. |
+
+<a name="Lore.Color.hslToHex"></a>
+
+#### Color.hslToHex(h, s, l) ⇒ <code>String</code>
+Converts HSL to RGB.
+
+**Kind**: static method of <code>[Color](#Lore.Color)</code>  
+**Returns**: <code>String</code> - A hex string representing the color (#RRGGBB).  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -3391,11 +3408,24 @@ A helper class containing statistics methods.
 **Kind**: static class of <code>[Lore](#Lore)</code>  
 
 * [.Statistics](#Lore.Statistics)
+    * [.transpose2dArray(arr)](#Lore.Statistics.transpose2dArray) ⇒ <code>Array</code>
     * [.randomNormal()](#Lore.Statistics.randomNormal) ⇒ <code>Number</code>
     * [.randomNormalInRange(a, b)](#Lore.Statistics.randomNormalInRange) ⇒ <code>Number</code>
     * [.randomNormalScaled(mean, sd)](#Lore.Statistics.randomNormalScaled) ⇒ <code>Number</code>
     * [.normalize(arr)](#Lore.Statistics.normalize) ⇒ <code>Array.&lt;Number&gt;</code>
     * [.scale(value, oldMin, oldMax, newMin, newMax)](#Lore.Statistics.scale) ⇒ <code>Number</code>
+
+<a name="Lore.Statistics.transpose2dArray"></a>
+
+#### Statistics.transpose2dArray(arr) ⇒ <code>Array</code>
+Transposes an array of arrays (2d array).
+
+**Kind**: static method of <code>[Statistics](#Lore.Statistics)</code>  
+**Returns**: <code>Array</code> - The transpose of the 2d array.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| arr | <code>Array</code> | The 2d array to be transposed. |
 
 <a name="Lore.Statistics.randomNormal"></a>
 
