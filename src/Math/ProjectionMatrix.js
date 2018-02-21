@@ -53,7 +53,7 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
      */
     setPerspective(fov, aspect, near, far) {
         let range = near - far;
-        let tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * fov / 2.0);
+        let tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * 0.5 * fov);
         
         let top = near * tanHalfFov;
         let height = 2.0 * top;
@@ -89,6 +89,7 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
         this.entries[11] = -1;
         this.entries[15] = 0;
 
+        console.log(this.toString())
         return this;
     }
 }

@@ -52,10 +52,6 @@ Lore.init = function(canvas, options) {
     
     Lore.getGrakaInfo(canvas);
     
-    // Init UI
-    // var ui = new Lore.UI(canvas);
-    
-    // Start the 3D stuff
     var cc = Lore.Color.fromHex(this.opts.clearColor);
 
     var renderer = new Lore.Renderer(canvas, {

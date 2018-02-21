@@ -64,10 +64,6 @@ Lore.init = function (canvas, options) {
 
     Lore.getGrakaInfo(canvas);
 
-    // Init UI
-    // var ui = new Lore.UI(canvas);
-
-    // Start the 3D stuff
     var cc = Lore.Color.fromHex(this.opts.clearColor);
 
     var renderer = new Lore.Renderer(canvas, {
@@ -402,8 +398,8 @@ Lore.Renderer = function () {
         this.fpsCount = 0;
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
-        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
-        // this.camera = new Lore.PerspectiveCamera(45.0, this.getWidth() / this.getHeight());
+        // this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
+        this.camera = new Lore.PerspectiveCamera(50.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
@@ -6177,7 +6173,7 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
         key: 'setPerspective',
         value: function setPerspective(fov, aspect, near, far) {
             var range = near - far;
-            var tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * fov / 2.0);
+            var tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * 0.5 * fov);
 
             var top = near * tanHalfFov;
             var height = 2.0 * top;
@@ -6213,6 +6209,7 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
             this.entries[11] = -1;
             this.entries[15] = 0;
 
+            console.log(this.toString());
             return this;
         }
     }]);
