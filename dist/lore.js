@@ -64,10 +64,6 @@ Lore.init = function (canvas, options) {
 
     Lore.getGrakaInfo(canvas);
 
-    // Init UI
-    // var ui = new Lore.UI(canvas);
-
-    // Start the 3D stuff
     var cc = Lore.Color.fromHex(this.opts.clearColor);
 
     var renderer = new Lore.Renderer(canvas, {
@@ -270,6 +266,31 @@ Lore.DrawModes = {
         }
 
         /**
+         * Converts HSL to RGB.
+         * 
+         * @static
+         * @param {Number} h The hue component.
+         * @param {Number} s The saturation component.
+         * @param {Number} l The lightness component.
+         * @returns {String} A hex string representing the color (#RRGGBB).
+         */
+
+    }, {
+        key: 'hslToHex',
+        value: function hslToHex(h, s, l) {
+            var _Lore$Color$hslToRgb = Lore.Color.hslToRgb(h, s, l),
+                _Lore$Color$hslToRgb2 = _slicedToArray(_Lore$Color$hslToRgb, 3),
+                r = _Lore$Color$hslToRgb2[0],
+                g = _Lore$Color$hslToRgb2[1],
+                b = _Lore$Color$hslToRgb2[2];
+
+            return '#' + [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)].map(function (e) {
+                var hex = e.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        /**
          * Converts RGB to HSL.
          * 
          * @static
@@ -377,8 +398,8 @@ Lore.Renderer = function () {
         this.fpsCount = 0;
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
-        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
-        // this.camera = new Lore.PerspectiveCamera(45.0, this.getWidth() / this.getHeight());
+        // this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
+        this.camera = new Lore.PerspectiveCamera(50.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
@@ -6152,7 +6173,7 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
         key: 'setPerspective',
         value: function setPerspective(fov, aspect, near, far) {
             var range = near - far;
-            var tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * fov / 2.0);
+            var tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * 0.5 * fov);
 
             var top = near * tanHalfFov;
             var height = 2.0 * top;
@@ -6188,6 +6209,7 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
             this.entries[11] = -1;
             this.entries[15] = 0;
 
+            console.log(this.toString());
             return this;
         }
     }]);
@@ -6202,13 +6224,30 @@ Lore.Statistics = function () {
     }
 
     _createClass(Statistics, null, [{
-        key: 'randomNormal',
+        key: 'transpose2dArray',
+
+        /**
+         * Transposes an array of arrays (2d array).
+         
+         * @param {Array} arr The 2d array to be transposed.
+         * @returns {Array} The transpose of the 2d array.
+         */
+        value: function transpose2dArray(arr) {
+            return arr[0].map(function (col, i) {
+                return arr.map(function (row) {
+                    return row[i];
+                });
+            });
+        }
 
         /**
          * Returns a normally distributed (pseudo) random number.
          * 
          * @returns {Number} A normally distributed (pseudo) random number.
          */
+
+    }, {
+        key: 'randomNormal',
         value: function randomNormal() {
             var val = void 0,
                 u = void 0,
