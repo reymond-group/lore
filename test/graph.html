@@ -22,6 +22,7 @@
   <script src="celegans.edges.js"></script>
   <script src="compounds.edges.js"></script>
   <script src="compounds.morgan.edges.js"></script>
+  <script src="drugbank.edges.js"></script>
   <canvas id="output" width="1200" height="1200"></canvas>
   <script>
 
@@ -54,17 +55,17 @@
     // let tree = Lore.Tree.fromEdgeList(compounds);
     // let positions = tree.layout();
 
-    let graph = Lore.Graph.fromEdgeList(morganCompounds, false);
-    [positions, edges] = graph.forceLayout(1000, 1000, 1.5, 0.001, 500.0, 1.0);
+    let graph = Lore.Graph.fromEdgeList(drugbank, false);
+    [positions, edges] = graph.forceLayout(1000, 100, 1.2, 0.001, 500.0, 1.0);
 
     console.log(positions);
 
     let canvas = document.getElementById('output');
     let ctx = canvas.getContext('2d');
 
-    for (var i = 0; i < morganCompounds.length; i++) {
-      let a = positions[morganCompounds[i][0]];
-      let b = positions[morganCompounds[i][1]];
+    for (var i = 0; i < drugbank.length; i++) {
+      let a = positions[drugbank[i][0]];
+      let b = positions[drugbank[i][1]];
 
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
