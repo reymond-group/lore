@@ -61,13 +61,16 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
         let left = -width / 2.0;
         let right = left + width;
         let bottom = top - height;
+        // let bottom = -top;
+        // let right = top * aspect;
+        // let left = -right;
 
         let x = 2.0 * near / (right - left);
         let y = 2.0 * near / (top - bottom);
 
         let a = (right + left) / (right - left);
         let b = (top + bottom) / (top - bottom);
-        let c = (far + near) / (far - near);
+        let c = -(far + near) / (far - near);
         let d = -2 * far * near / (far - near);
         
         this.set();
@@ -89,7 +92,6 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
         this.entries[11] = -1;
         this.entries[15] = 0;
 
-        console.log(this.toString())
         return this;
     }
 }

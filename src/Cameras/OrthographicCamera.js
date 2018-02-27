@@ -48,7 +48,7 @@ Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
         let right = x + width;
         let top = y + height;
         let bottom = y - height;
-
+        
         this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
         this.isProjectionMatrixStale = true;
     }

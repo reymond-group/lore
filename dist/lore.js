@@ -398,8 +398,8 @@ Lore.Renderer = function () {
         this.fpsCount = 0;
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
-        // this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
-        this.camera = new Lore.PerspectiveCamera(50.0, this.getWidth() / this.getHeight());
+        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
+        //this.camera = new Lore.PerspectiveCamera(25.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
@@ -3519,6 +3519,7 @@ Lore.CameraBase = function (_Lore$Node2) {
             var viewMatrix = this.modelMatrix.clone();
 
             viewMatrix.invert();
+            console.log(viewMatrix.toString());
             this.viewMatrix = viewMatrix;
             this.isViewMatrixStale = true;
 
@@ -3684,6 +3685,7 @@ Lore.PerspectiveCamera = function (_Lore$CameraBase2) {
         var _this7 = _possibleConstructorReturn(this, (PerspectiveCamera.__proto__ || Object.getPrototypeOf(PerspectiveCamera)).call(this));
 
         _this7.type = 'Lore.PerspectiveCamera';
+        _this7.zoom = 1.0;
         _this7.fov = fov;
         _this7.aspect = aspect;
         _this7.near = near;
@@ -6181,13 +6183,16 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
             var left = -width / 2.0;
             var right = left + width;
             var bottom = top - height;
+            // let bottom = -top;
+            // let right = top * aspect;
+            // let left = -right;
 
             var x = 2.0 * near / (right - left);
             var y = 2.0 * near / (top - bottom);
 
             var a = (right + left) / (right - left);
             var b = (top + bottom) / (top - bottom);
-            var c = (far + near) / (far - near);
+            var c = -(far + near) / (far - near);
             var d = -2 * far * near / (far - near);
 
             this.set();
@@ -6209,7 +6214,6 @@ Lore.ProjectionMatrix = function (_Lore$Matrix4f) {
             this.entries[11] = -1;
             this.entries[15] = 0;
 
-            console.log(this.toString());
             return this;
         }
     }]);

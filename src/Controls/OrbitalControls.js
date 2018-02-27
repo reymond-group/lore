@@ -31,7 +31,7 @@ Lore.OrbitalControls = class OrbitalControls extends Lore.ControlsBase {
         this.spherical = new Lore.SphericalCoords();
 
         this.scale = 0.95;
-
+        
         this.camera.position = new Lore.Vector3f(radius, radius, radius);
         this.camera.updateProjectionMatrix();
         this.camera.updateViewMatrix();
