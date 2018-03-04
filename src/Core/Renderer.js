@@ -32,8 +32,8 @@ Lore.Renderer = class Renderer {
         this.fpsCount = 0;
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
-        //this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
-        this.camera = new Lore.PerspectiveCamera(25.0, this.getWidth() / this.getHeight());
+        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
+        // this.camera = new Lore.PerspectiveCamera(25.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
