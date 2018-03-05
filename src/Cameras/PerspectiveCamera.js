@@ -11,6 +11,11 @@ Lore.PerspectiveCamera = class PerspectiveCamera extends Lore.CameraBase {
         super();
 
         this.type = 'Lore.PerspectiveCamera';
+
+        // TODO: There shouldn't be a zoom here. The problem is, that the orbital controls
+        // and also the point helper and zoom rely on it. However, for the perspective camera,
+        // zooming is achieved by adjusting the fov. 
+        this.zoom = 1.0;
         this.fov = fov;
         this.aspect = aspect;
         this.near = near;
@@ -35,6 +40,6 @@ Lore.PerspectiveCamera = class PerspectiveCamera extends Lore.CameraBase {
      * @param {Number} height The height of the viewport.
      */
     updateViewport(width, height) {
-        this.aspect = width / height;
+      this.aspect = width / height;
     }
 }
