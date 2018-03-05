@@ -399,7 +399,7 @@ Lore.Renderer = function () {
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
         this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
-        //this.camera = new Lore.PerspectiveCamera(25.0, this.getWidth() / this.getHeight());
+        // this.camera = new Lore.PerspectiveCamera(25.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
@@ -3685,6 +3685,10 @@ Lore.PerspectiveCamera = function (_Lore$CameraBase2) {
         var _this7 = _possibleConstructorReturn(this, (PerspectiveCamera.__proto__ || Object.getPrototypeOf(PerspectiveCamera)).call(this));
 
         _this7.type = 'Lore.PerspectiveCamera';
+
+        // TODO: There shouldn't be a zoom here. The problem is, that the orbital controls
+        // and also the point helper and zoom rely on it. However, for the perspective camera,
+        // zooming is achieved by adjusting the fov. 
         _this7.zoom = 1.0;
         _this7.fov = fov;
         _this7.aspect = aspect;
