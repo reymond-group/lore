@@ -4908,7 +4908,8 @@ Builds the octree by assigning the indices of data points and axis-aligned bound
 <a name="Lore.Octree+getLocCodes"></a>
 
 #### octree.getLocCodes()
-Returns an array containing the location codes of all the axis-alignedbounding boxes inside this octree.
+Returns an array containing the location codes of all the axis-aligned
+bounding boxes inside this octree.
 
 **Kind**: instance method of <code>[Octree](#Lore.Octree)</code>  
 <a name="Lore.Octree+getDepth"></a>
@@ -4976,7 +4977,8 @@ Searches for octree nodes that are intersected by the ray and returns all the po
 <a name="Lore.Octree+getCenters"></a>
 
 #### octree.getCenters() ⇒ <code>Array</code>
-Returns an array containing all the centers of the axis-aligned bounding boxesin this octree that have points associated with them.
+Returns an array containing all the centers of the axis-aligned bounding boxes
+in this octree that have points associated with them.
 
 **Kind**: instance method of <code>[Octree](#Lore.Octree)</code>  
 **Returns**: <code>Array</code> - An array containing the centers as Lore.Vector3f objects.  
@@ -4997,7 +4999,8 @@ This function returns the closest box in the octree to the point given as an arg
 <a name="Lore.Octree+getClosestBoxFromCenter"></a>
 
 #### octree.getClosestBoxFromCenter(point, threshold, locCode) ⇒ <code>[AABB](#Lore.AABB)</code>
-This function returns the closest box in the octree to the point given as an argument. The distance measured is to thebox center.
+This function returns the closest box in the octree to the point given as an argument. The distance measured is to the
+box center.
 
 **Kind**: instance method of <code>[Octree](#Lore.Octree)</code>  
 **Returns**: <code>[AABB](#Lore.AABB)</code> - The closest axis-aligned bounding box to the input point.  
@@ -5155,7 +5158,8 @@ Returns a list of the the squared distances of the points contained in the axis-
 <a name="Lore.Octree.concatTypedArrays"></a>
 
 #### Octree.concatTypedArrays(a, b) ⇒ <code>Array</code>
-Concatenates the two typed arrays a and b and returns a new array. The two arrays have to be of the same type.Due to performance reasons, there is no check whether the types match.
+Concatenates the two typed arrays a and b and returns a new array. The two arrays have to be of the same type.
+Due to performance reasons, there is no check whether the types match.
 
 **Kind**: static method of <code>[Octree](#Lore.Octree)</code>  
 **Returns**: <code>Array</code> - The concatenated array.  
@@ -5336,7 +5340,8 @@ Returns the box that is closest to the point (measured from center).
 <a name="Lore.AABB+testAABB"></a>
 
 #### aabB.testAABB(aabb) ⇒ <code>boolean</code>
-Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.This method can also be used to assert whether or not two boxes are neighbours.
+Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
+This method can also be used to assert whether or not two boxes are neighbours.
 
 **Kind**: instance method of <code>[AABB](#Lore.AABB)</code>  
 **Returns**: <code>boolean</code> - - Whether or not there is an overlap.  

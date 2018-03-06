@@ -1,3 +1,4 @@
+
 /** 
  * An abstract class representing the base for camera implementations. 
  * 

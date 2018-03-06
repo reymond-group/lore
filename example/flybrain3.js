@@ -1,6 +1,7 @@
 (function() {
     let lore = Lore.init('lore', {
-        clearColor: '#222222'
+        clearColor: '#222222',
+        enableTransparency: true
     });
     
     let fileReader = new Lore.CsvFileReader('input-upload', {
@@ -13,7 +14,7 @@
 
     fileReader.addEventListener('loaded', function(data) {
         original_data = data;
-        pointHelper = new Lore.PointHelper(lore, 'Seppli', 'default');
+        pointHelper = new Lore.PointHelper(lore, 'Seppli', 'smoothcircle');
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['c'], 1.0, 1.0)
         pointHelper.setPointScale(1.0);
         pointHelper.setFogDistance(700, 900);

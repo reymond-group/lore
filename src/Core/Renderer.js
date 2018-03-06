@@ -21,7 +21,8 @@ Lore.Renderer = class Renderer {
             clearDepth: 1.0,
             radius: 500,
             center: new Lore.Vector3f(),
-            enableDepthTest: true
+            enableDepthTest: true,
+            enableTransparency: false
         }
 
         this.opts = Lore.Utils.extend(true, this.defaults, options);
@@ -83,15 +84,7 @@ Lore.Renderer = class Renderer {
             console.info('High precision support: ' + hasHighp);
         }
 
-        // Blending
-        /*
-        g.blendFunc(g.SRC_ALPHA, g.ONE);
-        g.enable(g.BLEND);
-        g.disable(g.DEPTH_TEST);
-        */
-
         // Extensions
-        
         let oes = 'OES_standard_derivatives';
         let extOes = g.getExtension(oes);
         
@@ -117,7 +110,13 @@ Lore.Renderer = class Renderer {
         this.setClearColor(this.opts.clearColor);
         g.clearDepth(this.opts.clearDepth);
 
-        if (this.opts.enableDepthTest) {
+        // Blending
+        if (this.opts.enableTransparency) {
+          g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+          g.enable(g.BLEND);
+          g.disable(g.DEPTH_TEST);
+        }
+        else if (this.opts.enableDepthTest) {
             g.enable(g.DEPTH_TEST);
             g.depthFunc(g.LEQUAL);
             
@@ -125,11 +124,6 @@ Lore.Renderer = class Renderer {
                 console.log('enable depth test');
             }
         }
-
-        /*
-        g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
-        g.enable(g.BLEND);
-        */
 
         setTimeout(function () {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
