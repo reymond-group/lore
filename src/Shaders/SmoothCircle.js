@@ -1,4 +1,4 @@
-Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', { size: new Lore.Uniform('size', 5.0, 'float'),
+Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', 2, { size: new Lore.Uniform('size', 5.0, 'float'),
                                                      fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
                                                      fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
                                                      cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
@@ -6,10 +6,10 @@ Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', { size: new Lore.
     'uniform float fogStart;',
     'uniform float fogEnd;',
     'uniform float cutoff;',
-    'attribute vec3 position;',
-    'attribute vec3 color;',
-    'varying vec3 vColor;',
-    'varying float vDiscard;',
+    'in vec3 position;',
+    'in vec3 color;',
+    'out vec3 vColor;',
+    'out float vDiscard;',
     'vec3 rgb2hsv(vec3 c) {',
         'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);',
         'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));',
@@ -53,8 +53,9 @@ Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', { size: new Lore.
         'vColor = hsv2rgb(hsv);',
     '}'
 ], [
-    'varying vec3 vColor;',
-    'varying float vDiscard;',
+    'in vec3 vColor;',
+    'in float vDiscard;',
+    'out vec4 fragColor;',
     'float rand(vec2 co) {',
         'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);',
     '}',
@@ -63,10 +64,8 @@ Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', { size: new Lore.
         'float r = 0.0, delta = 0.0, alpha = 1.0;',
         'vec2 cxy = 2.0 * gl_PointCoord - 1.0;',
         'r = dot(cxy, cxy);',
-        '#ifdef GL_OES_standard_derivatives',
         'delta = fwidth(r);',
         'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);',
-        '#endif',
-        'gl_FragColor = vec4(vColor, 1.0) * alpha;',
+        'fragColor = vec4(vColor, 1.0) * alpha;',
     '}'
 ]);

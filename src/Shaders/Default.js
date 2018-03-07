@@ -1,4 +1,4 @@
-Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
+Lore.Shaders['default'] = new Lore.Shader('Default', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
                                                        type: new Lore.Uniform('type', 0.0, 'float'),
                                                        fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
                                                        fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),

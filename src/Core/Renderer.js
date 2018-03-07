@@ -28,6 +28,7 @@ Lore.Renderer = class Renderer {
         this.opts = Lore.Utils.extend(true, this.defaults, options);
         
         this.canvas = document.getElementById(targetId);
+        this.webgl2 = true;
         this.parent = this.canvas.parentElement;
         this.fps = 0;
         this.fpsCount = 0;
@@ -64,8 +65,13 @@ Lore.Renderer = class Renderer {
             antialias: this.opts.antialiasing
         };
 
-        this.gl = this.canvas.getContext('webgl', settings) || 
-            this.canvas.getContext('experimental-webgl', settings);
+        this.gl = this.canvas.getContext('webgl2', settings) || this.canvas.getContext('experimental-webgl2');
+
+        if (!this.gl) {
+          this.webgl2 = false;
+          this.gl = this.canvas.getContext('webgl', settings) ||
+              this.canvas.getContext('experimental-webgl', settings);
+        }
 
         if (!this.gl) {
             console.error('Could not initialize the WebGL context.');
@@ -82,6 +88,8 @@ Lore.Renderer = class Renderer {
             let highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
             let hasHighp = highp.precision != 0;
             console.info('High precision support: ' + hasHighp);
+
+            console.info('WebGL2 supported: ' + this.webgl2);
         }
 
         // Extensions
@@ -106,23 +114,31 @@ Lore.Renderer = class Renderer {
             console.warn('Could not load extension: ' + wdt + '.');
         }
 
-
-        this.setClearColor(this.opts.clearColor);
-        g.clearDepth(this.opts.clearDepth);
-
         // Blending
-        if (this.opts.enableTransparency) {
-          g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
-          g.enable(g.BLEND);
-          g.disable(g.DEPTH_TEST);
-        }
-        else if (this.opts.enableDepthTest) {
-            g.enable(g.DEPTH_TEST);
-            g.depthFunc(g.LEQUAL);
-            
-            if (this.opts.verbose) {
-                console.log('enable depth test');
-            }
+        if (!this.webgl2) {
+          this.setClearColor(this.opts.clearColor);
+          g.clearDepth(this.opts.clearDepth);
+
+          if (this.opts.enableTransparency) {
+            g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+            g.enable(g.BLEND);
+            g.disable(g.DEPTH_TEST);
+          }
+          else if (this.opts.enableDepthTest) {
+              g.enable(g.DEPTH_TEST);
+              g.depthFunc(g.LEQUAL);
+              
+              if (this.opts.verbose) {
+                  console.log('enable depth test');
+              }
+          }
+        } else {
+            g.blendEquationSeparate(g.FUNC_ADD, g.FUNC_ADD);
+            g.blendFuncSeparate(g.ONE, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
+            g.enable(g.BLEND);
+            g.disable(g.DEPTH_TEST);
+            // g.depthFunc(g.ALWAYS);
+            // g.depthMask(true);
         }
 
         setTimeout(function () {
@@ -232,7 +248,7 @@ Lore.Renderer = class Renderer {
             if (this.fpsCount < 10) {
                 this.fps += Math.round(1000.0 / delta);
                 this.fpsCount++;
-            } else {
+            } else {// 
                 this.opts.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
                 this.fpsCount = 0;
                 this.fps = 0;
@@ -241,6 +257,7 @@ Lore.Renderer = class Renderer {
 
         // this.effect.bind();
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.render(this.camera, this.geometries);
         // this.effect.unbind();
 
@@ -257,7 +274,7 @@ Lore.Renderer = class Renderer {
      */
     createGeometry(name, shaderName) {
         let shader = Lore.getShader(shaderName);
-        shader.init(this.gl);
+        shader.init(this.gl, this.webgl2);
         let geometry = new Lore.Geometry(name, this.gl, shader);
 
         this.geometries[name] = geometry;

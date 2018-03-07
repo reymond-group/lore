@@ -1,4 +1,4 @@
-Lore.Shaders['tree'] = new Lore.Shader('Tree', { size: new Lore.Uniform('size', 5.0, 'float'),
+Lore.Shaders['tree'] = new Lore.Shader('Tree', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
                                                  fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
                                                  fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
                                                  cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
