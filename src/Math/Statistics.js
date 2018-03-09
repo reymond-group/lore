@@ -98,29 +98,31 @@ Lore.Statistics = class Statistics {
      * The IQR method is used for outlier detection.
      * 
      * @param {Number[]} arr An array.
+     * @param {Number} q1 The q1 percentage.
+     * @param {Number} q3 The q3 percentage.
+     * @param {Number} k The IQR scaling factor.
      * @returns {Number[]} The normalized / scaled array.
      */
-    static normalizeNoOutliers(arr) {
+    static normalizeNoOutliers(arr, q1 = 0.25, q3 = 0.75, k = 1.5) {
         let newArr = arr.slice();
-        let max = Number.NEGATIVE_INFINITY;
-        let min = Number.POSITIVE_INFINITY;
 
         newArr.sort((a, b) => a - b);
 
-        let q1 = Lore.Statistics.getPercentile(newArr, 0.25);
-        let q3 = Lore.Statistics.getPercentile(newArr, 0.75);
-        let iqr = q3 - q1;
-        let lower = q1 - (iqr * 1.5);
-        let upper = q3 + (iqr * 1.5);
+        let a = Lore.Statistics.getPercentile(newArr, q1);
+        let b = Lore.Statistics.getPercentile(newArr, q3);
+        let iqr = b - a;
+        let lower = a - (iqr * k);
+        let upper = b + (iqr * k);
         
         let diff = upper - lower;
 
-        for (let i = 0; i < newArr.length; i++) {
-            newArr[i] = (newArr[i] - lower) / diff;
-            if (newArr[i] < 0.0) {
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] < lower) {
                 newArr[i] = 0.0;
-            } else if (newArr[i] > 1.0) {
+            } else if (arr[i] > upper) {
                 newArr[i] = 1.0;
+            } else {
+                newArr[i] = (arr[i] - lower) / diff;
             }
         }
         

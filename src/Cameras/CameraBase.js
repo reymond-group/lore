@@ -79,7 +79,6 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
         let viewMatrix = this.modelMatrix.clone();
         
         viewMatrix.invert();
-        console.log(viewMatrix.toString());
         this.viewMatrix = viewMatrix;
         this.isViewMatrixStale = true;
         

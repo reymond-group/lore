@@ -3,7 +3,7 @@
  * @typicalname Lore
  */
 let Lore = {
-    Version: '1.0.2'
+    Version: '1.0.6'
 };
 
 if (typeof define === 'function' && define.amd) {

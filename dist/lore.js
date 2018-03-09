@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @typicalname Lore
  */
 var Lore = {
-    Version: '1.0.2'
+    Version: '1.0.6'
 };
 
 if (typeof define === 'function' && define.amd) {
@@ -483,9 +483,10 @@ Lore.Renderer = function () {
                 console.warn('Could not load extension: ' + wdt + '.');
             }
 
+            this.setClearColor(this.opts.clearColor);
+
             // Blending
             if (!this.webgl2) {
-                this.setClearColor(this.opts.clearColor);
                 g.clearDepth(this.opts.clearDepth);
 
                 if (this.opts.enableTransparency) {
@@ -3554,7 +3555,6 @@ Lore.CameraBase = function (_Lore$Node2) {
             var viewMatrix = this.modelMatrix.clone();
 
             viewMatrix.invert();
-            console.log(viewMatrix.toString());
             this.viewMatrix = viewMatrix;
             this.isViewMatrixStale = true;
 
@@ -6387,34 +6387,40 @@ Lore.Statistics = function () {
          * The IQR method is used for outlier detection.
          * 
          * @param {Number[]} arr An array.
+         * @param {Number} q1 The q1 percentage.
+         * @param {Number} q3 The q3 percentage.
+         * @param {Number} k The IQR scaling factor.
          * @returns {Number[]} The normalized / scaled array.
          */
 
     }, {
         key: 'normalizeNoOutliers',
         value: function normalizeNoOutliers(arr) {
+            var q1 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.25;
+            var q3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.75;
+            var k = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1.5;
+
             var newArr = arr.slice();
-            var max = Number.NEGATIVE_INFINITY;
-            var min = Number.POSITIVE_INFINITY;
 
             newArr.sort(function (a, b) {
                 return a - b;
             });
 
-            var q1 = Lore.Statistics.getPercentile(newArr, 0.25);
-            var q3 = Lore.Statistics.getPercentile(newArr, 0.75);
-            var iqr = q3 - q1;
-            var lower = q1 - iqr * 1.5;
-            var upper = q3 + iqr * 1.5;
+            var a = Lore.Statistics.getPercentile(newArr, q1);
+            var b = Lore.Statistics.getPercentile(newArr, q3);
+            var iqr = b - a;
+            var lower = a - iqr * k;
+            var upper = b + iqr * k;
 
             var diff = upper - lower;
 
-            for (var i = 0; i < newArr.length; i++) {
-                newArr[i] = (newArr[i] - lower) / diff;
-                if (newArr[i] < 0.0) {
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i] < lower) {
                     newArr[i] = 0.0;
-                } else if (newArr[i] > 1.0) {
+                } else if (arr[i] > upper) {
                     newArr[i] = 1.0;
+                } else {
+                    newArr[i] = (arr[i] - lower) / diff;
                 }
             }
 

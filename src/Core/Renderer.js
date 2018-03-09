@@ -114,9 +114,10 @@ Lore.Renderer = class Renderer {
             console.warn('Could not load extension: ' + wdt + '.');
         }
 
+        this.setClearColor(this.opts.clearColor);
+
         // Blending
         if (!this.webgl2) {
-          this.setClearColor(this.opts.clearColor);
           g.clearDepth(this.opts.clearDepth);
 
           if (this.opts.enableTransparency) {
