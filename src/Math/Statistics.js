@@ -94,6 +94,57 @@ Lore.Statistics = class Statistics {
     }
 
     /**
+     * Normalize / scale an array between 0 and 1 (outliers will be set to max or min respectively).
+     * The IQR method is used for outlier detection.
+     * 
+     * @param {Number[]} arr An array.
+     * @returns {Number[]} The normalized / scaled array.
+     */
+    static normalizeNoOutliers(arr) {
+        let newArr = arr.slice();
+        let max = Number.NEGATIVE_INFINITY;
+        let min = Number.POSITIVE_INFINITY;
+
+        newArr.sort((a, b) => a - b);
+
+        let q1 = Lore.Statistics.getPercentile(newArr, 0.25);
+        let q3 = Lore.Statistics.getPercentile(newArr, 0.75);
+        let iqr = q3 - q1;
+        let lower = q1 - (iqr * 1.5);
+        let upper = q3 + (iqr * 1.5);
+        
+        let diff = upper - lower;
+
+        for (let i = 0; i < newArr.length; i++) {
+            newArr[i] = (newArr[i] - lower) / diff;
+            if (newArr[i] < 0.0) {
+                newArr[i] = 0.0;
+            } else if (newArr[i] > 1.0) {
+                newArr[i] = 1.0;
+            }
+        }
+        
+        return newArr;
+    }
+
+    /**
+     * Gets the percentile from a sorted array.
+     * 
+     * @param {Number[]} arr A sorted array.
+     * @param {Number} percentile The percentile (e.g. 0.25).
+     * @returns {Number} The percentile value.
+     */
+    static getPercentile(arr, percentile) {
+        let index = percentile * arr.length;
+
+        if (Math.floor(index) === index) {
+            return (arr[index - 1] + arr[index]) / 2.0;
+        } else {
+            return arr[Math.floor(index)];
+        }
+    }
+
+    /**
      * Scales a number to within a given scale.
      * 
      * @param {Number} value The number.
