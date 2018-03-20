@@ -1,5 +1,7 @@
 'use strict';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -502,10 +504,15 @@ Lore.Renderer = function () {
                     }
                 }
             } else {
-                g.blendEquationSeparate(g.FUNC_ADD, g.FUNC_ADD);
-                g.blendFuncSeparate(g.ONE, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
-                g.enable(g.BLEND);
-                g.disable(g.DEPTH_TEST);
+                // Only works with MSAA enabled (antialiasing)
+                g.enable(g.SAMPLE_ALPHA_TO_COVERAGE);
+                g.enable(g.DEPTH_TEST);
+                g.depthFunc(g.LEQUAL);
+
+                // g.blendEquationSeparate(g.FUNC_ADD, g.FUNC_ADD);
+                // g.blendFuncSeparate(g.ONE, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
+                // g.enable(g.BLEND);
+                // g.disable(g.DEPTH_TEST);
                 // g.depthFunc(g.ALWAYS);
                 // g.depthMask(true);
             }
@@ -7452,6 +7459,50 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         }
 
         /**
+         * Update the hue of the points.
+         * 
+         * @param {TypedArray|Number} hue The hue to be set. If a number is supplied, all hues are set to its value.
+         * @param {Number|Number[]} index The index or the indices of vertices to be set to a hue.
+         */
+
+    }, {
+        key: 'updateHue',
+        value: function updateHue(hue, index) {
+            index *= 3;
+            var colors = this.getAttribute('color');
+            var c = null;
+
+            if (index > colors.length - 1) {
+                console.warn('The color index is out of range.');
+                return;
+            }
+
+            if (typeof index === 'number') {
+                if (typeof hue !== 'number') {
+                    console.warn('The hue value cannot be an array if index is a number.');
+                } else {
+                    this.updateColor(index, new Lore.Color(hue, colors[index + 1], colors[index + 2]));
+                }
+            } else if (Array.isArray(index)) {
+                if (Array.isArray(hue)) {
+                    if (hue.length !== index.length) {
+                        console.warn('Hue and index arrays have to be of the same length.');
+                    } else {
+                        for (var i = 0; i < index.length; i++) {
+                            this.updateColor(index[i], new Lore.Color(hue[i], colors[index + 1], colors[index + 2]));
+                        }
+                    }
+                } else if (typeof hue === 'number') {
+                    for (var i = 0; i < index.length; i++) {
+                        this.updateColor(index[i], new Lore.Color(hue, colors[index + 1], colors[index + 2]));
+                    }
+                }
+            } else {
+                console.warn('The type of index is not supported: ' + (typeof index === 'undefined' ? 'undefined' : _typeof(index)));
+            }
+        }
+
+        /**
          * Set the saturation. If a number is supplied, all the saturations are set to the supplied number.
          * 
          * @param {TypedArray|Number} hue The saturation to be set. If a number is supplied, all saturations are set to its value.
@@ -7628,7 +7679,6 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
     return PointHelper;
 }(Lore.HelperBase);
-
 Lore.TreeHelper = function (_Lore$HelperBase2) {
     _inherits(TreeHelper, _Lore$HelperBase2);
 
@@ -9424,7 +9474,7 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', 1, { resolution: new 
                                                                                                                                                                                                                                                                                                                                                                            '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
                                                                                                                                                                                                                                                                                                                                                                            '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
                                                                                                                                                                                                                                                                                                                                                                            '#define FXAA_SPAN_MAX     8.0',
-                                                                                                                                                                                                                                                                                                                                                                             'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                                            'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
                                                                                                                                                                                                                                                                                                                                                                            '{',
                                                                                                                                                                                                                                                                                                                                                                                'fragCoord = fragCoord * resolution;',
                                                                                                                                                                                                                                                                                                                                                                                'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -9443,23 +9493,23 @@ Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', 1, { resolution: new 
                                                                                                                                                                                                                                                                                                                                                                                'float lumaM  = dot(rgbM,  luma);',
                                                                                                                                                                                                                                                                                                                                                                                'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
                                                                                                                                                                                                                                                                                                                                                                                'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                                 'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                                                'vec2 dir;',
                                                                                                                                                                                                                                                                                                                                                                                'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
                                                                                                                                                                                                                                                                                                                                                                                'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                                 'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                                                'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
                                                                                                                                                                                                                                                                                                                                                                                'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-                                                                                                                                                                                                                                                                                                                                                                                 'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-                                                                                                                                                                                                                                                                                                                                                                                 'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                                'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                                                'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                   'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                                 'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                                'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                                                                                                                                                                                                                                                                                                                                                                                                 'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                                 'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                                                'float lumaB = dot(rgbB, luma);',
                                                                                                                                                                                                                                                                                                                                                                                'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
                                                                                                                                                                                                                                                                                                                                                                                    'return vec4(rgbA, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                                'else',
                                                                                                                                                                                                                                                                                                                                                                                    'return vec4(rgbB, 1.0);',
                                                                                                                                                                                                                                                                                                                                                                            '}',
-                                                                                                                                                                                                                                                                                                                                                                             'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                                            'uniform sampler2D fbo_texture;',
                                                                                                                                                                                                                                                                                                                                                                            'varying vec2 f_texcoord;',
                                                                                                                                                                                                                                                                                                                                                                            'void main(void) {',
                                                                                                                                                                                                                                                                                                                                                                                'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',

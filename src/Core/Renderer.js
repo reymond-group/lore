@@ -134,10 +134,16 @@ Lore.Renderer = class Renderer {
               }
           }
         } else {
-            g.blendEquationSeparate(g.FUNC_ADD, g.FUNC_ADD);
-            g.blendFuncSeparate(g.ONE, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
-            g.enable(g.BLEND);
-            g.disable(g.DEPTH_TEST);
+            // Only works with MSAA enabled (antialiasing)
+            g.enable(g.SAMPLE_ALPHA_TO_COVERAGE);
+            g.enable(g.DEPTH_TEST);
+            g.depthFunc(g.LEQUAL);
+
+            
+            // g.blendEquationSeparate(g.FUNC_ADD, g.FUNC_ADD);
+            // g.blendFuncSeparate(g.ONE, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
+            // g.enable(g.BLEND);
+            // g.disable(g.DEPTH_TEST);
             // g.depthFunc(g.ALWAYS);
             // g.depthMask(true);
         }

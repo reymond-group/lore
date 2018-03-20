@@ -274,6 +274,8 @@ The Lore namespace.
         * [.randomNormalInRange(a, b)](#Lore.Statistics.randomNormalInRange) ⇒ <code>Number</code>
         * [.randomNormalScaled(mean, sd)](#Lore.Statistics.randomNormalScaled) ⇒ <code>Number</code>
         * [.normalize(arr)](#Lore.Statistics.normalize) ⇒ <code>Array.&lt;Number&gt;</code>
+        * [.normalizeNoOutliers(arr, q1, q3, k)](#Lore.Statistics.normalizeNoOutliers) ⇒ <code>Array.&lt;Number&gt;</code>
+        * [.getPercentile(arr, percentile)](#Lore.Statistics.getPercentile) ⇒ <code>Number</code>
         * [.scale(value, oldMin, oldMax, newMin, newMax)](#Lore.Statistics.scale) ⇒ <code>Number</code>
     * [.Ray](#Lore.Ray)
         * [new Lore.Ray(source, direction)](#new_Lore.Ray_new)
@@ -322,6 +324,7 @@ The Lore namespace.
         * [.getSize(index)](#Lore.PointHelper+getSize) ⇒ <code>Number</code>
         * [.getPosition(index)](#Lore.PointHelper+getPosition) ⇒ <code>Number</code>
         * [.setHue(hue)](#Lore.PointHelper+setHue)
+        * [.updateHue(hue, index)](#Lore.PointHelper+updateHue)
         * [.setSaturation(hue)](#Lore.PointHelper+setSaturation)
         * [.setSize(hue)](#Lore.PointHelper+setSize)
         * [.setHSS(hue, saturation, size, length)](#Lore.PointHelper+setHSS)
@@ -3413,6 +3416,8 @@ A helper class containing statistics methods.
     * [.randomNormalInRange(a, b)](#Lore.Statistics.randomNormalInRange) ⇒ <code>Number</code>
     * [.randomNormalScaled(mean, sd)](#Lore.Statistics.randomNormalScaled) ⇒ <code>Number</code>
     * [.normalize(arr)](#Lore.Statistics.normalize) ⇒ <code>Array.&lt;Number&gt;</code>
+    * [.normalizeNoOutliers(arr, q1, q3, k)](#Lore.Statistics.normalizeNoOutliers) ⇒ <code>Array.&lt;Number&gt;</code>
+    * [.getPercentile(arr, percentile)](#Lore.Statistics.getPercentile) ⇒ <code>Number</code>
     * [.scale(value, oldMin, oldMax, newMin, newMax)](#Lore.Statistics.scale) ⇒ <code>Number</code>
 
 <a name="Lore.Statistics.transpose2dArray"></a>
@@ -3471,6 +3476,35 @@ Normalize / scale an array between 0 and 1.
 | Param | Type | Description |
 | --- | --- | --- |
 | arr | <code>Array.&lt;Number&gt;</code> | An array. |
+
+<a name="Lore.Statistics.normalizeNoOutliers"></a>
+
+#### Statistics.normalizeNoOutliers(arr, q1, q3, k) ⇒ <code>Array.&lt;Number&gt;</code>
+Normalize / scale an array between 0 and 1 (outliers will be set to max or min respectively).
+The IQR method is used for outlier detection.
+
+**Kind**: static method of <code>[Statistics](#Lore.Statistics)</code>  
+**Returns**: <code>Array.&lt;Number&gt;</code> - The normalized / scaled array.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| arr | <code>Array.&lt;Number&gt;</code> |  | An array. |
+| q1 | <code>Number</code> | <code>0.25</code> | The q1 percentage. |
+| q3 | <code>Number</code> | <code>0.75</code> | The q3 percentage. |
+| k | <code>Number</code> | <code>1.5</code> | The IQR scaling factor. |
+
+<a name="Lore.Statistics.getPercentile"></a>
+
+#### Statistics.getPercentile(arr, percentile) ⇒ <code>Number</code>
+Gets the percentile from a sorted array.
+
+**Kind**: static method of <code>[Statistics](#Lore.Statistics)</code>  
+**Returns**: <code>Number</code> - The percentile value.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| arr | <code>Array.&lt;Number&gt;</code> | A sorted array. |
+| percentile | <code>Number</code> | The percentile (e.g. 0.25). |
 
 <a name="Lore.Statistics.scale"></a>
 
@@ -3786,6 +3820,7 @@ A helper class wrapping a point cloud.
     * [.getSize(index)](#Lore.PointHelper+getSize) ⇒ <code>Number</code>
     * [.getPosition(index)](#Lore.PointHelper+getPosition) ⇒ <code>Number</code>
     * [.setHue(hue)](#Lore.PointHelper+setHue)
+    * [.updateHue(hue, index)](#Lore.PointHelper+updateHue)
     * [.setSaturation(hue)](#Lore.PointHelper+setSaturation)
     * [.setSize(hue)](#Lore.PointHelper+setSize)
     * [.setHSS(hue, saturation, size, length)](#Lore.PointHelper+setHSS)
@@ -4071,6 +4106,18 @@ Set the hue. If a number is supplied, all the hues are set to the supplied numbe
 | Param | Type | Description |
 | --- | --- | --- |
 | hue | <code>TypedArray</code> &#124; <code>Number</code> | The hue to be set. If a number is supplied, all hues are set to its value. |
+
+<a name="Lore.PointHelper+updateHue"></a>
+
+#### pointHelper.updateHue(hue, index)
+Update the hue of the points.
+
+**Kind**: instance method of <code>[PointHelper](#Lore.PointHelper)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| hue | <code>TypedArray</code> &#124; <code>Number</code> | The hue to be set. If a number is supplied, all hues are set to its value. |
+| index | <code>Number</code> &#124; <code>Array.&lt;Number&gt;</code> | The index or the indices of vertices to be set to a hue. |
 
 <a name="Lore.PointHelper+setSaturation"></a>
 
@@ -4908,7 +4955,8 @@ Builds the octree by assigning the indices of data points and axis-aligned bound
 <a name="Lore.Octree+getLocCodes"></a>
 
 #### octree.getLocCodes()
-Returns an array containing the location codes of all the axis-alignedbounding boxes inside this octree.
+Returns an array containing the location codes of all the axis-aligned
+bounding boxes inside this octree.
 
 **Kind**: instance method of <code>[Octree](#Lore.Octree)</code>  
 <a name="Lore.Octree+getDepth"></a>
@@ -4976,7 +5024,8 @@ Searches for octree nodes that are intersected by the ray and returns all the po
 <a name="Lore.Octree+getCenters"></a>
 
 #### octree.getCenters() ⇒ <code>Array</code>
-Returns an array containing all the centers of the axis-aligned bounding boxesin this octree that have points associated with them.
+Returns an array containing all the centers of the axis-aligned bounding boxes
+in this octree that have points associated with them.
 
 **Kind**: instance method of <code>[Octree](#Lore.Octree)</code>  
 **Returns**: <code>Array</code> - An array containing the centers as Lore.Vector3f objects.  
@@ -4997,7 +5046,8 @@ This function returns the closest box in the octree to the point given as an arg
 <a name="Lore.Octree+getClosestBoxFromCenter"></a>
 
 #### octree.getClosestBoxFromCenter(point, threshold, locCode) ⇒ <code>[AABB](#Lore.AABB)</code>
-This function returns the closest box in the octree to the point given as an argument. The distance measured is to thebox center.
+This function returns the closest box in the octree to the point given as an argument. The distance measured is to the
+box center.
 
 **Kind**: instance method of <code>[Octree](#Lore.Octree)</code>  
 **Returns**: <code>[AABB](#Lore.AABB)</code> - The closest axis-aligned bounding box to the input point.  
@@ -5155,7 +5205,8 @@ Returns a list of the the squared distances of the points contained in the axis-
 <a name="Lore.Octree.concatTypedArrays"></a>
 
 #### Octree.concatTypedArrays(a, b) ⇒ <code>Array</code>
-Concatenates the two typed arrays a and b and returns a new array. The two arrays have to be of the same type.Due to performance reasons, there is no check whether the types match.
+Concatenates the two typed arrays a and b and returns a new array. The two arrays have to be of the same type.
+Due to performance reasons, there is no check whether the types match.
 
 **Kind**: static method of <code>[Octree](#Lore.Octree)</code>  
 **Returns**: <code>Array</code> - The concatenated array.  
@@ -5336,7 +5387,8 @@ Returns the box that is closest to the point (measured from center).
 <a name="Lore.AABB+testAABB"></a>
 
 #### aabB.testAABB(aabb) ⇒ <code>boolean</code>
-Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.This method can also be used to assert whether or not two boxes are neighbours.
+Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
+This method can also be used to assert whether or not two boxes are neighbours.
 
 **Kind**: instance method of <code>[AABB](#Lore.AABB)</code>  
 **Returns**: <code>boolean</code> - - Whether or not there is an overlap.  
