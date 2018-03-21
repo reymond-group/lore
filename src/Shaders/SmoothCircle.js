@@ -65,7 +65,8 @@ Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', 2, { size: new Lo
         'vec2 cxy = 2.0 * gl_PointCoord - 1.0;',
         'r = dot(cxy, cxy);',
         'delta = fwidth(r);',
-        'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);',
+        '// 0.9 instead of 1.0',
+        'alpha = 1.0 - smoothstep(0.9 - delta, 0.9 + delta, r);',
         'fragColor = vec4(vColor, 1.0) * alpha;',
     '}'
 ]);

@@ -504,17 +504,9 @@ Lore.Renderer = function () {
                     }
                 }
             } else {
-                // Only works with MSAA enabled (antialiasing)
-                g.enable(g.SAMPLE_ALPHA_TO_COVERAGE);
-                g.enable(g.DEPTH_TEST);
-                g.depthFunc(g.LEQUAL);
-
-                // g.blendEquationSeparate(g.FUNC_ADD, g.FUNC_ADD);
-                // g.blendFuncSeparate(g.ONE, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
-                // g.enable(g.BLEND);
-                // g.disable(g.DEPTH_TEST);
-                // g.depthFunc(g.ALWAYS);
-                // g.depthMask(true);
+                g.disable(g.DEPTH_TEST);
+                g.enable(g.BLEND);
+                g.blendFuncSeparate(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
             }
 
             setTimeout(function () {
@@ -9455,7 +9447,7 @@ Lore.Shaders['circle'] = new Lore.Shader('Circle', 1, { size: new Lore.Uniform('
 Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', 2, { size: new Lore.Uniform('size', 5.0, 'float'),
     fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
     fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'if(fogEnd == 0.0) {', 'vColor = hsv2rgb(hsv);', 'return;', '}', 'float dist = abs(mv_pos.z);', 'if(dist >= fogEnd) {', 'hsv.b = 0.25;', '}', 'else if(dist <= fogStart) {', 'hsv.b = 1.0;', '}', 'else {', 'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'fragColor = vec4(vColor, 1.0) * alpha;', '}']);
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'if(fogEnd == 0.0) {', 'vColor = hsv2rgb(hsv);', 'return;', '}', 'float dist = abs(mv_pos.z);', 'if(dist >= fogEnd) {', 'hsv.b = 0.25;', '}', 'else if(dist <= fogStart) {', 'hsv.b = 1.0;', '}', 'else {', 'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', '// 0.9 instead of 1.0', 'alpha = 1.0 - smoothstep(0.9 - delta, 0.9 + delta, r);', 'fragColor = vec4(vColor, 1.0) * alpha;', '}']);
 
 Lore.Shaders['simpleSphere'] = new Lore.Shader('SimpleSphere', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
     fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
