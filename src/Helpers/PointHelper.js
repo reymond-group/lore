@@ -78,6 +78,16 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
   }
 
   /**
+   * Gets the distance between the center and the point furthest from the center.
+   * 
+   * @return {Number} The maximal radius.
+   */
+  getMaxRadius() {
+    let center = this.getCenter();
+    return center.subtract(this.dimensions.max).length();
+  }
+
+  /**
    * Set the positions of points in this point cloud.
    * 
    * @param {TypedArray} positions The positions (linear array).
@@ -349,8 +359,9 @@ Lore.PointHelper = class PointHelper extends Lore.HelperBase {
    * @returns {Lore.PointHelper} Itself.
    */
   setFogDistance(fogStart, fogEnd) {
-    this.geometry.shader.uniforms.fogStart.value = fogStart;
-    this.geometry.shader.uniforms.fogEnd.value = fogEnd;
+    console.warn('This function is deprecated.');
+    // this.geometry.shader.uniforms.fogStart.value = fogStart;
+    // this.geometry.shader.uniforms.fogEnd.value = fogEnd;
 
     return this;
   }

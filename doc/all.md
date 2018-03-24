@@ -303,6 +303,7 @@ The Lore namespace.
         * [.getMaxLength(x, y, z)](#Lore.PointHelper+getMaxLength) ⇒ <code>Number</code>
         * [.getDimensions()](#Lore.PointHelper+getDimensions) ⇒ <code>Object</code>
         * [.getCenter()](#Lore.PointHelper+getCenter) ⇒ <code>[Vector3f](#Lore.Vector3f)</code>
+        * [.getMaxRadius()](#Lore.PointHelper+getMaxRadius) ⇒ <code>Number</code>
         * [.setPositions(positions)](#Lore.PointHelper+setPositions) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
         * [.setPositionsXYZ(x, y, z, length)](#Lore.PointHelper+setPositionsXYZ) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
         * [.setPositionsXYZHSS(x, y, z, hue, saturation, size)](#Lore.PointHelper+setPositionsXYZHSS) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
@@ -725,7 +726,7 @@ A class representing a uniform.
 | Name | Type | Description |
 | --- | --- | --- |
 | name | <code>String</code> | The name of this uniform. Also the variable name in the shader. |
-| value | <code>Number</code> | The value of this uniform. |
+| value | <code>Number</code> &#124; <code>Array</code> | The value of this uniform. |
 | type | <code>String</code> | The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4. |
 | stale | <code>Boolean</code> | A boolean indicating whether or not this uniform is stale and needs to be updated. |
 
@@ -746,7 +747,7 @@ Creates an instance of Uniform.
 | Param | Type | Description |
 | --- | --- | --- |
 | name | <code>String</code> | The name of this uniform. Also the variable name in the shader. |
-| value | <code>Number</code> | The value of this uniform. |
+| value | <code>Number</code> &#124; <code>Array</code> | The value of this uniform. |
 | type | <code>String</code> | The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4. |
 
 <a name="Lore.Uniform+setValue"></a>
@@ -3799,6 +3800,7 @@ A helper class wrapping a point cloud.
     * [.getMaxLength(x, y, z)](#Lore.PointHelper+getMaxLength) ⇒ <code>Number</code>
     * [.getDimensions()](#Lore.PointHelper+getDimensions) ⇒ <code>Object</code>
     * [.getCenter()](#Lore.PointHelper+getCenter) ⇒ <code>[Vector3f](#Lore.Vector3f)</code>
+    * [.getMaxRadius()](#Lore.PointHelper+getMaxRadius) ⇒ <code>Number</code>
     * [.setPositions(positions)](#Lore.PointHelper+setPositions) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
     * [.setPositionsXYZ(x, y, z, length)](#Lore.PointHelper+setPositionsXYZ) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
     * [.setPositionsXYZHSS(x, y, z, hue, saturation, size)](#Lore.PointHelper+setPositionsXYZHSS) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
@@ -3870,6 +3872,13 @@ Get the center (average) of the point cloud.
 
 **Kind**: instance method of <code>[PointHelper](#Lore.PointHelper)</code>  
 **Returns**: <code>[Vector3f](#Lore.Vector3f)</code> - The center (average) of the point cloud.  
+<a name="Lore.PointHelper+getMaxRadius"></a>
+
+#### pointHelper.getMaxRadius() ⇒ <code>Number</code>
+Gets the distance between the center and the point furthest from the center.
+
+**Kind**: instance method of <code>[PointHelper](#Lore.PointHelper)</code>  
+**Returns**: <code>Number</code> - The maximal radius.  
 <a name="Lore.PointHelper+setPositions"></a>
 
 #### pointHelper.setPositions(positions) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>

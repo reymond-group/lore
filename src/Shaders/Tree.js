@@ -1,10 +1,6 @@
 Lore.Shaders['tree'] = new Lore.Shader('Tree', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-                                                 fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-                                                 fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-                                                 cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
+                                                    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',
-    'uniform float fogStart;',
-    'uniform float fogEnd;',
     'uniform float cutoff;',
     'attribute vec3 position;',
     'attribute vec3 color;',
@@ -36,20 +32,6 @@ Lore.Shaders['tree'] = new Lore.Shader('Tree', 1, { size: new Lore.Uniform('size
             'return;',
         '}',
         'gl_PointSize = size;',
-        'if(fogEnd == 0.0) {',
-            'vColor = hsv2rgb(hsv);',
-            'return;',
-        '}',
-        'float dist = abs(mv_pos.z);',
-        'if(dist >= fogEnd) {',
-            'hsv.b = 0.25;',
-        '}',
-        'else if(dist <= fogStart) {',
-            'hsv.b = 1.0;',
-        '}',
-        'else {',
-            'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);',
-        '}',
         'vColor = hsv2rgb(hsv);',
     '}'
 ], [
@@ -57,6 +39,7 @@ Lore.Shaders['tree'] = new Lore.Shader('Tree', 1, { size: new Lore.Uniform('size
     'varying float vDiscard;',
     'void main() {',
         'if(vDiscard > 0.5) discard;',
-        'gl_FragColor = vec4(vColor, 0.5);',
+        'float fog = 1.0 - (gl_FragCoord.z / gl_FragCoord.w);',
+        'gl_FragColor = vec4(vColor * fog, 0.5);',
     '}'
 ]);

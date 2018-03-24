@@ -1,10 +1,7 @@
 Lore.Shaders['circle'] = new Lore.Shader('Circle', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-                                                     fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-                                                     fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-                                                     cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
+                                                        cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+                                                        clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, [
     'uniform float size;',
-    'uniform float fogStart;',
-    'uniform float fogEnd;',
     'uniform float cutoff;',
     'attribute vec3 position;',
     'attribute vec3 color;',
@@ -36,23 +33,10 @@ Lore.Shaders['circle'] = new Lore.Shader('Circle', 1, { size: new Lore.Uniform('
             'return;',
         '}',
         'gl_PointSize = point_size * size;',
-        'if(fogEnd == 0.0) {',
-            'vColor = hsv2rgb(hsv);',
-            'return;',
-        '}',
-        'float dist = abs(mv_pos.z);',
-        'if(dist >= fogEnd) {',
-            'hsv.b = 0.25;',
-        '}',
-        'else if(dist <= fogStart) {',
-            'hsv.b = 1.0;',
-        '}',
-        'else {',
-            'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);',
-        '}',
         'vColor = hsv2rgb(hsv);',
     '}'
 ], [
+    'uniform vec4 clearColor;',
     'varying vec3 vColor;',
     'varying float vDiscard;',
     'float rand(vec2 co) {',
@@ -64,6 +48,8 @@ Lore.Shaders['circle'] = new Lore.Shader('Circle', 1, { size: new Lore.Uniform('
         'N.xy = gl_PointCoord * 2.0 - vec2(1.0);',
         'float mag = dot(N.xy, N.xy);',
         'if (mag > 1.0) discard;   // discard fragments outside circle',
-        'gl_FragColor = vec4(vColor, 1.0);',
+        'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w) * 2.0;',
+        'fogIntensity *= clearColor.w;',
+        'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);',
     '}'
 ]);

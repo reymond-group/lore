@@ -114,10 +114,18 @@ Lore.Renderer = class Renderer {
             console.warn('Could not load extension: ' + wdt + '.');
         }
 
+        let fgd = 'EXT_frag_depth';
+        let extFgd = g.getExtension(fgd);
+        
+        if (extFgd === null) {
+            console.warn('Could not load extension: ' + fgd + '.');
+        }
+
         this.setClearColor(this.opts.clearColor);
 
         // Blending
-        if (!this.webgl2) {
+        // if (!this.webgl2) {
+        if (true) {
           g.clearDepth(this.opts.clearDepth);
 
           if (this.opts.enableTransparency) {
@@ -134,10 +142,12 @@ Lore.Renderer = class Renderer {
               }
           }
         } else {
+            // Idea, write to fragdepth
+            // https://www.reddit.com/r/opengl/comments/1fthbc/is_gl_fragdepth_ignored_when_depth_writes_are_off/
             g.disable(g.DEPTH_TEST);
             g.enable(g.BLEND);
             g.blendFuncSeparate(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
-        }
+          }
 
         setTimeout(function () {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());

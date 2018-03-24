@@ -20,6 +20,7 @@
         pointHelper.addFilter('hueRange', new Lore.InRangeFilter('color', 0, 0.22, 0.25));
         
         lore.controls.setLookAt(pointHelper.getCenter());
+        lore.controls.setRadius(pointHelper.getMaxRadius());
 
         octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper, {
             visualize: 'cubes'
