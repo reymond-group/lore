@@ -1,5 +1,9 @@
+//@ts-check
+
+const CameraBase = require('./CameraBase');
+
 /** A class representing an perspective camera. */
-Lore.PerspectiveCamera = class PerspectiveCamera extends Lore.CameraBase {
+class PerspectiveCamera extends CameraBase {
     /**
      * Creates an instance of PerspectiveCamera.
      * @param {Number} fov The field of view.
@@ -27,10 +31,13 @@ Lore.PerspectiveCamera = class PerspectiveCamera extends Lore.CameraBase {
     /**
      * Updates the projection matrix of this perspective camera.
      * 
+     * @returns {PerspectiveCamera} Returns itself.
      */
     updateProjectionMatrix() {
         this.projectionMatrix.setPerspective(this.fov, this.aspect, this.near, this.far);
         this.isProjectionMatrixStale = true;
+
+        return this;
     }
 
     /**
@@ -38,8 +45,13 @@ Lore.PerspectiveCamera = class PerspectiveCamera extends Lore.CameraBase {
      * 
      * @param {Number} width The width of the viewport.
      * @param {Number} height The height of the viewport.
+     * 
+     * @returns {PerspectiveCamera} Returns itself.
      */
     updateViewport(width, height) {
       this.aspect = width / height;
+      return this;
     }
 }
+
+module.exports = PerspectiveCamera;

@@ -1,5 +1,7 @@
+//@ts-check
+
 /** A helper class containing statistics methods. */
-Lore.Statistics = class Statistics {
+class Statistics {
     /**
      * Transposes an array of arrays (2d array).
      
@@ -18,9 +20,9 @@ Lore.Statistics = class Statistics {
     static randomNormal() {
         let val, u, v, s, mul;
 
-        if (Lore.Statistics.spareRandomNormal !== null) {
-            val = Lore.Statistics.spareRandomNormal;
-            Lore.Statistics.spareRandomNormal = null;
+        if (Statistics.spareRandomNormal !== null) {
+            val = Statistics.spareRandomNormal;
+            Statistics.spareRandomNormal = null;
         } else {
             do {
                 u = Math.random() * 2 - 1;
@@ -31,7 +33,7 @@ Lore.Statistics = class Statistics {
 
             mul = Math.sqrt(-2 * Math.log(s) / s);
             val = u * mul;
-            Lore.Statistics.spareRandomNormal = v * mul;
+            Statistics.spareRandomNormal = v * mul;
         }
 
         return val / 14;
@@ -48,7 +50,7 @@ Lore.Statistics = class Statistics {
         let val;
 
         do {
-            val = Lore.Statistics.randomNormal();
+            val = Statistics.randomNormal();
         } while (val < a || val > b);
 
         return val;
@@ -62,7 +64,7 @@ Lore.Statistics = class Statistics {
      * @returns {Number} A normally distributed (pseudo) random number around a mean with a standard deviation.
      */
     static randomNormalScaled(mean, sd) {
-        let r = Lore.Statistics.randomNormalInRange(-1, 1);
+        let r = Statistics.randomNormalInRange(-1, 1);
         
         return r * sd + mean;
     }
@@ -108,8 +110,8 @@ Lore.Statistics = class Statistics {
 
         newArr.sort((a, b) => a - b);
 
-        let a = Lore.Statistics.getPercentile(newArr, q1);
-        let b = Lore.Statistics.getPercentile(newArr, q3);
+        let a = Statistics.getPercentile(newArr, q1);
+        let b = Statistics.getPercentile(newArr, q3);
         let iqr = b - a;
         let lower = a - (iqr * k);
         let upper = b + (iqr * k);
@@ -161,4 +163,6 @@ Lore.Statistics = class Statistics {
     }
 }
 
-Lore.Statistics.spareRandomNormal = null;
+Statistics.spareRandomNormal = null;
+
+module.exports = Statistics

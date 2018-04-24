@@ -1,4 +1,4 @@
-Lore.Shaders['circle'] = new Lore.Shader('Circle', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+module.exports = new Lore.Shader('circle', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
                                                         cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
                                                         clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, [
     'uniform float size;',

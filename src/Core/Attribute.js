@@ -1,3 +1,7 @@
+//@ts-check
+
+const Vector3f = require('../Math/Vector3f');
+
 /** 
  * A class representing an attribute. 
  * 
@@ -12,7 +16,7 @@
  * @property {GLenum} drawMode The draw mode. As of WebGL 1: gl.STATIC_DRAW, gl.DYNAMIC_DRAW or gl.STREAM_DRAW.
  * @property {Boolean} stale A boolean indicating whether or not this attribute has changed and needs to be updated.
  */
-Lore.Attribute = class Attribute {
+class Attribute {
     /**
      * Creates an instance of Attribute.
      * @param {*} data The data represented by the attribute in a 1D array. Usually a Float32Array.
@@ -36,7 +40,7 @@ Lore.Attribute = class Attribute {
      * Set the attribute value from a vector at a given index. The vector should have the same number of components as is the length of this attribute.
      * 
      * @param {Number} index The index at which to replace / set the value (is calculated as index * attributeLength).
-     * @param {Lore.Vector3f} v A vector.
+     * @param {Vector3f} v A vector.
      */
     setFromVector(index, v) {
         this.data.set(v.components, index * this.attributeLength, v.components.length);
@@ -45,7 +49,7 @@ Lore.Attribute = class Attribute {
     /**
      * Set the attribute values from vectors in an array.
      * 
-     * @param {Lore.Vector3f[]} arr An array containing vectors. The number of components of the vectors must have the same length as the attribute length specified.
+     * @param {Vector3f[]} arr An array containing vectors. The number of components of the vectors must have the same length as the attribute length specified.
      */
     setFromVectorArray(arr) {
         if (this.attributeLength !== arr[0].components.length)
@@ -198,3 +202,5 @@ Lore.Attribute = class Attribute {
         }
     }
 }
+
+module.exports = Attribute;

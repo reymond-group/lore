@@ -1,9 +1,11 @@
+//@ts-check
+
 /** 
  * A class representing a tree. 
  * 
  * @property {Array} tree An array of arrays where the index is the node id and the inner arrays contain the neighbours.
  */
-Lore.Tree = class Tree {
+class Tree {
   /**
    * The constructor of the class Tree.
    * 
@@ -109,6 +111,8 @@ Lore.Tree = class Tree {
       weights[edgeList[i][1]].push(edgeList[i][2]);
     }
 
-    return new Lore.Tree(neighbours, weights);
+    return new Tree(neighbours, weights);
   }
 }
+
+module.exports = Tree

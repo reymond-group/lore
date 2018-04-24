@@ -1,15 +1,16 @@
+//@ts-check
+
+
 /** 
  * A class representing the molecular graph. 
  * 
  * @property {Array[]} distanceMatrix The distance matrix of this graph.
  */
-Lore.Graph = class Graph {
+class Graph {
   /**
    * The constructor of the class Graph.
    * 
    * @param {Array[]} adjacencyMatrix The weighted adjacency matrix of a graph.
-   * @param {Array[]} distanceMatrix The distance matrix of a graph.
-   * @param {Number} diameter The diameter of the graph.
    */
   constructor(adjacencyMatrix) {
     this.adjacencyMatrix = adjacencyMatrix;
@@ -250,7 +251,7 @@ Lore.Graph = class Graph {
    * @param {Number} radius The radius within which to initialize the vertices.
    * @param {Boolean} logWeights Apply log() to the weights before layouting.
    * @param {Boolean} squareWeights Apply pow(x,2) to the weights before layouting.
-   * @param {Boolean} norm Normalize the edge weights before layouting and after log() or exp().
+   * @param {Boolean} normalizeWeights Normalize the edge weights before layouting and after log() or exp().
    * @return {Array} An array of vertex positions of the form [ x, y ].
    */
   kkLayout(radius = 500, logWeights = false, squareWeights = false, normalizeWeights = false) {
@@ -627,6 +628,8 @@ Lore.Graph = class Graph {
       adjacencyMatrix[edge[1]][edge[0]] = edge[2];
     }
 
-    return new Lore.Graph(adjacencyMatrix);
+    return new Graph(adjacencyMatrix);
   }
 }
+
+module.exports = Graph

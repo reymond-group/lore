@@ -1,7 +1,11 @@
+//@ts-check
+
+const Vector3f = require('../Math/Vector3f');
+
 /**
 * @class
 * Axis-aligned bounding boxes with the constraint that they are cubes with equal sides.
-* @property {Lore.Vector3f} center - The center of this axis-aligned bounding box.
+* @property {Vector3f} center - The center of this axis-aligned bounding box.
 * @property {number} radius - The radius of this axis-aligned bounding box.
 * @property {number} locCode - The location code of this axis-aligned bounding box in the octree.
 * @property {number} left - The distance of the left plane to the world ZY plane.
@@ -14,13 +18,13 @@
 * @property {Float32Array} min - An array specifying the minimum corner point (x, y, z) of the axis-aligned bounding box.
 * @property {Float32Array} max - An array specifying the maximum corner point (x, y, z) of the axis-aligned bounding box.
 * @constructor
-* @param {Lore.Vector3f} center - A radius for this axis-aligned bounding box.
+* @param {Vector3f} center - A radius for this axis-aligned bounding box.
 * @param {number} radius - A radius for this axis-aligned bounding box.
 */
-Lore.AABB = class AABB {
+class AABB {
     
     constructor(center, radius) {
-        this.center = center || new Lore.Vector3f();
+        this.center = center || new Vector3f(0.0, 0.0, 0.0);
         this.radius = radius || 0;
         this.locCode = 0;
         this.left = 0;
@@ -85,8 +89,8 @@ Lore.AABB = class AABB {
     /**
      * Tests whether or not this axis-aligned bounding box is intersected by a ray.
      * 
-     * @param {Lore.Vector3f} source - The source of the ray.
-     * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
+     * @param {Vector3f} source - The source of the ray.
+     * @param {Vector3f} inverseDir - A normalized vector of the direction of the ray.
      * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
      * @returns {boolean} - Whether or not there is an intersect.
      */
@@ -125,8 +129,8 @@ Lore.AABB = class AABB {
     /**
      * Tests whether or not this axis-aligned bounding box is intersected by a cylinder. CAUTION: If this runs multi-threaded, it might fail.
      * 
-     * @param {Lore.Vector3f} source - The source of the ray.
-     * @param {Lore.Vector3f} dir - A normalized vector of the direction of the ray.
+     * @param {Vector3f} source - The source of the ray.
+     * @param {Vector3f} inverseDir - A normalized vector of the direction of the ray.
      * @param {number} dist - The maximum distance from the source that still counts as an intersect (the far property of the Lore.Raycaster object).
      * @param {number} radius - The radius of the cylinder
      * @returns {boolean} - Whether or not there is an intersect.
@@ -187,7 +191,7 @@ Lore.AABB = class AABB {
      * Tests whether or not this axis-aligned bounding box overlaps or shares an edge or a vertex with another axis-aligned bounding box.
      * This method can also be used to assert whether or not two boxes are neighbours.
      * 
-     * @param {Lore.AABB} aabb - The axis-aligned bounding box to test against.
+     * @param {AABB} aabb - The axis-aligned bounding box to test against.
      * @returns {boolean} - Whether or not there is an overlap.
      */
     testAABB(aabb) {
@@ -203,16 +207,16 @@ Lore.AABB = class AABB {
     /**
      * Creates a axis-aligned bounding box surrounding a set of vertices.
      * 
-     * @param {Uint32Array} vertices - The vertices which will all be inside the axis-aligned bounding box.
-     * @returns {Lore.AABB} An axis-aligned bounding box surrounding the vertices.
+     * @param {Float32Array} vertices - The vertices which will all be inside the axis-aligned bounding box.
+     * @returns {AABB} An axis-aligned bounding box surrounding the vertices.
      */
     static fromPoints(vertices) {
         let x = vertices[0];
         let y = vertices[1];
         let z = vertices[2];
 
-        let min = new Lore.Vector3f(x, y, z);
-        let max = new Lore.Vector3f(x, y, z);
+        let min = new Vector3f(x, y, z);
+        let max = new Vector3f(x, y, z);
 
         let minc = min.components;
         let maxc = max.components;
@@ -227,26 +231,26 @@ Lore.AABB = class AABB {
         }
 
         // Calculate the radius in each direction
-        let radii = new Lore.Vector3f.subtract(max, min);
+        let radii = Vector3f.subtract(max, min);
         radii.multiplyScalar(0.5);
 
         let rx = radii.components[0];
         let ry = radii.components[1];
         let rz = radii.components[2];
 
-        let center = new Lore.Vector3f(rx, ry, rz);
+        let center = new Vector3f(rx, ry, rz);
         center.add(min);
         // Since the octree always stores cubes, there is of course only
         // one radius - take the biggest one
         let radius = Math.max(rx, ry, rz);
 
-        return new Lore.AABB(center, radius);
+        return new AABB(center, radius);
     }
 
     /**
      * Returns an array representing the 8 corners of the axis-aligned bounding box.
      * 
-     * @param {Lore.AABB} aabb An axis-aligned bounding box.
+     * @param {AABB} aabb An axis-aligned bounding box.
      * @returns {Array} An array containing the 8 corners of the axisa-aligned bunding box. E.g [[x, y, z], [x, y, z], ...]
      */
     static getCorners(aabb) {
@@ -271,14 +275,14 @@ Lore.AABB = class AABB {
     /**
      * Clones an axis-aligned bounding box.
      * 
-     * @param {Lore.AABB} original - The axis-aligned bounding box to be cloned.
-     * @returns {Lore.AABB} The cloned axis-aligned bounding box.
+     * @param {AABB} original - The axis-aligned bounding box to be cloned.
+     * @returns {AABB} The cloned axis-aligned bounding box.
      */
     static clone(original) {
-        let clone = new Lore.AABB();
+        let clone = new AABB();
         clone.back = original.back;
         clone.bottom = original.bottom;
-        clone.center = new Lore.Vector3f(original.center.components[0],
+        clone.center = new Vector3f(original.center.components[0],
             original.center.components[1], original.center.components[2]);
         clone.front = original.front;
         clone.left = original.left;
@@ -292,3 +296,5 @@ Lore.AABB = class AABB {
         return clone;
     }
 }
+
+module.exports = AABB

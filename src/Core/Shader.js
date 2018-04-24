@@ -1,11 +1,16 @@
+//@ts-check
+
+const Uniform = require('./Uniform');
+const Matrix4f = require('../Math/Matrix4f');
+
 /**
  * A class representing a shader.
  * 
  * @property {String} name The name of the shader.
- * @property {Object} uniforms A map mapping uniform names to Lore.Uniform instances.
+ * @property {Object} uniforms A map mapping uniform names to Lore Uniform instances.
  * 
  */
-Lore.Shader = class Shader {
+class Shader {
     constructor(name, glVersion, uniforms, vertexShader, fragmentShader) {
         this.name = name;
         this.uniforms = uniforms || {};
@@ -18,15 +23,15 @@ Lore.Shader = class Shader {
         this.lastTime = new Date().getTime();
         
         // Add the two default shaders (the same shaders as in getVertexShader)
-        this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix',
-            (new Lore.Matrix4f()).entries, 'float_mat4');
+        this.uniforms['modelViewMatrix'] = new Uniform('modelViewMatrix',
+            (new Matrix4f()).entries, 'float_mat4');
 
-        this.uniforms['projectionMatrix'] = new Lore.Uniform('projectionMatrix',
-            (new Lore.Matrix4f()).entries, 'float_mat4');
+        this.uniforms['projectionMatrix'] = new Uniform('projectionMatrix',
+            (new Matrix4f()).entries, 'float_mat4');
     }
     
     clone() {
-        return new Lore.Shader(this.name, this.glVersion, this.uniforms, this.vertexShader, this.fragmentShader);
+        return new Shader(this.name, this.glVersion, this.uniforms, this.vertexShader, this.fragmentShader);
     }
 
     getVertexShaderCode() {
@@ -54,7 +59,7 @@ Lore.Shader = class Shader {
         gl.shaderSource(shader, vertexShaderCode);
         gl.compileShader(shader);
 
-        Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Vertex Shader');
+        Shader.showCompilationInfo(gl, shader, this.name, 'Vertex Shader');
         return shader;
     }
 
@@ -80,7 +85,7 @@ Lore.Shader = class Shader {
         gl.shaderSource(shader, fragmentShaderCode);
         gl.compileShader(shader);
 
-        Lore.Shader.showCompilationInfo(gl, shader, this.name, 'Fragment Shader');
+        Shader.showCompilationInfo(gl, shader, this.name, 'Fragment Shader');
         return shader;
     }
 
@@ -102,7 +107,7 @@ Lore.Shader = class Shader {
 
         if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
             console.error('Could not link program.\n' +
-                'VALIDATE_STATUS: ' + this.gl.getProgramParameter(program, this.gl.VALIDATE_STATUS) + '\n' +
+                'VALIDATE_STATUS: ' + this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS) + '\n' +
                 'ERROR: ' + this.gl.getError());
             return null;
         }
@@ -119,14 +124,14 @@ Lore.Shader = class Shader {
             unif.value += currentTime - this.lastTime;
             this.lastTime = currentTime;
 
-            Lore.Uniform.Set(this.gl, this.program, unif);
+            Uniform.Set(this.gl, this.program, unif);
             
             unif.stale = false;
         }
         for (let uniform in this.uniforms) {
             let unif = this.uniforms[uniform];
             if (unif.stale) {
-                Lore.Uniform.Set(this.gl, this.program, unif);
+                Uniform.Set(this.gl, this.program, unif);
             }
         }
     }
@@ -149,3 +154,5 @@ Lore.Shader = class Shader {
         }
     }
 }
+
+module.exports = Shader

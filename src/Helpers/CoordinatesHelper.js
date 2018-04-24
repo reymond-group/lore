@@ -1,10 +1,19 @@
+//@ts-check
+
+const Renderer = require('../Core/Renderer');
+const Color = require('../Core/Color');
+const HelperBase = require('./HelperBase');
+const Vector3f = require('../Math/Vector3f');
+const Utils = require('../Utils/Utils');
+const DrawModes = require('../Core/DrawModes');
+
 /** A helper class for drawing coordinate system indicators. For example, a grid cube. */
-Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
+class CoordinatesHelper extends HelperBase {
 
     /**
      * Creates an instance of CoordinatesHelper.
      * 
-     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {Renderer} renderer A Lore.Renderer object.
      * @param {string} geometryName The name of this geometry.
      * @param {string} shaderName The name of the shader used to render the coordinates.
      * @param {object} options Options for drawing the coordinates. See documentation for details.
@@ -14,19 +23,19 @@ Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
 
         
         this.defaults = {
-            position: new Lore.Vector3f(),
+            position: new Vector3f(0.0, 0.0, 0.0),
             axis: {
                 x: {
                     length: 50.0,
-                    color: Lore.Color.fromHex('#222222')
+                    color: Color.fromHex('#222222')
                 },
                 y: {
                     length: 50.0,
-                    color: Lore.Color.fromHex('#222222')
+                    color: Color.fromHex('#222222')
                 },
                 z: {
                     length: 50.0,
-                    color: Lore.Color.fromHex('#222222')
+                    color: Color.fromHex('#222222')
                 }
             },
             ticks: {
@@ -34,39 +43,39 @@ Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
                 x: {
                     count: 10,
                     length: 5.0,
-                    offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#1f1f1f')
+                    offset: new Vector3f(0.0, 0.0, 0.0),
+                    color: Color.fromHex('#1f1f1f')
                 },
                 y: {
                     count: 10,
                     length: 5.0,
-                    offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#1f1f1f')
+                    offset: new Vector3f(0.0, 0.0, 0.0),
+                    color: Color.fromHex('#1f1f1f')
                 },
                 z: {
                     count: 10,
                     length: 5.0,
-                    offset: new Lore.Vector3f(),
-                    color: Lore.Color.fromHex('#1f1f1f')
+                    offset: new Vector3f(0.0, 0.0, 0.0),
+                    color: Color.fromHex('#1f1f1f')
                 }
             },
             box: {
                 enabled: true,
                 x: {
-                    color: Lore.Color.fromHex('#222222')
+                    color: Color.fromHex('#222222')
                 },
                 y: {
-                    color: Lore.Color.fromHex('#222222')
+                    color: Color.fromHex('#222222')
                 },
                 z: {
-                    color: Lore.Color.fromHex('#222222')
+                    color: Color.fromHex('#222222')
                 }
             },
         }
 
-        this.opts = Lore.Utils.extend(true, this.defaults, options);
+        this.opts = Utils.extend(true, this.defaults, options);
 
-        this.geometry.setMode(Lore.DrawModes.lines);
+        this.geometry.setMode(DrawModes.lines);
         this.init();
     }
 
@@ -203,3 +212,5 @@ Lore.CoordinatesHelper = class CoordinatesHelper extends Lore.HelperBase {
         this.setAttribute('color', new Float32Array(colors));
     }
 }
+
+module.exports = CoordinatesHelper

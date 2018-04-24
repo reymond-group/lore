@@ -1,15 +1,22 @@
+//@ts-check
+
+const DrawModes = require('./DrawModes');
+const Attribute = require('./Attribute');
+const Matrix4f = require('../Math/Matrix4f');
+const Node = require('./Node');
+
 /** 
  * A class representing a geometry.
  * 
  * @property {String} type The type name of this object (Lore.Geometry).
  * @property {String} name The name of this geometry.
  * @property {WebGLRenderingContext} gl A WebGL rendering context.
- * @property {Lore.Shader} shader An initialized shader.
+ * @property {Shader} shader An initialized shader.
  * @property {Object} attributes A map mapping attribute names to Lore.Attrubute objects.
- * @property {Lore.DrawMode} [drawMode=gl.POINTS] The current draw mode of this geometry.
+ * @property {DrawMode} [drawMode=gl.POINTS] The current draw mode of this geometry.
  * @property {Boolean} isVisisble A boolean indicating whether or not this geometry is currently visible.
  */
-Lore.Geometry = class Geometry extends Lore.Node {
+class Geometry extends Node {
   constructor(name, gl, shader) {
       super();
 
@@ -23,7 +30,7 @@ Lore.Geometry = class Geometry extends Lore.Node {
   }
 
   addAttribute(name, data, length) {
-      this.attributes[name] = new Lore.Attribute(data, length, name);
+      this.attributes[name] = new Attribute(data, length, name);
       this.attributes[name].createBuffer(this.gl, this.shader.program);
 
       return this;
@@ -51,25 +58,25 @@ Lore.Geometry = class Geometry extends Lore.Node {
 
   setMode(drawMode) {
       switch (drawMode) {
-      case Lore.DrawModes.points:
+      case DrawModes.points:
           this.drawMode = this.gl.POINTS;
           break;
-      case Lore.DrawModes.lines:
+      case DrawModes.lines:
           this.drawMode = this.gl.LINES;
           break;
-      case Lore.DrawModes.lineStrip:
+      case DrawModes.lineStrip:
           this.drawMode = this.gl.LINE_STRIP;
           break;
-      case Lore.DrawModes.lineLoop:
+      case DrawModes.lineLoop:
           this.drawMode = this.gl.LINE_LOOP;
           break;
-      case Lore.DrawModes.triangles:
+      case DrawModes.triangles:
           this.drawMode = this.gl.TRIANGLES;
           break;
-      case Lore.DrawModes.triangleStrip:
+      case DrawModes.triangleStrip:
           this.drawMode = this.gl.TRIANGLE_STRIP;
           break;
-      case Lore.DrawModes.triangleFan:
+      case DrawModes.triangleFan:
           this.drawMode = this.gl.TRIANGLE_FAN;
           break;
       }
@@ -100,7 +107,7 @@ Lore.Geometry = class Geometry extends Lore.Node {
       }
 
       if (renderer.camera.isViewMatrixStale) {
-          let modelViewMatrix = Lore.Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
+          let modelViewMatrix = Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
           this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
       }
 
@@ -115,3 +122,5 @@ Lore.Geometry = class Geometry extends Lore.Node {
       this.gl.drawArrays(this.drawMode, 0, this.size());
   }
 }
+
+module.exports = Geometry

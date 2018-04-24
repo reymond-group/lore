@@ -1,5 +1,8 @@
-Lore.Effect = class Effect {
+//@ts-check
 
+const Lore = require('../Lore');
+
+class Effect {
     constructor(renderer, shaderName) {
         this.renderer = renderer;
         this.gl = this.renderer.gl;
@@ -92,3 +95,5 @@ Lore.Effect = class Effect {
         g.drawArrays(g.TRIANGLES, 0, 6);
     }
 }
+
+module.exports = Effect

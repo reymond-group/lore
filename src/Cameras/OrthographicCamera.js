@@ -1,3 +1,7 @@
+//@ts-check
+
+const CameraBase = require('./CameraBase');
+
 /** 
  * A class representing an orthographic camera. 
  * 
@@ -9,7 +13,7 @@
  * @property {number} near The near plane distance of the frustum.
  * @property {number} far The far plane distance of the frustum.
  * */
-Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
+class OrthographicCamera extends CameraBase {
     /**
      * Creates an instance of OrthographicCamera.
      * @param {Number} left Left extend of the viewing volume.
@@ -37,6 +41,7 @@ Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
     /**
      * Updates the projection matrix of this orthographic camera.
      * 
+     * @returns {OrthographicCamera} Returns itself.
      */
     updateProjectionMatrix() {
         let width = (this.right - this.left) / (2.0 * this.zoom);
@@ -51,6 +56,8 @@ Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
         
         this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
         this.isProjectionMatrixStale = true;
+
+        return this;
     }
 
     /**
@@ -58,11 +65,17 @@ Lore.OrthographicCamera = class OrthographicCamera extends Lore.CameraBase {
      * 
      * @param {Number} width The width of the viewport.
      * @param {Number} height The height of the viewport.
+     * 
+     * @returns {OrthographicCamera} Returns itself.
      */
     updateViewport(width, height) {
         this.left = -width / 2.0;
         this.right = width / 2.0;
         this.top = height / 2.0;
         this.bottom = -height / 2.0;
+
+        return this;
     }
 }
+
+module.exports = OrthographicCamera;

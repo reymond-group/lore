@@ -1,4 +1,10 @@
-Lore.TreeHelper = class TreeHelper extends Lore.HelperBase {
+//@ts-check
+
+const HelperBase = require('./HelperBase');
+const DrawModes = require('../Core/DrawModes')
+const Utils = require('../Utils/Utils');
+
+class TreeHelper extends HelperBase {
 
   constructor(renderer, geometryName, shaderName, options) {
     super(renderer, geometryName, shaderName);
@@ -8,9 +14,9 @@ Lore.TreeHelper = class TreeHelper extends Lore.HelperBase {
       maxPointSize: 100.0
     }
 
-    this.opts = Lore.Utils.extend(true, this.defaults, options);
+    this.opts = Utils.extend(true, this.defaults, options);
     this.indices = null;
-    this.geometry.setMode(Lore.DrawModes.lines);
+    this.geometry.setMode(DrawModes.lines);
     this.initPointSize();
     this.filters = {};
   }
@@ -118,3 +124,5 @@ Lore.TreeHelper = class TreeHelper extends Lore.HelperBase {
     return this.filters[name];
   }
 }
+
+module.exports = TreeHelper

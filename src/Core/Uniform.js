@@ -1,16 +1,18 @@
+//@ts-check
+
 /**
  * A class representing a uniform.
  * 
  * @property {String} name The name of this uniform. Also the variable name in the shader.
- * @property {Number|Array} value The value of this uniform.
+ * @property {Number|number[]|Float32Array} value The value of this uniform.
  * @property {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
  * @property {Boolean} stale A boolean indicating whether or not this uniform is stale and needs to be updated.
  */
-Lore.Uniform = class Uniform {
+class Uniform {
     /**
      * Creates an instance of Uniform.
      * @param {String} name The name of this uniform. Also the variable name in the shader.
-     * @param {Number|Array} value The value of this uniform.
+     * @param {Number|number[]|Float32Array} value The value of this uniform.
      * @param {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
      */
     constructor(name, value, type) {
@@ -35,7 +37,7 @@ Lore.Uniform = class Uniform {
      * 
      * @param {WebGLRenderingContext} gl A WebGL rendering context.
      * @param {WebGLUniformLocation} program 
-     * @param {Lore.Uniform} uniform 
+     * @param {Uniform} uniform 
      */
     static Set(gl, program, uniform) {
         let location = gl.getUniformLocation(program, uniform.name);
@@ -75,3 +77,5 @@ Lore.Uniform = class Uniform {
         uniform.stale = true;
     }
 }
+
+module.exports = Uniform

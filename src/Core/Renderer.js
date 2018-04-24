@@ -1,12 +1,24 @@
+//@ts-check
+const Lore = require('../Lore');
+const Effect = require('./Effect')
+const Vector3f = require('../Math/Vector3f');
+const Color = require('./Color');
+const Utils = require('../Utils/Utils');
+const Geometry = require('./Geometry');
+const ControlsBase = require('../Controls/ControlsBase');
+const OrbitalControls = require('../Controls/OrbitalControls');
+const CameraBase = require('../Cameras/CameraBase');
+const OrthographicCamera = require('../Cameras/OrthographicCamera');
+
 /** 
  * A class representing the WebGL renderer. 
  * 
  * @property {Object} opts An object containing options.
- * @property {Lore.CameraBase} camera The camera associated with this renderer.
- * @property {Lore.ControlsBase} controls The controls associated with this renderer.
+ * @property {Any} camera The camera associated with this renderer.
+ * @property {ControlsBase} controls The controls associated with this renderer.
  */
-Lore.Renderer = class Renderer {
-
+class Renderer {
+  
     /**
      * Creates an instance of Renderer.
      * @param {String} targetId The id of a canvas element.
@@ -17,15 +29,15 @@ Lore.Renderer = class Renderer {
             antialiasing: true,
             verbose: false,
             fpsElement: document.getElementById('fps'),
-            clearColor: Lore.Color.fromHex('#000000'),
+            clearColor: Color.fromHex('#000000'),
             clearDepth: 1.0,
             radius: 500,
-            center: new Lore.Vector3f(),
+            center: new Vector3f(0.0, 0.0, 0.0),
             enableDepthTest: true,
             enableTransparency: false
         }
 
-        this.opts = Lore.Utils.extend(true, this.defaults, options);
+        this.opts = Utils.extend(true, this.defaults, options);
         
         this.canvas = document.getElementById(targetId);
         this.webgl2 = true;
@@ -34,8 +46,8 @@ Lore.Renderer = class Renderer {
         this.fpsCount = 0;
         this.maxFps = 1000 / 30;
         this.devicePixelRatio = this.getDevicePixelRatio();
-        this.camera = new Lore.OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
-        // this.camera = new Lore.PerspectiveCamera(25.0, this.getWidth() / this.getHeight());
+        this.camera = new OrthographicCamera(this.getWidth() / -2, this.getWidth() / 2, this.getHeight() / 2, this.getHeight() / -2);
+        // this.camera = new PerspectiveCamera(25.0, this.getWidth() / this.getHeight());
 
         this.geometries = {};
         this.ready = false;
@@ -50,9 +62,9 @@ Lore.Renderer = class Renderer {
         that.init();
 
         // Attach the controls last
-        let center = options.center ? options.center : new Lore.Vector3f();
+        let center = options.center ? options.center : new Vector3f(0.0, 0.0, 0.0);
 
-        this.controls = new Lore.OrbitalControls(that, this.opts.radius || 500, center);
+        this.controls = new OrbitalControls(that, this.opts.radius || 500, center);
     }
 
     /**
@@ -164,7 +176,7 @@ Lore.Renderer = class Renderer {
         });
 
         // Init effect(s)
-        this.effect = new Lore.Effect(this, 'fxaaEffect');
+        this.effect = new Effect(this, 'fxaaEffect');
         this.ready = true;
         this.animate();
     }
@@ -185,7 +197,7 @@ Lore.Renderer = class Renderer {
     /**
      * Sets the clear color of this renderer.
      * 
-     * @param {Lore.Color} color The clear color.
+     * @param {Color} color The clear color.
      */
     setClearColor(color) {
         this.opts.clearColor = color;
@@ -232,7 +244,7 @@ Lore.Renderer = class Renderer {
         this.camera.updateProjectionMatrix();
 
         // Also reinit the buffers and textures for the effect(s)
-        this.effect = new Lore.Effect(this, 'fxaaEffect');
+        this.effect = new Effect(this, 'fxaaEffect');
         this.effect.shader.uniforms.resolution.setValue([width, height]);
     }
 
@@ -278,12 +290,12 @@ Lore.Renderer = class Renderer {
      * 
      * @param {String} name The name of the geometry.
      * @param {String} shaderName The name of the shader used to render the geometry.
-     * @returns {Lore.Geometry} The created geometry.
+     * @returns {Geometry} The created geometry.
      */
     createGeometry(name, shaderName) {
         let shader = Lore.getShader(shaderName);
         shader.init(this.gl, this.webgl2);
-        let geometry = new Lore.Geometry(name, this.gl, shader);
+        let geometry = new Geometry(name, this.gl, shader);
 
         this.geometries[name] = geometry;
 
@@ -308,3 +320,5 @@ Lore.Renderer = class Renderer {
         return window.devicePixelRatio || 1;
     }
 }
+
+module.exports = Renderer

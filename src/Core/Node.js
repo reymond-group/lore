@@ -1,33 +1,40 @@
+//@ts-check
+
+const Vector3f = require('../Math/Vector3f');
+const Quaternion = require('../Math/Quaternion');
+const Matrix3f = require('../Math/Matrix3f');
+const Matrix4f = require('../Math/Matrix4f');
+
 /**
  * A class representing a node. A node is the base-class for all 3D objects.
  * 
- * @property {String} type The type name of this object (Lore.Node).
+ * @property {String} type The type name of this object (Node).
  * @property {String} id A GUID uniquely identifying the node.
  * @property {Boolean} isVisible A boolean indicating whether or not the node is visible (rendered).
- * @property {Lore.Vector3f} position The position of this node.
- * @property {Lore.Quaternion} rotation The rotation of this node.
- * @property {Lore.Vector3f} scale The scale of this node.
- * @property {Lore.Vector3f} up The up vector associated with this node.
- * @property {Lore.Matrix3f} normalMatrix The normal matrix of this node.
- * @property {Lore.Matrix4f} modelMatrix The model matrix associated with this node.
+ * @property {Vector3f} position The position of this node.
+ * @property {Quaternion} rotation The rotation of this node.
+ * @property {Vector3f} scale The scale of this node.
+ * @property {Vector3f} up The up vector associated with this node.
+ * @property {Matrix3f} normalMatrix The normal matrix of this node.
+ * @property {Matrix4f} modelMatrix The model matrix associated with this node.
  * @property {Boolean} isStale A boolean indicating whether or not the modelMatrix of this node is stale.
- * @property {Lore.Node[]} children An array containing child-nodes.
- * @property {Lore.Node} parent The parent node.
+ * @property {Node[]} children An array containing child-nodes.
+ * @property {Node} parent The parent node.
  */
-Lore.Node = class Node {
+class Node {
     /**
      * Creates an instance of Node.
      */
     constructor() {
-        this.type = 'Lore.Node';
-        this.id = Lore.Node.createGUID();
+        this.type = 'Node';
+        this.id = Node.createGUID();
         this.isVisible = true;
-        this.position = new Lore.Vector3f();
-        this.rotation = new Lore.Quaternion();
-        this.scale = new Lore.Vector3f(1.0, 1.0, 1.0);
-        this.up = new Lore.Vector3f(0.0, 1.0, 0.0);
-        this.normalMatrix = new Lore.Matrix3f();
-        this.modelMatrix = new Lore.Matrix4f();
+        this.position = new Vector3f(0.0, 0.0, 0.0);
+        this.rotation = new Quaternion(0.0, 0.0, 0.0, 0.0);
+        this.scale = new Vector3f(1.0, 1.0, 1.0);
+        this.up = new Vector3f(0.0, 1.0, 0.0);
+        this.normalMatrix = new Matrix3f();
+        this.modelMatrix = new Matrix4f();
         this.isStale = false;
 
         this.children = new Array();
@@ -37,8 +44,8 @@ Lore.Node = class Node {
     /**
      * Apply a matrix to the model matrix of this node.
      * 
-     * @param {Lore.Matrix4f} matrix A matrix.
-     * @returns {Lore.Node} Itself.
+     * @param {Matrix4f} matrix A matrix.
+     * @returns {Node} Itself.
      */
     applyMatrix(matrix) {
         this.modelMatrix.multiplyB(matrix);
@@ -49,10 +56,10 @@ Lore.Node = class Node {
     /**
      * Returns the up vector for this node.
      * 
-     * @returns {Lore.Vector3f} The up vector for this node.
+     * @returns {Vector3f} The up vector for this node.
      */
     getUpVector() {
-        let v = new Lore.Vector3f(0, 1, 0);
+        let v = new Vector3f(0, 1, 0);
 
         return v.applyQuaternion(this.rotation);
     }
@@ -60,10 +67,10 @@ Lore.Node = class Node {
     /**
      * Returns the forward vector for this node.
      * 
-     * @returns {Lore.Vector3f} The forward vector for this node.
+     * @returns {Vector3f} The forward vector for this node.
      */
     getForwardVector() {
-        let v = new Lore.Vector3f(0, 0, 1);
+        let v = new Vector3f(0, 0, 1);
 
         return v.applyQuaternion(this.rotation);
     }
@@ -71,10 +78,10 @@ Lore.Node = class Node {
     /**
      * Returns the right vector for this node.
      * 
-     * @returns {Lore.Vector3f} The right vector for this node.
+     * @returns {Vector3f} The right vector for this node.
      */
     getRightVector() {
-        let v = new Lore.Vector3f(1, 0, 0);
+        let v = new Vector3f(1, 0, 0);
 
         return v.applyQuaternion(this.rotation);
     }
@@ -82,13 +89,13 @@ Lore.Node = class Node {
     /**
      * Translates this node on an axis.
      * 
-     * @param {Lore.Vector3f} axis A vector representing an axis.
+     * @param {Vector3f} axis A vector representing an axis.
      * @param {Number} distance The distance for which to move the node along the axis.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     translateOnAxis(axis, distance) {
         // Axis should be normalized, following THREE.js
-        let v = new Lore.Vector3f(axis.components[0], axis.components[1],
+        let v = new Vector3f(axis.components[0], axis.components[1],
             axis.components[2]);
         v.applyQuaternion(this.rotation);
         v.multiplyScalar(distance);
@@ -101,7 +108,7 @@ Lore.Node = class Node {
      * Translates the node along the x-axis.
      * 
      * @param {Number} distance The distance for which to move the node along the x-axis.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     translateX(distance) {
         this.position.components[0] = this.position.components[0] + distance;
@@ -113,7 +120,7 @@ Lore.Node = class Node {
      * Translates the node along the y-axis.
      * 
      * @param {Number} distance The distance for which to move the node along the y-axis.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     translateY(distance) {
         this.position.components[1] = this.position.components[1] + distance;
@@ -125,7 +132,7 @@ Lore.Node = class Node {
      * Translates the node along the z-axis.
      * 
      * @param {Number} distance The distance for which to move the node along the z-axis.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     translateZ(distance) {
         this.position.components[2] = this.position.components[2] + distance;
@@ -136,8 +143,8 @@ Lore.Node = class Node {
     /**
      * Set the translation (position) of this node.
      * 
-     * @param {Lore.Vector3f} v A vector.
-     * @returns {Lore.Node} Itself.
+     * @param {Vector3f} v A vector.
+     * @returns {Node} Itself.
      */
     setTranslation(v) {
         this.position = v;
@@ -148,9 +155,9 @@ Lore.Node = class Node {
     /**
      * Set the rotation from an axis and an angle.
      * 
-     * @param {Lore.Vector3f} axis A vector representing an angle
+     * @param {Vector3f} axis A vector representing an angle
      * @param {Number} angle An angle.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     setRotation(axis, angle) {
         this.rotation.setFromAxisAngle(axis, angle);
@@ -161,12 +168,12 @@ Lore.Node = class Node {
     /**
      * Rotate this node by an angle on an axis.
      * 
-     * @param {Lore.Vector3f} axis A vector representing an angle
+     * @param {Vector3f} axis A vector representing an angle
      * @param {Number} angle An angle.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     rotate(axis, angle) {
-        let q = new Lore.Quaternion(axis, angle);
+        let q = new Quaternion(axis, angle);
 
         this.rotation.multiplyA(q);
 
@@ -177,7 +184,7 @@ Lore.Node = class Node {
      * Rotate around the x-axis.
      * 
      * @param {Number} angle An angle.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     rotateX(angle) {
         this.rotation.rotateX(angle);
@@ -189,7 +196,7 @@ Lore.Node = class Node {
      * Rotate around the y-axis.
      * 
      * @param {Number} angle An angle.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     rotateY(angle) {
         this.rotation.rotateY(angle);
@@ -201,7 +208,7 @@ Lore.Node = class Node {
      * Rotate around the z-axis.
      * 
      * @param {Number} angle An angle.
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     rotateZ(angle) {
         this.rotation.rotateZ(angle);
@@ -212,7 +219,7 @@ Lore.Node = class Node {
     /**
      * Get the rotation matrix for this node.
      * 
-     * @returns {Lore.Matrix4f} This nodes rotation matrix.
+     * @returns {Matrix4f} This nodes rotation matrix.
      */
     getRotationMatrix() {
         return this.rotation.toRotationMatrix();
@@ -221,11 +228,11 @@ Lore.Node = class Node {
     /**
      * Update the model matrix of this node. Has to be called in order to apply scaling, rotations or translations.
      * 
-     * @returns {Lore.Node} Itself.
+     * @returns {Node} Itself.
      */
     update() {
         this.modelMatrix.compose(this.position, this.rotation, this.scale);
-        // if parent... this.modelMatrix = Lore.Matrix4f.multiply(this.parent.modelMatrix, this.modelMatrix);
+        // if parent... this.modelMatrix = Matrix4f.multiply(this.parent.modelMatrix, this.modelMatrix);
         this.isStale = true;
 
         return this;
@@ -257,3 +264,5 @@ Lore.Node = class Node {
         });
     }
 }
+
+module.exports = Node;

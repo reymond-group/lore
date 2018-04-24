@@ -1,14 +1,23 @@
+//@ts-check
+
+const Renderer = require('../Core/Renderer');
+const DrawModes = require('../Core/DrawModes');
+const HelperBase = require('./HelperBase');
+const Utils = require('../Utils/Utils');
+
 /** A helper class for drawing axis aligned bounding boxes. */
-Lore.AABBHelper = class AABBHelper extends Lore.HelperBase {
+class AABBHelper extends HelperBase {
     /**
      * Creates an instance of AABBHelper.
      * 
-     * @param {Lore.Renderer} renderer A Lore.Renderer object.
+     * @param {Renderer} renderer A Lore.Renderer object.
      * @param {array} aabbs An array containing axis-aligned bounding boxes.
+     * @param {string} geometryName The name of the geometry used to render the axis-aligned bounding boxes.
      * @param {string} shaderName The name of the shader used to render the axis-aligned bounding boxes.
      * @param {object} options Options for drawing the axis-aligned bounding boxes.
      */
-    constructor(renderer, aabbs, shaderName, options) {
+    constructor(renderer, aabbs, geometryName, shaderName, options) {
+        // TODO: Fix error
         super(renderer, geometryName, shaderName);
 
         // Create lines
@@ -69,10 +78,12 @@ Lore.AABBHelper = class AABBHelper extends Lore.HelperBase {
 
 
         
-        this.opts = Lore.Utils.extend(true, Lore.AABBHelper.defaults, options);
-        this.geometry.setMode(Lore.DrawModes.lines);
+        this.opts = Utils.extend(true, AABBHelper.defaults, options);
+        this.geometry.setMode(DrawModes.lines);
 
         this.setAttribute('position', p);
         this.setAttribute('color', c);
     }
 }
+
+module.exports = AABBHelper

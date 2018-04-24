@@ -1,5 +1,10 @@
+//@ts-check
+
+const Matrix4f = require('./Matrix4f');
+const Utils = require('../Utils/Utils');
+
 /** A class representing a projection matrix */
-Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
+class ProjectionMatrix extends Matrix4f {
     /**
      * Set the projection matrix to an orthographic projection.
      *
@@ -20,7 +25,7 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
         let y = (top + bottom) * h;
         let z = (far + near) * d;
 
-        this.set();
+        this.setZero();
 
         this.entries[0] = 2 * w;
         this.entries[4] = 0;
@@ -53,7 +58,7 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
      */
     setPerspective(fov, aspect, near, far) {
         let range = near - far;
-        let tanHalfFov = Math.tan(Lore.Utils.DEG2RAD * 0.5 * fov);
+        let tanHalfFov = Math.tan(Utils.DEG2RAD * 0.5 * fov);
         
         let top = near * tanHalfFov;
         let height = 2.0 * top;
@@ -73,7 +78,7 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
         let c = -(far + near) / (far - near);
         let d = -2 * far * near / (far - near);
         
-        this.set();
+        this.setZero();
 
         this.entries[0] = x;
         this.entries[4] = 0;
@@ -95,3 +100,5 @@ Lore.ProjectionMatrix = class ProjectionMatrix extends Lore.Matrix4f {
         return this;
     }
 }
+
+module.exports = ProjectionMatrix

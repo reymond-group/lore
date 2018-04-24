@@ -1,4 +1,4 @@
-Lore.Shaders['tree'] = new Lore.Shader('Tree', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+module.exports = new Lore.Shader('tree', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
                                                     cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',

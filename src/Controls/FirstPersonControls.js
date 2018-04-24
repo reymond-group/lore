@@ -1,5 +1,11 @@
+//@ts-check
+
+const ControlsBase = require('../Controls/ControlsBase')
+const Renderer = require('../Core/Renderer');
+const Vector3f = require('../Math/Vector3f');
+
 /** A class representing orbital controls. */
-Lore.FirstPersonControls = class FirstPersonControls extends Lore.ControlsBase {
+class FirstPersonControls extends ControlsBase {
 
     /**
      * Creates an instance of FirstPersonControls.
@@ -8,14 +14,12 @@ Lore.FirstPersonControls = class FirstPersonControls extends Lore.ControlsBase {
     constructor(renderer, radius) {
         super(renderer);
 
-        this.up = Lore.Vector3f.up();
+        this.up = Vector3f.up();
         this.renderer = renderer;
         this.camera = renderer.camera;
         this.canvas = renderer.canvas;
-        
-        this.lookAt = lookAt || new Lore.Vector3f();
 
-        this.camera.position = new Lore.Vector3f(radius, radius, radius);
+        this.camera.position = new Vector3f(radius, radius, radius);
         this.camera.updateProjectionMatrix();
         this.camera.updateViewMatrix();
 
@@ -58,3 +62,5 @@ Lore.FirstPersonControls = class FirstPersonControls extends Lore.ControlsBase {
         return this;
     }
 }
+
+module.exports = FirstPersonControls;

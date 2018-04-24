@@ -1,9 +1,13 @@
+//@ts-check
+
+const Utils = require('../Utils/Utils');
+
 /** 
  * An abstract class representing the base for file reader implementations. 
  * 
  * @property {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
  * */
-Lore.FileReaderBase = class FileReaderBase {
+class FileReaderBase {
     /**
      * Creates an instance of FileReaderBase.
      * 
@@ -33,7 +37,7 @@ Lore.FileReaderBase = class FileReaderBase {
                 fileReader.readAsBinaryString(this.files[0]);
             });
         } else {
-            Lore.Utils.jsonp(source, function(response) {
+            Utils.jsonp(source, function(response) {
                 that.loaded(response);
             });
         }
@@ -78,3 +82,5 @@ Lore.FileReaderBase = class FileReaderBase {
 
     }
 }
+
+module.exports = FileReaderBase

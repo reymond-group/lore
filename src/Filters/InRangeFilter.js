@@ -1,9 +1,13 @@
+//@ts-check
+
+const FilterBase = require('./FilterBase');
+
 /** 
  * A class representing an In-Range-Filter. It is used to filter a geometry based on a min and max value. 
  * @property {number} min The minimum value.
  * @property {number} max The maximum value.
  * */
-Lore.InRangeFilter = class InRangeFilter extends Lore.FilterBase {
+class InRangeFilter extends FilterBase {
     /**
      * Creates an instance of InRangeFilter.
      * @param {string} attribute The name of the attribute to filter on.
@@ -87,3 +91,5 @@ Lore.InRangeFilter = class InRangeFilter extends Lore.FilterBase {
         this.geometry.updateAttribute('color');
     } 
 }
+
+module.exports = InRangeFilter

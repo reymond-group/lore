@@ -1,4 +1,4 @@
-Lore.Shaders['sphere'] = new Lore.Shader('Sphere', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+module.exports = new Lore.Shader('sphere', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
                                                         cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
                                                         clearColor: new Lore.Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, [
     'uniform float size;',

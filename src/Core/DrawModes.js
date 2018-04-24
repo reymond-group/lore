@@ -1,5 +1,7 @@
+//@ts-check
+
 /** A map mapping draw modes as strings to their GLInt representations. */
-Lore.DrawModes = {
+let DrawModes = {
     points: 0,
     lines: 1,
     lineStrip: 2,
@@ -8,3 +10,5 @@ Lore.DrawModes = {
     traingleStrip: 5,
     triangleFan: 6
 }
+
+module.exports = DrawModes

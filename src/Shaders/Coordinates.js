@@ -1,4 +1,4 @@
-Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', 1, { }, [
+module.exports = new Lore.Shader('coordinates', 1, { }, [
     'attribute vec3 position;',
     'attribute vec3 color;',
     'varying vec3 vColor;',

@@ -1,9 +1,13 @@
+//@ts-check
+
+
+
 /** A class representing a 3x3 float matrix */
-Lore.Matrix3f = class Matrix3f {
+class Matrix3f {
     /**
      * The constructor for the class Matrix3f.
      *
-     * @param {Float32Array} [entries=new Float32Array(...)] The Float32Array to which the entries will be set. If no value is provided, the matrix will be initialized to the identity matrix.
+     * @param {Float32Array} [entries=new Float32Array()] The Float32Array to which the entries will be set. If no value is provided, the matrix will be initialized to the identity matrix.
      */
     constructor(entries = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1])) {
         this.entries = entries;
@@ -15,7 +19,7 @@ Lore.Matrix3f = class Matrix3f {
      * @returns {Matrix3f} The clone.
      */
     clone() {
-        return new Lore.Matrix3f(new Float32Array(this.entries));
+        return new Matrix3f(new Float32Array(this.entries));
     }
 
     /**
@@ -34,3 +38,5 @@ Lore.Matrix3f = class Matrix3f {
         return true;
     }
 }
+
+module.exports = Matrix3f

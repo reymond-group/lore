@@ -1,5 +1,7 @@
+//@ts-check
+
 /** A utility class containing static methods. */
-Lore.Utils = class Utils {
+class Utils {
     /**
      * Merges two objects, overriding probierties set in both objects in the first one.
      * 
@@ -20,7 +22,7 @@ Lore.Utils = class Utils {
             for (let prop in obj) {
                 if (Object.prototype.hasOwnProperty.call(obj, prop)) {
                     if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
-                        extended[prop] = Lore.Utils.extend(true, extended[prop], obj[prop]);
+                        extended[prop] = Utils.extend(true, extended[prop], obj[prop]);
                     } else {
                         extended[prop] = obj[prop];
                     }
@@ -56,12 +58,12 @@ Lore.Utils = class Utils {
     /**
      * Concatinate two typed arrays.
      * 
-     * @param {TypedArray} arrA A typed array.
-     * @param {TypedArray} arrB A typed array.
-     * @returns {TypedArray} The concatinated typed array.
+     * @param {Array|Float32Array} arrA A typed array.
+     * @param {Array|Float32Array} arrB A typed array.
+     * @returns {Array|Float32Array} The concatinated typed array.
      */
     static concatTypedArrays(arrA, arrB) {
-        let arrC = new a.constructor(arrA.length + arrB.length);
+        let arrC = new arrA.constructor(arrA.length + arrB.length);
         
         arrC.set(arrA);
         arrC.set(arrB, arrA.length);
@@ -76,7 +78,7 @@ Lore.Utils = class Utils {
      * @returns {Number} The most significant bit (0 or 1).
      */
     static msb(n) {
-        return (n & 0x80000000) ? 31 : Lore.Utils.msb((n << 1) | 1) - 1;
+        return (n & 0x80000000) ? 31 : Utils.msb((n << 1) | 1) - 1;
     }
 
     /**
@@ -90,8 +92,8 @@ Lore.Utils = class Utils {
     static mergePointDistances(a, b) {
         let newObj = {};
 
-        newObj.indices = Lore.Utils.concatTypedArrays(a.indices, b.indices);
-        newObj.distancesSq = Lore.Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
+        newObj.indices = Utils.concatTypedArrays(a.indices, b.indices);
+        newObj.distancesSq = Utils.concatTypedArrays(a.distancesSq, b.distancesSq);
         
         return newObj;
     }
@@ -136,4 +138,6 @@ Lore.Utils = class Utils {
     }
 }
 
-Lore.Utils.DEG2RAD = Math.PI / 180.0; 
+Utils.DEG2RAD = Math.PI / 180.0;
+
+module.exports = Utils

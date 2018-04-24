@@ -1,16 +1,20 @@
+//@ts-check
+
+const Vector3f = require('./Vector3f')
+
 /** A class representing spherical coordinates. */
-Lore.SphericalCoords = class SphericalCoords {
+class SphericalCoords {
     /**
      * Creates an instance of SphericalCoords.
-     * @param {Number} radius The radius.
-     * @param {Number} phi Phi in radians.
-     * @param {Number} theta Theta in radians.
+     * @param {Number} [radius=1.0] The radius.
+     * @param {Number} [phi=0.0] Phi in radians.
+     * @param {Number} [theta=0.0] Theta in radians.
      */
-    constructor(radius, phi, theta) {
+    constructor(radius = 1.0, phi = 0.0, theta = 0.0) {
         this.components = new Float32Array(3);
-        this.radius = (radius !== undefined) ? radius : 1.0;
-        this.phi = phi ? phi : 0.0;
-        this.theta = theta ? theta : 0.0;
+        this.radius = radius;
+        this.phi = phi;
+        this.theta = theta;
     }
 
     /**
@@ -84,7 +88,7 @@ Lore.SphericalCoords = class SphericalCoords {
      * @returns {SphericalCoords} A clone of the spherical coordinates object.
      */
     clone() {
-        return new Lore.SphericalCoords(this.radius, this.phi, this.theta);
+        return new SphericalCoords(this.radius, this.phi, this.theta);
     }
 
     /**
@@ -97,3 +101,5 @@ Lore.SphericalCoords = class SphericalCoords {
             this.components[1] + ', ' + this.components[2] + ')';
     }
 }
+
+module.exports = SphericalCoords

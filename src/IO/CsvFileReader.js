@@ -1,5 +1,10 @@
+//@ts-check
+
+const FileReaderBase = require('./FileReaderBase');
+const Utils = require('../Utils/Utils');
+
 /** A class representing a CSV file reader. */
-Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
+class CsvFileReader extends FileReaderBase {
     /**
      * Creates an instance of CsvFileReader.
      * @param {String} source The source of the file. This is either a input element (type=file) or a URL. If it is a URL, set local to true.
@@ -16,7 +21,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
             header: true
         }
 
-        this.opts = Lore.Utils.extend(true, this.defaults, options);
+        this.opts = Utils.extend(true, this.defaults, options);
         this.columns = {};
         this.headers = [];
         this.types = this.opts.types;
@@ -27,7 +32,7 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
      * Called when the data is loaded, will raise the "loaded" event.
      * 
      * @param {any} data The data loaded from the file or url.
-     * @returns {Lore.CsvFileReader} Itself.
+     * @returns {CsvFileReader} Itself.
      */
     loaded(data) {
         data = data.replace('\n\n', '\n');
@@ -48,9 +53,9 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
                 
                 this.types = [];
                 for (let i = 0; i < values.length; i++) {
-                    if(Lore.Utils.isFloat(parseFloat(values[i], 10))) {
+                    if(Utils.isFloat(parseFloat(values[i], 10))) {
                         this.types.push('Float32Array');
-                    } else if (Lore.Utils.isInt(parseFloat(values[i], 10))) {
+                    } else if (Utils.isInt(parseFloat(values[i], 10))) {
                         this.types.push('Int32Array');
                     } else {
                         this.types.push('StringArray');
@@ -131,3 +136,5 @@ Lore.CsvFileReader = class CsvFileReader extends Lore.FileReaderBase {
         return this;
     }
 }
+
+module.exports = CsvFileReader

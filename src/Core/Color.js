@@ -1,17 +1,19 @@
+//@ts-check
+
 /** 
  * A class representing a Color. 
  * 
  * @property {Float32Array} components A typed array storing the components of this color (rgba).
  */
-Lore.Color = class Color {
+class Color {
     /**
      * Creates an instance of Color.
      * @param {Number} r The red component (0.0 - 1.0).
      * @param {Number} g The green component (0.0 - 1.0).
      * @param {Number} b The blue component (0.0 - 1.0).
-     * @param {Number} a The alpha component (0.0 - 1.0).
+     * @param {Number} [a=1.0] The alpha component (0.0 - 1.0).
      */
-    constructor(r, g, b, a) {
+    constructor(r, g, b, a = 1.0) {
         if (arguments.length === 1) {
             this.components = new Float32Array(r);
         } else {
@@ -30,7 +32,7 @@ Lore.Color = class Color {
      * @param {Number} g The green component (0.0 - 1.0).
      * @param {Number} b The blue component (0.0 - 1.0).
      * @param {Number} a The alpha component (0.0 - 1.0).
-     * @returns {Lore.Color} Returns itself.
+     * @returns {Color} Returns itself.
      */
     set(r, g, b, a) {
         this.components[0] = r;
@@ -49,7 +51,7 @@ Lore.Color = class Color {
      * 
      * @static
      * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
-     * @returns {Lore.Color} A color representing the hex string.
+     * @returns {Color} A color representing the hex string.
      */
     static fromHex(hex) {
         // Thanks to Tim Down
@@ -66,7 +68,7 @@ Lore.Color = class Color {
         let g = parseInt(result[2], 16);
         let b = parseInt(result[3], 16);
 
-        return result ? new Lore.Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
+        return result ? new Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
     }
 
     /**
@@ -112,9 +114,9 @@ Lore.Color = class Color {
             let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
             let p = 2 * l - q;
             
-            r = Lore.Color.hueToRgb(p, q, h + 0.3333);
-            g = Lore.Color.hueToRgb(p, q, h);
-            b = Lore.Color.hueToRgb(p, q, h - 0.3333);
+            r = Color.hueToRgb(p, q, h + 0.3333);
+            g = Color.hueToRgb(p, q, h);
+            b = Color.hueToRgb(p, q, h - 0.3333);
         }
 
         return [r, g, b];
@@ -130,7 +132,7 @@ Lore.Color = class Color {
      * @returns {String} A hex string representing the color (#RRGGBB).
      */
     static hslToHex(h, s, l) {
-      let [r, g, b] = Lore.Color.hslToRgb(h, s, l);
+      let [r, g, b] = Color.hslToRgb(h, s, l);
       return '#' + [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)].map(e => {
         const hex = e.toString(16);
         return hex.length === 1 ? '0' + hex : hex
@@ -197,3 +199,5 @@ Lore.Color = class Color {
         return hue;
     }
 }
+
+module.exports = Color

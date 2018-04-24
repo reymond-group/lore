@@ -1,5 +1,7 @@
+//@ts-check
+
 /** A class wrapping a radix sort for floats. */
-Lore.RadixSort = class RadixSort {
+class RadixSort {
     /**
      * Creates an instance of RadixSort.
      * 
@@ -192,3 +194,5 @@ Lore.RadixSort = class RadixSort {
         }
     }
 }
+
+module.exports = RadixSort

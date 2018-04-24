@@ -1,14 +1,21 @@
+//@ts-check
+
+const Node = require ('../Core/Node');
+const ProjectionMatrix = require('../Math/ProjectionMatrix');
+const Matrix4f = require('../Math/Matrix4f');
+const Vector3f = require('../Math/Vector3f');
+const Renderer = require('../Core/Renderer');
 
 /** 
  * An abstract class representing the base for camera implementations. 
  * 
  * @property {string} type The type name of this object (Lore.CameraBase).
- * @property {Lore.Renderer} renderer A Lore.Renderer object.
+ * @property {Renderer} renderer A Lore.Renderer object.
  * @property {boolean} isProjectionMatrixStale A boolean indicating whether or not the projection matrix was changed and has to be updated.
- * @property {Lore.ProjectionMatrix} projectionMatrix A Lore.ProjectionMatrix object.
- * @property {Lore.Matrix4f} viewMatrix A Lore.Matrix4f object representing the view matrix for this camera.
+ * @property {ProjectionMatrix} projectionMatrix A Lore.ProjectionMatrix object.
+ * @property {Matrix4f} viewMatrix A Lore.Matrix4f object representing the view matrix for this camera.
  * */
-Lore.CameraBase = class CameraBase extends Lore.Node {
+class CameraBase extends Node {
     /**
      * Creates an instance of CameraBase.
      */
@@ -19,8 +26,10 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
         this.renderer = null;
         this.isProjectionMatrixStale = false;
         this.isViewMatrixStale = false;
-        this.projectionMatrix = new Lore.ProjectionMatrix();
-        this.viewMatrix = new Lore.Matrix4f();
+        this.projectionMatrix = new ProjectionMatrix();
+        this.viewMatrix = new Matrix4f();
+        this.near = 0.0;
+        this.far = 1000.0;
     }
 
     /**
@@ -44,7 +53,7 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
      * @returns {CameraBase} Returns itself.
      */
     setLookAt(vec) {
-        this.rotation.lookAt(this.position, vec, Lore.Vector3f.up());
+        this.rotation.lookAt(this.position, vec, Vector3f.up());
         
         return this;
     }
@@ -54,6 +63,8 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
      * 
      * @param {Number} width The width of the viewport.
      * @param {Number} height The height of the viewport.
+     * 
+     * @returns {CameraBase} Returns itself.
      */
     updateViewport(width, height) {
         return this;
@@ -62,7 +73,7 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
     /**
      * Virtual Method
      * 
-     * @returns {Vector3f} Returns itself.
+     * @returns {CameraBase} Returns itself.
      */
     updateProjectionMatrix() {
         return this;
@@ -71,7 +82,7 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
     /**
      * Upates the view matrix of this camera.
      * 
-     * @returns {Vector3f} Returns itself.
+     * @returns {CameraBase} Returns itself.
      */
     updateViewMatrix() {
         this.update();
@@ -124,3 +135,5 @@ Lore.CameraBase = class CameraBase extends Lore.Node {
         return [ x, y ];
     }
 }
+
+module.exports = CameraBase;

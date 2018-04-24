@@ -1,4 +1,4 @@
-Lore.Shaders['defaultEffect'] = new Lore.Shader('DefaultEffect', 1, {}, [
+module.exports = new Lore.Shader('defaultEffect', 1, {}, [
     'attribute vec2 v_coord;',
     'uniform sampler2D fbo_texture;',
     'varying vec2 f_texcoord;',

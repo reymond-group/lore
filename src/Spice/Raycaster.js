@@ -1,7 +1,11 @@
+//@ts-check
+
+const Ray = require('../Math/Ray');
+
 /** A class representing a raycaster. */
-Lore.Raycaster = class Raycaster {
+class Raycaster {
     constructor() {
-        this.ray = new Lore.Ray();
+        this.ray = new Ray();
         this.near = 0;
         this.far = 1000;
         this.threshold = 0.1;
@@ -10,10 +14,10 @@ Lore.Raycaster = class Raycaster {
     /**
      * Set the raycaster based on a camera and the current mouse coordinates.
      * 
-     * @param {Lore.CameraBase} camera A camera object which extends Lore.CameraBase.
+     * @param {CameraBase} camera A camera object which extends Lore.CameraBase.
      * @param {number} mouseX The x coordinate of the mouse.
      * @param {number} mouseY The y coordinate of the mouse.
-     * @returns {Lore.Raycaster} Itself.
+     * @returns {Raycaster} Itself.
      */
     set(camera, mouseX, mouseY) {
         this.near = camera.near;
@@ -28,3 +32,5 @@ Lore.Raycaster = class Raycaster {
         return this;
     }
 }
+
+module.exports = Raycaster
