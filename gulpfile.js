@@ -56,6 +56,7 @@ var files = [
     'src/Shaders/Coordinates.js',
     'src/Shaders/Tree.js',
     'src/Shaders/Circle.js',
+    'src/Shaders/SmoothCircle.js',
     'src/Shaders/SimpleSphere.js',
     'src/Shaders/Sphere.js',
     'src/Shaders/DefaultEffect.js',

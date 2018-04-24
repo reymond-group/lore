@@ -274,6 +274,8 @@ The Lore namespace.
         * [.randomNormalInRange(a, b)](#Lore.Statistics.randomNormalInRange) ⇒ <code>Number</code>
         * [.randomNormalScaled(mean, sd)](#Lore.Statistics.randomNormalScaled) ⇒ <code>Number</code>
         * [.normalize(arr)](#Lore.Statistics.normalize) ⇒ <code>Array.&lt;Number&gt;</code>
+        * [.normalizeNoOutliers(arr, q1, q3, k)](#Lore.Statistics.normalizeNoOutliers) ⇒ <code>Array.&lt;Number&gt;</code>
+        * [.getPercentile(arr, percentile)](#Lore.Statistics.getPercentile) ⇒ <code>Number</code>
         * [.scale(value, oldMin, oldMax, newMin, newMax)](#Lore.Statistics.scale) ⇒ <code>Number</code>
     * [.Ray](#Lore.Ray)
         * [new Lore.Ray(source, direction)](#new_Lore.Ray_new)
@@ -301,6 +303,7 @@ The Lore namespace.
         * [.getMaxLength(x, y, z)](#Lore.PointHelper+getMaxLength) ⇒ <code>Number</code>
         * [.getDimensions()](#Lore.PointHelper+getDimensions) ⇒ <code>Object</code>
         * [.getCenter()](#Lore.PointHelper+getCenter) ⇒ <code>[Vector3f](#Lore.Vector3f)</code>
+        * [.getMaxRadius()](#Lore.PointHelper+getMaxRadius) ⇒ <code>Number</code>
         * [.setPositions(positions)](#Lore.PointHelper+setPositions) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
         * [.setPositionsXYZ(x, y, z, length)](#Lore.PointHelper+setPositionsXYZ) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
         * [.setPositionsXYZHSS(x, y, z, hue, saturation, size)](#Lore.PointHelper+setPositionsXYZHSS) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
@@ -322,6 +325,7 @@ The Lore namespace.
         * [.getSize(index)](#Lore.PointHelper+getSize) ⇒ <code>Number</code>
         * [.getPosition(index)](#Lore.PointHelper+getPosition) ⇒ <code>Number</code>
         * [.setHue(hue)](#Lore.PointHelper+setHue)
+        * [.updateHue(hue, index)](#Lore.PointHelper+updateHue)
         * [.setSaturation(hue)](#Lore.PointHelper+setSaturation)
         * [.setSize(hue)](#Lore.PointHelper+setSize)
         * [.setHSS(hue, saturation, size, length)](#Lore.PointHelper+setHSS)
@@ -722,7 +726,7 @@ A class representing a uniform.
 | Name | Type | Description |
 | --- | --- | --- |
 | name | <code>String</code> | The name of this uniform. Also the variable name in the shader. |
-| value | <code>Number</code> | The value of this uniform. |
+| value | <code>Number</code> &#124; <code>Array</code> | The value of this uniform. |
 | type | <code>String</code> | The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4. |
 | stale | <code>Boolean</code> | A boolean indicating whether or not this uniform is stale and needs to be updated. |
 
@@ -743,7 +747,7 @@ Creates an instance of Uniform.
 | Param | Type | Description |
 | --- | --- | --- |
 | name | <code>String</code> | The name of this uniform. Also the variable name in the shader. |
-| value | <code>Number</code> | The value of this uniform. |
+| value | <code>Number</code> &#124; <code>Array</code> | The value of this uniform. |
 | type | <code>String</code> | The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4. |
 
 <a name="Lore.Uniform+setValue"></a>
@@ -3413,6 +3417,8 @@ A helper class containing statistics methods.
     * [.randomNormalInRange(a, b)](#Lore.Statistics.randomNormalInRange) ⇒ <code>Number</code>
     * [.randomNormalScaled(mean, sd)](#Lore.Statistics.randomNormalScaled) ⇒ <code>Number</code>
     * [.normalize(arr)](#Lore.Statistics.normalize) ⇒ <code>Array.&lt;Number&gt;</code>
+    * [.normalizeNoOutliers(arr, q1, q3, k)](#Lore.Statistics.normalizeNoOutliers) ⇒ <code>Array.&lt;Number&gt;</code>
+    * [.getPercentile(arr, percentile)](#Lore.Statistics.getPercentile) ⇒ <code>Number</code>
     * [.scale(value, oldMin, oldMax, newMin, newMax)](#Lore.Statistics.scale) ⇒ <code>Number</code>
 
 <a name="Lore.Statistics.transpose2dArray"></a>
@@ -3471,6 +3477,34 @@ Normalize / scale an array between 0 and 1.
 | Param | Type | Description |
 | --- | --- | --- |
 | arr | <code>Array.&lt;Number&gt;</code> | An array. |
+
+<a name="Lore.Statistics.normalizeNoOutliers"></a>
+
+#### Statistics.normalizeNoOutliers(arr, q1, q3, k) ⇒ <code>Array.&lt;Number&gt;</code>
+Normalize / scale an array between 0 and 1 (outliers will be set to max or min respectively).The IQR method is used for outlier detection.
+
+**Kind**: static method of <code>[Statistics](#Lore.Statistics)</code>  
+**Returns**: <code>Array.&lt;Number&gt;</code> - The normalized / scaled array.  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| arr | <code>Array.&lt;Number&gt;</code> |  | An array. |
+| q1 | <code>Number</code> | <code>0.25</code> | The q1 percentage. |
+| q3 | <code>Number</code> | <code>0.75</code> | The q3 percentage. |
+| k | <code>Number</code> | <code>1.5</code> | The IQR scaling factor. |
+
+<a name="Lore.Statistics.getPercentile"></a>
+
+#### Statistics.getPercentile(arr, percentile) ⇒ <code>Number</code>
+Gets the percentile from a sorted array.
+
+**Kind**: static method of <code>[Statistics](#Lore.Statistics)</code>  
+**Returns**: <code>Number</code> - The percentile value.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| arr | <code>Array.&lt;Number&gt;</code> | A sorted array. |
+| percentile | <code>Number</code> | The percentile (e.g. 0.25). |
 
 <a name="Lore.Statistics.scale"></a>
 
@@ -3765,6 +3799,7 @@ A helper class wrapping a point cloud.
     * [.getMaxLength(x, y, z)](#Lore.PointHelper+getMaxLength) ⇒ <code>Number</code>
     * [.getDimensions()](#Lore.PointHelper+getDimensions) ⇒ <code>Object</code>
     * [.getCenter()](#Lore.PointHelper+getCenter) ⇒ <code>[Vector3f](#Lore.Vector3f)</code>
+    * [.getMaxRadius()](#Lore.PointHelper+getMaxRadius) ⇒ <code>Number</code>
     * [.setPositions(positions)](#Lore.PointHelper+setPositions) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
     * [.setPositionsXYZ(x, y, z, length)](#Lore.PointHelper+setPositionsXYZ) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
     * [.setPositionsXYZHSS(x, y, z, hue, saturation, size)](#Lore.PointHelper+setPositionsXYZHSS) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
@@ -3786,6 +3821,7 @@ A helper class wrapping a point cloud.
     * [.getSize(index)](#Lore.PointHelper+getSize) ⇒ <code>Number</code>
     * [.getPosition(index)](#Lore.PointHelper+getPosition) ⇒ <code>Number</code>
     * [.setHue(hue)](#Lore.PointHelper+setHue)
+    * [.updateHue(hue, index)](#Lore.PointHelper+updateHue)
     * [.setSaturation(hue)](#Lore.PointHelper+setSaturation)
     * [.setSize(hue)](#Lore.PointHelper+setSize)
     * [.setHSS(hue, saturation, size, length)](#Lore.PointHelper+setHSS)
@@ -3835,6 +3871,13 @@ Get the center (average) of the point cloud.
 
 **Kind**: instance method of <code>[PointHelper](#Lore.PointHelper)</code>  
 **Returns**: <code>[Vector3f](#Lore.Vector3f)</code> - The center (average) of the point cloud.  
+<a name="Lore.PointHelper+getMaxRadius"></a>
+
+#### pointHelper.getMaxRadius() ⇒ <code>Number</code>
+Gets the distance between the center and the point furthest from the center.
+
+**Kind**: instance method of <code>[PointHelper](#Lore.PointHelper)</code>  
+**Returns**: <code>Number</code> - The maximal radius.  
 <a name="Lore.PointHelper+setPositions"></a>
 
 #### pointHelper.setPositions(positions) ⇒ <code>[PointHelper](#Lore.PointHelper)</code>
@@ -4071,6 +4114,18 @@ Set the hue. If a number is supplied, all the hues are set to the supplied numbe
 | Param | Type | Description |
 | --- | --- | --- |
 | hue | <code>TypedArray</code> &#124; <code>Number</code> | The hue to be set. If a number is supplied, all hues are set to its value. |
+
+<a name="Lore.PointHelper+updateHue"></a>
+
+#### pointHelper.updateHue(hue, index)
+Update the hue of the points.
+
+**Kind**: instance method of <code>[PointHelper](#Lore.PointHelper)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| hue | <code>TypedArray</code> &#124; <code>Number</code> | The hue to be set. If a number is supplied, all hues are set to its value. |
+| index | <code>Number</code> &#124; <code>Array.&lt;Number&gt;</code> | The index or the indices of vertices to be set to a hue. |
 
 <a name="Lore.PointHelper+setSaturation"></a>
 

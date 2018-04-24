@@ -1,6 +1,6 @@
 (function() {
     let lore = Lore.init('lore', {
-        clearColor: '#222222'
+        clearColor: '#ffffff'
     });
     
     let fileReader = new Lore.CsvFileReader('input-upload');
@@ -13,9 +13,9 @@
         pointHelper = new Lore.PointHelper(lore, 'FlyBaby', 'sphere');
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], Lore.Statistics.normalize(original_data['Sytox Green']), 1.0, 1.0)
         pointHelper.setPointScale(5.0);
-        pointHelper.setFogDistance(500, 2000);
         
         lore.controls.setLookAt(pointHelper.getCenter());
+        lore.controls.setRadius(pointHelper.getMaxRadius());
 
         octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper);
 

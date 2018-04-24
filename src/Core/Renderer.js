@@ -21,12 +21,14 @@ Lore.Renderer = class Renderer {
             clearDepth: 1.0,
             radius: 500,
             center: new Lore.Vector3f(),
-            enableDepthTest: true
+            enableDepthTest: true,
+            enableTransparency: false
         }
 
         this.opts = Lore.Utils.extend(true, this.defaults, options);
         
         this.canvas = document.getElementById(targetId);
+        this.webgl2 = true;
         this.parent = this.canvas.parentElement;
         this.fps = 0;
         this.fpsCount = 0;
@@ -63,8 +65,13 @@ Lore.Renderer = class Renderer {
             antialias: this.opts.antialiasing
         };
 
-        this.gl = this.canvas.getContext('webgl', settings) || 
-            this.canvas.getContext('experimental-webgl', settings);
+        this.gl = this.canvas.getContext('webgl2', settings) || this.canvas.getContext('experimental-webgl2');
+
+        if (!this.gl) {
+          this.webgl2 = false;
+          this.gl = this.canvas.getContext('webgl', settings) ||
+              this.canvas.getContext('experimental-webgl', settings);
+        }
 
         if (!this.gl) {
             console.error('Could not initialize the WebGL context.');
@@ -81,17 +88,11 @@ Lore.Renderer = class Renderer {
             let highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
             let hasHighp = highp.precision != 0;
             console.info('High precision support: ' + hasHighp);
+
+            console.info('WebGL2 supported: ' + this.webgl2);
         }
 
-        // Blending
-        /*
-        g.blendFunc(g.SRC_ALPHA, g.ONE);
-        g.enable(g.BLEND);
-        g.disable(g.DEPTH_TEST);
-        */
-
         // Extensions
-        
         let oes = 'OES_standard_derivatives';
         let extOes = g.getExtension(oes);
         
@@ -113,23 +114,40 @@ Lore.Renderer = class Renderer {
             console.warn('Could not load extension: ' + wdt + '.');
         }
 
-
-        this.setClearColor(this.opts.clearColor);
-        g.clearDepth(this.opts.clearDepth);
-
-        if (this.opts.enableDepthTest) {
-            g.enable(g.DEPTH_TEST);
-            g.depthFunc(g.LEQUAL);
-            
-            if (this.opts.verbose) {
-                console.log('enable depth test');
-            }
+        let fgd = 'EXT_frag_depth';
+        let extFgd = g.getExtension(fgd);
+        
+        if (extFgd === null) {
+            console.warn('Could not load extension: ' + fgd + '.');
         }
 
-        /*
-        g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
-        g.enable(g.BLEND);
-        */
+        this.setClearColor(this.opts.clearColor);
+
+        // Blending
+        // if (!this.webgl2) {
+        if (true) {
+          g.clearDepth(this.opts.clearDepth);
+
+          if (this.opts.enableTransparency) {
+            g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+            g.enable(g.BLEND);
+            g.disable(g.DEPTH_TEST);
+          }
+          else if (this.opts.enableDepthTest) {
+              g.enable(g.DEPTH_TEST);
+              g.depthFunc(g.LEQUAL);
+              
+              if (this.opts.verbose) {
+                  console.log('enable depth test');
+              }
+          }
+        } else {
+            // Idea, write to fragdepth
+            // https://www.reddit.com/r/opengl/comments/1fthbc/is_gl_fragdepth_ignored_when_depth_writes_are_off/
+            g.disable(g.DEPTH_TEST);
+            g.enable(g.BLEND);
+            g.blendFuncSeparate(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
+          }
 
         setTimeout(function () {
             _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
@@ -238,7 +256,7 @@ Lore.Renderer = class Renderer {
             if (this.fpsCount < 10) {
                 this.fps += Math.round(1000.0 / delta);
                 this.fpsCount++;
-            } else {
+            } else {// 
                 this.opts.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
                 this.fpsCount = 0;
                 this.fps = 0;
@@ -247,6 +265,7 @@ Lore.Renderer = class Renderer {
 
         // this.effect.bind();
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.render(this.camera, this.geometries);
         // this.effect.unbind();
 
@@ -263,7 +282,7 @@ Lore.Renderer = class Renderer {
      */
     createGeometry(name, shaderName) {
         let shader = Lore.getShader(shaderName);
-        shader.init(this.gl);
+        shader.init(this.gl, this.webgl2);
         let geometry = new Lore.Geometry(name, this.gl, shader);
 
         this.geometries[name] = geometry;

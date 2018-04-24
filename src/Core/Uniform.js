@@ -2,7 +2,7 @@
  * A class representing a uniform.
  * 
  * @property {String} name The name of this uniform. Also the variable name in the shader.
- * @property {Number} value The value of this uniform.
+ * @property {Number|Array} value The value of this uniform.
  * @property {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
  * @property {Boolean} stale A boolean indicating whether or not this uniform is stale and needs to be updated.
  */
@@ -10,7 +10,7 @@ Lore.Uniform = class Uniform {
     /**
      * Creates an instance of Uniform.
      * @param {String} name The name of this uniform. Also the variable name in the shader.
-     * @param {Number} value The value of this uniform.
+     * @param {Number|Array} value The value of this uniform.
      * @param {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
      */
     constructor(name, value, type) {

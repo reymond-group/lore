@@ -6,16 +6,17 @@
  * 
  */
 Lore.Shader = class Shader {
-    constructor(name, uniforms, vertexShader, fragmentShader) {
+    constructor(name, glVersion, uniforms, vertexShader, fragmentShader) {
         this.name = name;
         this.uniforms = uniforms || {};
         this.vertexShader = vertexShader || [];
         this.fragmentShader = fragmentShader || [];
+        this.glVersion = glVersion;
         this.gl = null;
         this.program = null;
         this.initialized = false;
         this.lastTime = new Date().getTime();
-
+        
         // Add the two default shaders (the same shaders as in getVertexShader)
         this.uniforms['modelViewMatrix'] = new Lore.Uniform('modelViewMatrix',
             (new Lore.Matrix4f()).entries, 'float_mat4');
@@ -25,7 +26,7 @@ Lore.Shader = class Shader {
     }
     
     clone() {
-        return new Lore.Shader(this.name, this.uniforms, this.vertexShader, this.fragmentShader);
+        return new Lore.Shader(this.name, this.glVersion, this.uniforms, this.vertexShader, this.fragmentShader);
     }
 
     getVertexShaderCode() {
@@ -36,13 +37,20 @@ Lore.Shader = class Shader {
         return this.fragmentShader.join('\n');
     }
 
-    getVertexShader(gl) {
+    getVertexShader(gl, isWebGL2 = false) {
         let shader = gl.createShader(gl.VERTEX_SHADER);
+        let vertexShaderCode = '';
 
-        let vertexShaderCode = 'uniform mat4 modelViewMatrix;\n' +
+        if (!isWebGL2 && this.glVersion === 2) {
+          throw('The shader expects WebGL 2.0');
+        } else if (this.glVersion === 2) {
+          vertexShaderCode += '#version 300 es\n';
+        }
+
+        vertexShaderCode += 'uniform mat4 modelViewMatrix;\n' +
             'uniform mat4 projectionMatrix;\n\n' +
             this.getVertexShaderCode();
-
+            
         gl.shaderSource(shader, vertexShaderCode);
         gl.compileShader(shader);
 
@@ -50,13 +58,22 @@ Lore.Shader = class Shader {
         return shader;
     }
 
-    getFragmentShader(gl) {
+    getFragmentShader(gl, isWebGL2 = false) {
         let shader = gl.createShader(gl.FRAGMENT_SHADER);
+
+        let fragmentShaderCode = '';
+
+        if (!isWebGL2 && this.glVersion === 2) {
+          throw('The shader expects WebGL 2.0');
+        } else if (this.glVersion === 2) {
+          fragmentShaderCode += '#version 300 es\n';
+        }
+
         // Adding precision, see:
         // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
         // and:
         // http://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
-        let fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' +
+        fragmentShaderCode += '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' +
             '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' +
             this.getFragmentShaderCode();
 
@@ -67,11 +84,11 @@ Lore.Shader = class Shader {
         return shader;
     }
 
-    init(gl) {
+    init(gl, isWebGL2 = false) {
         this.gl = gl;
         this.program = this.gl.createProgram();
-        let vertexShader = this.getVertexShader(this.gl);
-        let fragmentShader = this.getFragmentShader(this.gl);
+        let vertexShader = this.getVertexShader(this.gl, isWebGL2);
+        let fragmentShader = this.getFragmentShader(this.gl, isWebGL2);
 
         if (!vertexShader || !fragmentShader) {
             console.error('Failed to create the fragment or the vertex shader.');

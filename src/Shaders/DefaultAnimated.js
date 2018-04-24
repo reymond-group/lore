@@ -1,11 +1,8 @@
-Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', { size: new Lore.Uniform('size', 5.0, 'float'),
-                                                                       fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-                                                                       fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-                                                                       cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-                                                                       time: new Lore.Uniform('time', 0.0, 'float') }, [
+Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+                                                                          cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+                                                                          time: new Lore.Uniform('time', 0.0, 'float'),
+                                                                          clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, [
     'uniform float size;',
-    'uniform float fogStart;',
-    'uniform float fogEnd;',
     'uniform float cutoff;',
     'uniform float time;',
     'attribute vec3 position;',
@@ -37,19 +34,19 @@ Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', { size: new
             'vDiscard = 1.0;',
             'return;',
         '}',
-        'float dist = abs(mv_pos.z - fogStart);',
         'gl_PointSize = size;',
-        'if(fogEnd > 0.0) {',
-            'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);',
-        '}',
         'hsv.g *= max(0.15, abs(sin(time * 0.002)));',
         'vColor = hsv2rgb(hsv);',
     '}'
 ], [
+    'uniform vec4 clearColor;',
     'varying vec3 vColor;',
     'varying float vDiscard;',
     'void main() {',
         'if(vDiscard > 0.5) discard;',
-        'gl_FragColor = vec4(vColor, 1.0);',
+        'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);',
+        'fogIntensity = fogIntensity + fogIntensity * 2.0;',
+        'fogIntensity *= clearColor.w;',
+        'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);',
     '}'
 ]);

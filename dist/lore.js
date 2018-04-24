@@ -1,5 +1,7 @@
 'use strict';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -15,7 +17,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @typicalname Lore
  */
 var Lore = {
-    Version: '1.0.0'
+    Version: '1.0.6'
 };
 
 if (typeof define === 'function' && define.amd) {
@@ -62,7 +64,7 @@ Lore.getShader = function (shaderName) {
 Lore.init = function (canvas, options) {
     this.opts = Lore.Utils.extend(true, Lore.defaults, options);
 
-    Lore.getGrakaInfo(canvas);
+    // Lore.getGrakaInfo(canvas);
 
     var cc = Lore.Color.fromHex(this.opts.clearColor);
 
@@ -387,12 +389,14 @@ Lore.Renderer = function () {
             clearDepth: 1.0,
             radius: 500,
             center: new Lore.Vector3f(),
-            enableDepthTest: true
+            enableDepthTest: true,
+            enableTransparency: false
         };
 
         this.opts = Lore.Utils.extend(true, this.defaults, options);
 
         this.canvas = document.getElementById(targetId);
+        this.webgl2 = true;
         this.parent = this.canvas.parentElement;
         this.fps = 0;
         this.fpsCount = 0;
@@ -433,7 +437,12 @@ Lore.Renderer = function () {
                 antialias: this.opts.antialiasing
             };
 
-            this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
+            this.gl = this.canvas.getContext('webgl2', settings) || this.canvas.getContext('experimental-webgl2');
+
+            if (!this.gl) {
+                this.webgl2 = false;
+                this.gl = this.canvas.getContext('webgl', settings) || this.canvas.getContext('experimental-webgl', settings);
+            }
 
             if (!this.gl) {
                 console.error('Could not initialize the WebGL context.');
@@ -450,17 +459,11 @@ Lore.Renderer = function () {
                 var highp = g.getShaderPrecisionFormat(g.FRAGMENT_SHADER, g.HIGH_FLOAT);
                 var hasHighp = highp.precision != 0;
                 console.info('High precision support: ' + hasHighp);
+
+                console.info('WebGL2 supported: ' + this.webgl2);
             }
 
-            // Blending
-            /*
-            g.blendFunc(g.SRC_ALPHA, g.ONE);
-            g.enable(g.BLEND);
-            g.disable(g.DEPTH_TEST);
-            */
-
             // Extensions
-
             var oes = 'OES_standard_derivatives';
             var extOes = g.getExtension(oes);
 
@@ -482,22 +485,39 @@ Lore.Renderer = function () {
                 console.warn('Could not load extension: ' + wdt + '.');
             }
 
-            this.setClearColor(this.opts.clearColor);
-            g.clearDepth(this.opts.clearDepth);
+            var fgd = 'EXT_frag_depth';
+            var extFgd = g.getExtension(fgd);
 
-            if (this.opts.enableDepthTest) {
-                g.enable(g.DEPTH_TEST);
-                g.depthFunc(g.LEQUAL);
-
-                if (this.opts.verbose) {
-                    console.log('enable depth test');
-                }
+            if (extFgd === null) {
+                console.warn('Could not load extension: ' + fgd + '.');
             }
 
-            /*
-            g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
-            g.enable(g.BLEND);
-            */
+            this.setClearColor(this.opts.clearColor);
+
+            // Blending
+            // if (!this.webgl2) {
+            if (true) {
+                g.clearDepth(this.opts.clearDepth);
+
+                if (this.opts.enableTransparency) {
+                    g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+                    g.enable(g.BLEND);
+                    g.disable(g.DEPTH_TEST);
+                } else if (this.opts.enableDepthTest) {
+                    g.enable(g.DEPTH_TEST);
+                    g.depthFunc(g.LEQUAL);
+
+                    if (this.opts.verbose) {
+                        console.log('enable depth test');
+                    }
+                }
+            } else {
+                // Idea, write to fragdepth
+                // https://www.reddit.com/r/opengl/comments/1fthbc/is_gl_fragdepth_ignored_when_depth_writes_are_off/
+                g.disable(g.DEPTH_TEST);
+                g.enable(g.BLEND);
+                g.blendFuncSeparate(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA, g.ONE, g.ONE_MINUS_SRC_ALPHA);
+            }
 
             setTimeout(function () {
                 _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
@@ -624,6 +644,7 @@ Lore.Renderer = function () {
                     this.fps += Math.round(1000.0 / delta);
                     this.fpsCount++;
                 } else {
+                    // 
                     this.opts.fpsElement.innerHTML = Math.round(this.fps / this.fpsCount);
                     this.fpsCount = 0;
                     this.fps = 0;
@@ -632,6 +653,7 @@ Lore.Renderer = function () {
 
             // this.effect.bind();
             this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+            // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             this.render(this.camera, this.geometries);
             // this.effect.unbind();
 
@@ -651,7 +673,7 @@ Lore.Renderer = function () {
         key: 'createGeometry',
         value: function createGeometry(name, shaderName) {
             var shader = Lore.getShader(shaderName);
-            shader.init(this.gl);
+            shader.init(this.gl, this.webgl2);
             var geometry = new Lore.Geometry(name, this.gl, shader);
 
             this.geometries[name] = geometry;
@@ -695,13 +717,14 @@ Lore.Renderer = function () {
  * 
  */
 Lore.Shader = function () {
-    function Shader(name, uniforms, vertexShader, fragmentShader) {
+    function Shader(name, glVersion, uniforms, vertexShader, fragmentShader) {
         _classCallCheck(this, Shader);
 
         this.name = name;
         this.uniforms = uniforms || {};
         this.vertexShader = vertexShader || [];
         this.fragmentShader = fragmentShader || [];
+        this.glVersion = glVersion;
         this.gl = null;
         this.program = null;
         this.initialized = false;
@@ -716,7 +739,7 @@ Lore.Shader = function () {
     _createClass(Shader, [{
         key: 'clone',
         value: function clone() {
-            return new Lore.Shader(this.name, this.uniforms, this.vertexShader, this.fragmentShader);
+            return new Lore.Shader(this.name, this.glVersion, this.uniforms, this.vertexShader, this.fragmentShader);
         }
     }, {
         key: 'getVertexShaderCode',
@@ -731,9 +754,18 @@ Lore.Shader = function () {
     }, {
         key: 'getVertexShader',
         value: function getVertexShader(gl) {
-            var shader = gl.createShader(gl.VERTEX_SHADER);
+            var isWebGL2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-            var vertexShaderCode = 'uniform mat4 modelViewMatrix;\n' + 'uniform mat4 projectionMatrix;\n\n' + this.getVertexShaderCode();
+            var shader = gl.createShader(gl.VERTEX_SHADER);
+            var vertexShaderCode = '';
+
+            if (!isWebGL2 && this.glVersion === 2) {
+                throw 'The shader expects WebGL 2.0';
+            } else if (this.glVersion === 2) {
+                vertexShaderCode += '#version 300 es\n';
+            }
+
+            vertexShaderCode += 'uniform mat4 modelViewMatrix;\n' + 'uniform mat4 projectionMatrix;\n\n' + this.getVertexShaderCode();
 
             gl.shaderSource(shader, vertexShaderCode);
             gl.compileShader(shader);
@@ -744,12 +776,23 @@ Lore.Shader = function () {
     }, {
         key: 'getFragmentShader',
         value: function getFragmentShader(gl) {
+            var isWebGL2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
             var shader = gl.createShader(gl.FRAGMENT_SHADER);
+
+            var fragmentShaderCode = '';
+
+            if (!isWebGL2 && this.glVersion === 2) {
+                throw 'The shader expects WebGL 2.0';
+            } else if (this.glVersion === 2) {
+                fragmentShaderCode += '#version 300 es\n';
+            }
+
             // Adding precision, see:
             // http://stackoverflow.com/questions/27058064/why-do-i-need-to-define-a-precision-value-in-webgl-shaders
             // and:
             // http://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
-            var fragmentShaderCode = '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' + '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' + this.getFragmentShaderCode();
+            fragmentShaderCode += '#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\n\n' + '#ifdef GL_ES\nprecision highp float;\n#endif\n\n' + this.getFragmentShaderCode();
 
             gl.shaderSource(shader, fragmentShaderCode);
             gl.compileShader(shader);
@@ -760,10 +803,12 @@ Lore.Shader = function () {
     }, {
         key: 'init',
         value: function init(gl) {
+            var isWebGL2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
             this.gl = gl;
             this.program = this.gl.createProgram();
-            var vertexShader = this.getVertexShader(this.gl);
-            var fragmentShader = this.getFragmentShader(this.gl);
+            var vertexShader = this.getVertexShader(this.gl, isWebGL2);
+            var fragmentShader = this.getFragmentShader(this.gl, isWebGL2);
 
             if (!vertexShader || !fragmentShader) {
                 console.error('Failed to create the fragment or the vertex shader.');
@@ -833,7 +878,7 @@ Lore.Shader = function () {
  * A class representing a uniform.
  * 
  * @property {String} name The name of this uniform. Also the variable name in the shader.
- * @property {Number} value The value of this uniform.
+ * @property {Number|Array} value The value of this uniform.
  * @property {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
  * @property {Boolean} stale A boolean indicating whether or not this uniform is stale and needs to be updated.
  */
@@ -841,7 +886,7 @@ Lore.Uniform = function () {
     /**
      * Creates an instance of Uniform.
      * @param {String} name The name of this uniform. Also the variable name in the shader.
-     * @param {Number} value The value of this uniform.
+     * @param {Number|Array} value The value of this uniform.
      * @param {String} type The type of this uniform. Available types: int, int_vec2, int_vec3, int_vec4, int_array, float, float_vec2, float_vec3, float_vec4, float_array, float_mat2, float_mat3, float_mat4.
      */
     function Uniform(name, value, type) {
@@ -3519,7 +3564,6 @@ Lore.CameraBase = function (_Lore$Node2) {
             var viewMatrix = this.modelMatrix.clone();
 
             viewMatrix.invert();
-            console.log(viewMatrix.toString());
             this.viewMatrix = viewMatrix;
             this.isViewMatrixStale = true;
 
@@ -6348,6 +6392,71 @@ Lore.Statistics = function () {
         }
 
         /**
+         * Normalize / scale an array between 0 and 1 (outliers will be set to max or min respectively).
+         * The IQR method is used for outlier detection.
+         * 
+         * @param {Number[]} arr An array.
+         * @param {Number} q1 The q1 percentage.
+         * @param {Number} q3 The q3 percentage.
+         * @param {Number} k The IQR scaling factor.
+         * @returns {Number[]} The normalized / scaled array.
+         */
+
+    }, {
+        key: 'normalizeNoOutliers',
+        value: function normalizeNoOutliers(arr) {
+            var q1 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.25;
+            var q3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.75;
+            var k = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1.5;
+
+            var newArr = arr.slice();
+
+            newArr.sort(function (a, b) {
+                return a - b;
+            });
+
+            var a = Lore.Statistics.getPercentile(newArr, q1);
+            var b = Lore.Statistics.getPercentile(newArr, q3);
+            var iqr = b - a;
+            var lower = a - iqr * k;
+            var upper = b + iqr * k;
+
+            var diff = upper - lower;
+
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i] < lower) {
+                    newArr[i] = 0.0;
+                } else if (arr[i] > upper) {
+                    newArr[i] = 1.0;
+                } else {
+                    newArr[i] = (arr[i] - lower) / diff;
+                }
+            }
+
+            return newArr;
+        }
+
+        /**
+         * Gets the percentile from a sorted array.
+         * 
+         * @param {Number[]} arr A sorted array.
+         * @param {Number} percentile The percentile (e.g. 0.25).
+         * @returns {Number} The percentile value.
+         */
+
+    }, {
+        key: 'getPercentile',
+        value: function getPercentile(arr, percentile) {
+            var index = percentile * arr.length;
+
+            if (Math.floor(index) === index) {
+                return (arr[index - 1] + arr[index]) / 2.0;
+            } else {
+                return arr[Math.floor(index)];
+            }
+        }
+
+        /**
          * Scales a number to within a given scale.
          * 
          * @param {Number} value The number.
@@ -6896,6 +7005,19 @@ Lore.PointHelper = function (_Lore$HelperBase) {
         }
 
         /**
+         * Gets the distance between the center and the point furthest from the center.
+         * 
+         * @return {Number} The maximal radius.
+         */
+
+    }, {
+        key: 'getMaxRadius',
+        value: function getMaxRadius() {
+            var center = this.getCenter();
+            return center.subtract(this.dimensions.max).length();
+        }
+
+        /**
          * Set the positions of points in this point cloud.
          * 
          * @param {TypedArray} positions The positions (linear array).
@@ -7206,8 +7328,9 @@ Lore.PointHelper = function (_Lore$HelperBase) {
     }, {
         key: 'setFogDistance',
         value: function setFogDistance(fogStart, fogEnd) {
-            this.geometry.shader.uniforms.fogStart.value = fogStart;
-            this.geometry.shader.uniforms.fogEnd.value = fogEnd;
+            console.warn('This function is deprecated.');
+            // this.geometry.shader.uniforms.fogStart.value = fogStart;
+            // this.geometry.shader.uniforms.fogEnd.value = fogEnd;
 
             return this;
         }
@@ -7349,6 +7472,50 @@ Lore.PointHelper = function (_Lore$HelperBase) {
             }
 
             this.setColors(c);
+        }
+
+        /**
+         * Update the hue of the points.
+         * 
+         * @param {TypedArray|Number} hue The hue to be set. If a number is supplied, all hues are set to its value.
+         * @param {Number|Number[]} index The index or the indices of vertices to be set to a hue.
+         */
+
+    }, {
+        key: 'updateHue',
+        value: function updateHue(hue, index) {
+            index *= 3;
+            var colors = this.getAttribute('color');
+            var c = null;
+
+            if (index > colors.length - 1) {
+                console.warn('The color index is out of range.');
+                return;
+            }
+
+            if (typeof index === 'number') {
+                if (typeof hue !== 'number') {
+                    console.warn('The hue value cannot be an array if index is a number.');
+                } else {
+                    this.updateColor(index, new Lore.Color(hue, colors[index + 1], colors[index + 2]));
+                }
+            } else if (Array.isArray(index)) {
+                if (Array.isArray(hue)) {
+                    if (hue.length !== index.length) {
+                        console.warn('Hue and index arrays have to be of the same length.');
+                    } else {
+                        for (var i = 0; i < index.length; i++) {
+                            this.updateColor(index[i], new Lore.Color(hue[i], colors[index + 1], colors[index + 2]));
+                        }
+                    }
+                } else if (typeof hue === 'number') {
+                    for (var i = 0; i < index.length; i++) {
+                        this.updateColor(index[i], new Lore.Color(hue, colors[index + 1], colors[index + 2]));
+                    }
+                }
+            } else {
+                console.warn('The type of index is not supported: ' + (typeof index === 'undefined' ? 'undefined' : _typeof(index)));
+            }
         }
 
         /**
@@ -7528,7 +7695,6 @@ Lore.PointHelper = function (_Lore$HelperBase) {
 
     return PointHelper;
 }(Lore.HelperBase);
-
 Lore.TreeHelper = function (_Lore$HelperBase2) {
     _inherits(TreeHelper, _Lore$HelperBase2);
 
@@ -7615,8 +7781,9 @@ Lore.TreeHelper = function (_Lore$HelperBase2) {
     }, {
         key: 'setFogDistance',
         value: function setFogDistance(fogStart, fogEnd) {
-            this.geometry.shader.uniforms.fogStart.value = fogStart;
-            this.geometry.shader.uniforms.fogEnd.value = fogEnd;
+            console.warn('This function is deprecated.');
+            // this.geometry.shader.uniforms.fogStart.value = fogStart;
+            // this.geometry.shader.uniforms.fogEnd.value = fogEnd;
         }
     }, {
         key: 'initPointSize',
@@ -7673,7 +7840,6 @@ Lore.TreeHelper = function (_Lore$HelperBase2) {
 
     return TreeHelper;
 }(Lore.HelperBase);
-
 /** A helper class for drawing coordinate system indicators. For example, a grid cube. */
 Lore.CoordinatesHelper = function (_Lore$HelperBase3) {
     _inherits(CoordinatesHelper, _Lore$HelperBase3);
@@ -9278,89 +9444,86 @@ Lore.Utils = function () {
 }();
 
 Lore.Utils.DEG2RAD = Math.PI / 180.0;
-Lore.Shaders['default'] = new Lore.Shader('Default', { size: new Lore.Uniform('size', 5.0, 'float'),
+Lore.Shaders['default'] = new Lore.Shader('Default', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
     type: new Lore.Uniform('type', 0.0, 'float'),
-    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'if(fogEnd == 0.0) {', 'vColor = hsv2rgb(hsv);', 'return;', '}', 'float dist = abs(mv_pos.z);', 'if(dist >= fogEnd) {', 'hsv.b = 0.25;', '}', 'else if(dist <= fogStart) {', 'hsv.b = 1.0;', '}', 'else {', 'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
-
-Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
     cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-    time: new Lore.Uniform('time', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'uniform float time;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'float dist = abs(mv_pos.z - fogStart);', 'gl_PointSize = size;', 'if(fogEnd > 0.0) {', 'hsv.b = clamp((fogEnd - dist) / (fogEnd - fogStart), 0.0, 1.0);', '}', 'hsv.g *= max(0.15, abs(sin(time * 0.002)));', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+    clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
 
-Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', {}, ['attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'void main() {', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'gl_PointSize = 1.0;', 'vColor = color;', '}'], ['varying vec3 vColor;', 'void main() {', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+Lore.Shaders['defaultAnimated'] = new Lore.Shader('DefaultAnimated', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+    time: new Lore.Uniform('time', 0.0, 'float'),
+    clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'uniform float time;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = size;', 'hsv.g *= max(0.15, abs(sin(time * 0.002)));', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
 
-Lore.Shaders['tree'] = new Lore.Shader('Tree', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 0.75);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = size;', 'if(fogEnd == 0.0) {', 'vColor = hsv2rgb(hsv);', 'return;', '}', 'float dist = abs(mv_pos.z);', 'if(dist >= fogEnd) {', 'hsv.b = 0.25;', '}', 'else if(dist <= fogStart) {', 'hsv.b = 1.0;', '}', 'else {', 'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'gl_FragColor = vec4(vColor, 0.5);', '}']);
+Lore.Shaders['coordinates'] = new Lore.Shader('Coordinates', 1, {}, ['attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'void main() {', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'gl_PointSize = 1.0;', 'vColor = color;', '}'], ['varying vec3 vColor;', 'void main() {', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
 
-Lore.Shaders['circle'] = new Lore.Shader('Circle', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'if(fogEnd == 0.0) {', 'vColor = hsv2rgb(hsv);', 'return;', '}', 'float dist = abs(mv_pos.z);', 'if(dist >= fogEnd) {', 'hsv.b = 0.25;', '}', 'else if(dist <= fogStart) {', 'hsv.b = 1.0;', '}', 'else {', 'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+Lore.Shaders['tree'] = new Lore.Shader('Tree', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 0.75);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = size;', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fog = 1.0 - (gl_FragCoord.z / gl_FragCoord.w);', 'gl_FragColor = vec4(vColor * fog, 0.5);', '}']);
 
-Lore.Shaders['simpleSphere'] = new Lore.Shader('SimpleSphere', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'if(fogEnd == 0.0) {', 'vColor = hsv2rgb(hsv);', 'return;', '}', 'float dist = abs(mv_pos.z);', 'if(dist >= fogEnd) {', 'hsv.b = 0.25;', '}', 'else if(dist <= fogStart) {', 'hsv.b = 1.0;', '}', 'else {', 'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'gl_FragColor = vec4(vColor * diffuse, 1.0);', '}']);
+Lore.Shaders['circle'] = new Lore.Shader('Circle', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w) * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
 
-Lore.Shaders['sphere'] = new Lore.Shader('Sphere', { size: new Lore.Uniform('size', 5.0, 'float'),
-    fogStart: new Lore.Uniform('fogStart', 0.0, 'float'),
-    fogEnd: new Lore.Uniform('fogEnd', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float fogStart;', 'uniform float fogEnd;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'if(fogEnd == 0.0) {', 'vColor = hsv2rgb(hsv);', 'return;', '}', 'float dist = abs(mv_pos.z);', 'if(dist >= fogEnd) {', 'hsv.b = 0.25;', '}', 'else if(dist <= fogStart) {', 'hsv.b = 1.0;', '}', 'else {', 'hsv.b = max((fogEnd - dist) / (fogEnd - fogStart), 0.25);', '}', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'gl_FragColor = vec4(vColor * diffuse + specular * 0.5, 1.0);', '}']);
+Lore.Shaders['smoothcircle'] = new Lore.Shader('SmoothCircle', 2, { size: new Lore.Uniform('size', 5.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Lore.Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', '// fragColor = vec4(vec3(gl_FragDepth) * fog, 1.0);', 'fragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity) * alpha;', '}']);
 
-Lore.Shaders['defaultEffect'] = new Lore.Shader('DefaultEffect', {}, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], ['uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main(void) {', 'vec4 color = texture2D(fbo_texture, f_texcoord);', 'gl_FragColor = color;', '}']);
+Lore.Shaders['simpleSphere'] = new Lore.Shader('SimpleSphere', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'vec3 color = vColor * diffuse;', 'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);', '}']);
 
-Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', { resolution: new Lore.Uniform('resolution', [500.0, 500.0], 'float_vec2') }, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'uniform vec2 resolution;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], /*
-                                                                                                                                                                                                                                                                                                                                                                       [
-                                                                                                                                                                                                                                                                                                                                                                        '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
-                                                                                                                                                                                                                                                                                                                                                                        '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
-                                                                                                                                                                                                                                                                                                                                                                        '#define FXAA_SPAN_MAX     8.0',
-                                                                                                                                                                                                                                                                                                                                                                          'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
-                                                                                                                                                                                                                                                                                                                                                                        '{',
-                                                                                                                                                                                                                                                                                                                                                                            'fragCoord = fragCoord * resolution;',
-                                                                                                                                                                                                                                                                                                                                                                            'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
-                                                                                                                                                                                                                                                                                                                                                                            'vec3 rgbNW = texture2D(tex, (fragCoord.xy + vec2(-1.0, -1.0)) * inverseVP).xyz;',
-                                                                                                                                                                                                                                                                                                                                                                            'vec3 rgbNE = texture2D(tex, (fragCoord.xy + vec2(1.0, -1.0)) * inverseVP).xyz;',
-                                                                                                                                                                                                                                                                                                                                                                            'vec3 rgbSW = texture2D(tex, (fragCoord.xy + vec2(-1.0, 1.0)) * inverseVP).xyz;',
-                                                                                                                                                                                                                                                                                                                                                                            'vec3 rgbSE = texture2D(tex, (fragCoord.xy + vec2(1.0, 1.0)) * inverseVP).xyz;',
-                                                                                                                                                                                                                                                                                                                                                                            'vec4 rgbaM  = texture2D(tex, fragCoord.xy  * inverseVP);',
-                                                                                                                                                                                                                                                                                                                                                                            'vec3 rgbM = rgbaM.xyz;',
-                                                                                                                                                                                                                                                                                                                                                                            'float opacity = rgbaM.w;',
-                                                                                                                                                                                                                                                                                                                                                                            'vec3 luma = vec3(0.299, 0.587, 0.114);',
-                                                                                                                                                                                                                                                                                                                                                                            'float lumaNW = dot(rgbNW, luma);',
-                                                                                                                                                                                                                                                                                                                                                                            'float lumaNE = dot(rgbNE, luma);',
-                                                                                                                                                                                                                                                                                                                                                                            'float lumaSW = dot(rgbSW, luma);',
-                                                                                                                                                                                                                                                                                                                                                                            'float lumaSE = dot(rgbSE, luma);',
-                                                                                                                                                                                                                                                                                                                                                                            'float lumaM  = dot(rgbM,  luma);',
-                                                                                                                                                                                                                                                                                                                                                                            'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                            'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-                                                                                                                                                                                                                                                                                                                                                                              'vec2 dir;',
-                                                                                                                                                                                                                                                                                                                                                                            'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                            'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-                                                                                                                                                                                                                                                                                                                                                                              'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
-                                                                                                                                                                                                                                                                                                                                                                            'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-                                                                                                                                                                                                                                                                                                                                                                              'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
-                                                                                                                                                                                                                                                                                                                                                                                               'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
-                                                                                                                                                                                                                                                                                                                                                                                                             'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-                                                                                                                                                                                                                                                                                                                                                                              'float lumaB = dot(rgbB, luma);',
-                                                                                                                                                                                                                                                                                                                                                                            'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
-                                                                                                                                                                                                                                                                                                                                                                                'return vec4(rgbA, 1.0);',
-                                                                                                                                                                                                                                                                                                                                                                            'else',
-                                                                                                                                                                                                                                                                                                                                                                                'return vec4(rgbB, 1.0);',
-                                                                                                                                                                                                                                                                                                                                                                        '}',
-                                                                                                                                                                                                                                                                                                                                                                          'uniform sampler2D fbo_texture;',
-                                                                                                                                                                                                                                                                                                                                                                        'varying vec2 f_texcoord;',
-                                                                                                                                                                                                                                                                                                                                                                        'void main(void) {',
-                                                                                                                                                                                                                                                                                                                                                                            'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
-                                                                                                                                                                                                                                                                                                                                                                        '}'
-                                                                                                                                                                                                                                                                                                                                                                       ]);
-                                                                                                                                                                                                                                                                                                                                                                       */
+Lore.Shaders['sphere'] = new Lore.Shader('Sphere', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
+    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Lore.Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'vec3 color = vColor * diffuse + specular * 0.5;', 'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);', '}']);
+
+Lore.Shaders['defaultEffect'] = new Lore.Shader('DefaultEffect', 1, {}, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], ['uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main(void) {', 'vec4 color = texture2D(fbo_texture, f_texcoord);', 'gl_FragColor = color;', '}']);
+
+Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', 1, { resolution: new Lore.Uniform('resolution', [500.0, 500.0], 'float_vec2') }, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'uniform vec2 resolution;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], /*
+                                                                                                                                                                                                                                                                                                                                                                          [
+                                                                                                                                                                                                                                                                                                                                                                           '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
+                                                                                                                                                                                                                                                                                                                                                                           '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
+                                                                                                                                                                                                                                                                                                                                                                           '#define FXAA_SPAN_MAX     8.0',
+                                                                                                                                                                                                                                                                                                                                                                             'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                                           '{',
+                                                                                                                                                                                                                                                                                                                                                                               'fragCoord = fragCoord * resolution;',
+                                                                                                                                                                                                                                                                                                                                                                               'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
+                                                                                                                                                                                                                                                                                                                                                                               'vec3 rgbNW = texture2D(tex, (fragCoord.xy + vec2(-1.0, -1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                                               'vec3 rgbNE = texture2D(tex, (fragCoord.xy + vec2(1.0, -1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                                               'vec3 rgbSW = texture2D(tex, (fragCoord.xy + vec2(-1.0, 1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                                               'vec3 rgbSE = texture2D(tex, (fragCoord.xy + vec2(1.0, 1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                                               'vec4 rgbaM  = texture2D(tex, fragCoord.xy  * inverseVP);',
+                                                                                                                                                                                                                                                                                                                                                                               'vec3 rgbM = rgbaM.xyz;',
+                                                                                                                                                                                                                                                                                                                                                                               'float opacity = rgbaM.w;',
+                                                                                                                                                                                                                                                                                                                                                                               'vec3 luma = vec3(0.299, 0.587, 0.114);',
+                                                                                                                                                                                                                                                                                                                                                                               'float lumaNW = dot(rgbNW, luma);',
+                                                                                                                                                                                                                                                                                                                                                                               'float lumaNE = dot(rgbNE, luma);',
+                                                                                                                                                                                                                                                                                                                                                                               'float lumaSW = dot(rgbSW, luma);',
+                                                                                                                                                                                                                                                                                                                                                                               'float lumaSE = dot(rgbSE, luma);',
+                                                                                                                                                                                                                                                                                                                                                                               'float lumaM  = dot(rgbM,  luma);',
+                                                                                                                                                                                                                                                                                                                                                                               'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
+                                                                                                                                                                                                                                                                                                                                                                               'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
+                                                                                                                                                                                                                                                                                                                                                                                 'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                                               'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
+                                                                                                                                                                                                                                                                                                                                                                               'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
+                                                                                                                                                                                                                                                                                                                                                                                 'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                                               'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
+                                                                                                                                                                                                                                                                                                                                                                                 'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                                                 'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                                                  'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
+                                                                                                                                                                                                                                                                                                                                                                                 'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                                                                'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
+                                                                                                                                                                                                                                                                                                                                                                                 'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                                               'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
+                                                                                                                                                                                                                                                                                                                                                                                   'return vec4(rgbA, 1.0);',
+                                                                                                                                                                                                                                                                                                                                                                               'else',
+                                                                                                                                                                                                                                                                                                                                                                                   'return vec4(rgbB, 1.0);',
+                                                                                                                                                                                                                                                                                                                                                                           '}',
+                                                                                                                                                                                                                                                                                                                                                                             'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                                           'varying vec2 f_texcoord;',
+                                                                                                                                                                                                                                                                                                                                                                           'void main(void) {',
+                                                                                                                                                                                                                                                                                                                                                                               'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
+                                                                                                                                                                                                                                                                                                                                                                           '}'
+                                                                                                                                                                                                                                                                                                                                                                          ]);
+                                                                                                                                                                                                                                                                                                                                                                          */
 ['#define fxaaTexture2D(t, p, o, r) texture2D(t, p + (o * r), 0.0)', '#define fxaaSat(x) clamp(x, 0.0, 1.0)', '#define FXAA_QUALITY_PS 8', '#define FXAA_QUALITY_P0 1.0', '#define FXAA_QUALITY_P1 1.5', '#define FXAA_QUALITY_P2 2.0', '#define FXAA_QUALITY_P3 2.0', '#define FXAA_QUALITY_P4 2.0', '#define FXAA_QUALITY_P5 2.0', '#define FXAA_QUALITY_P6 4.0', '#define FXAA_QUALITY_P7 12.0', 'vec4 fxaa(vec2 pos, sampler2D tex, vec2 resolution,', 'float subpixQuality, float edgeThreshold, float edgeThresholdMin) {', 'vec2 posM;', 'posM.x = pos.x;', 'posM.y = pos.y;', 'vec4 rgbyM = texture2D(tex, posM);', 'vec3 luma = vec3(0.299, 0.587, 0.114);', 'float lumaM = dot(rgbyM.xyz, luma);', 'float lumaS = dot(fxaaTexture2D(tex, posM, vec2(0, 1), resolution.xy).xyz, luma);', 'float lumaE = dot(fxaaTexture2D(tex, posM, vec2(1, 0), resolution.xy).xyz, luma);', 'float lumaN = dot(fxaaTexture2D(tex, posM, vec2(0, -1), resolution.xy).xyz, luma);', 'float lumaW = dot(fxaaTexture2D(tex, posM, vec2(-1, 0), resolution.xy).xyz, luma);', 'float maxSM = max(lumaS, lumaM);', 'float minSM = min(lumaS, lumaM);', 'float maxESM = max(lumaE, maxSM);', 'float minESM = min(lumaE, minSM);', 'float maxWN = max(lumaN, lumaW);', 'float minWN = min(lumaN, lumaW);', 'float rangeMax = max(maxWN, maxESM);', 'float rangeMin = min(minWN, minESM);', 'float rangeMaxScaled = rangeMax * edgeThreshold;', 'float range = rangeMax - rangeMin;', 'float rangeMaxClamped = max(edgeThresholdMin, rangeMaxScaled);', 'bool earlyExit = range < rangeMaxClamped;', '// maybe return rgbyM -> leave unchanged', 'if(earlyExit) return rgbyM;', 'float lumaNW = dot(fxaaTexture2D(tex, posM, vec2(-1, -1), resolution.xy).xyz, luma);', 'float lumaSE = dot(fxaaTexture2D(tex, posM, vec2(1, 1), resolution.xy).xyz, luma);', 'float lumaNE = dot(fxaaTexture2D(tex, posM, vec2(1, -1), resolution.xy).xyz, luma);', 'float lumaSW = dot(fxaaTexture2D(tex, posM, vec2(-1, 1), resolution.xy).xyz, luma);', 'float lumaNS = lumaN + lumaS;', 'float lumaWE = lumaW + lumaE;', 'float subpixRcpRange = 1.0 / range;', 'float subpixNSWE = lumaNS + lumaWE;', 'float edgeHorz1 = (-2.0 * lumaM) + lumaNS;', 'float edgeVert1 = (-2.0 * lumaM) + lumaWE;', 'float lumaNESE = lumaNE + lumaSE;', 'float lumaNWNE = lumaNW + lumaNE;', 'float edgeHorz2 = (-2.0 * lumaE) + lumaNESE;', 'float edgeVert2 = (-2.0 * lumaN) + lumaNWNE;', 'float lumaNWSW = lumaNW + lumaSW;', 'float lumaSWSE = lumaSW + lumaSE;', 'float edgeHorz4 = (abs(edgeHorz1) * 2.0) + abs(edgeHorz2);', 'float edgeVert4 = (abs(edgeVert1) * 2.0) + abs(edgeVert2);', 'float edgeHorz3 = (-2.0 * lumaW) + lumaNWSW;', 'float edgeVert3 = (-2.0 * lumaS) + lumaSWSE;', 'float edgeHorz = abs(edgeHorz3) + edgeHorz4;', 'float edgeVert = abs(edgeVert3) + edgeVert4;', 'float subpixNWSWNESE = lumaNWSW + lumaNESE;', 'float lengthSign = resolution.x;', 'bool horzSpan = edgeHorz >= edgeVert;', 'float subpixA = subpixNSWE * 2.0 + subpixNWSWNESE;', 'if(!horzSpan) lumaN = lumaW;', 'if(!horzSpan) lumaS = lumaE;', 'if(horzSpan) lengthSign = resolution.y;', 'float subpixB = (subpixA * (1.0/12.0)) - lumaM;', 'float gradientN = lumaN - lumaM;', 'float gradientS = lumaS - lumaM;', 'float lumaNN = lumaN + lumaM;', 'float lumaSS = lumaS + lumaM;', 'bool pairN = abs(gradientN) >= abs(gradientS);', 'float gradient = max(abs(gradientN), abs(gradientS));', 'if(pairN) lengthSign = -lengthSign;', 'float subpixC = fxaaSat(abs(subpixB) * subpixRcpRange);', 'vec2 posB;', 'posB.x = posM.x;', 'posB.y = posM.y;', 'vec2 offNP;', 'offNP.x = (!horzSpan) ? 0.0 : resolution.x;', 'offNP.y = ( horzSpan) ? 0.0 : resolution.y;', 'if(!horzSpan) posB.x += lengthSign * 0.5;', 'if( horzSpan) posB.y += lengthSign * 0.5;', 'vec2 posN;', 'posN.x = posB.x - offNP.x * FXAA_QUALITY_P0;', 'posN.y = posB.y - offNP.y * FXAA_QUALITY_P0;', 'vec2 posP;', 'posP.x = posB.x + offNP.x * FXAA_QUALITY_P0;', 'posP.y = posB.y + offNP.y * FXAA_QUALITY_P0;', 'float subpixD = ((-2.0)*subpixC) + 3.0;', 'float lumaEndN = texture2D(tex, posN).w;', 'float subpixE = subpixC * subpixC;', 'float lumaEndP = texture2D(tex, posP).w;', 'if(!pairN) lumaNN = lumaSS;', 'float gradientScaled = gradient * 1.0/4.0;', 'float lumaMM = lumaM - lumaNN * 0.5;', 'float subpixF = subpixD * subpixE;', 'bool lumaMLTZero = lumaMM < 0.0;', 'lumaEndN -= lumaNN * 0.5;', 'lumaEndP -= lumaNN * 0.5;', 'bool doneN = abs(lumaEndN) >= gradientScaled;', 'bool doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P1;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P1;', 'bool doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P1;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P1;', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P2;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P2;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P2;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P2;', '#if (FXAA_QUALITY_PS > 3)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P3;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P3;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P3;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P3;', '#if (FXAA_QUALITY_PS > 4)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P4;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P4;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P4;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P4;', '#if (FXAA_QUALITY_PS > 5)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P5;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P5;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P5;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P5;', '#if (FXAA_QUALITY_PS > 6)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P6;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P6;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P6;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P6;', '#if (FXAA_QUALITY_PS > 7)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P7;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P7;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P7;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P7;', '#if (FXAA_QUALITY_PS > 8)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P8;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P8;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P8;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P8;', '#if (FXAA_QUALITY_PS > 9)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P9;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P9;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P9;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P9;', '#if (FXAA_QUALITY_PS > 10)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P10;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P10;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P10;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P10;', '#if (FXAA_QUALITY_PS > 11)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P11;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P11;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P11;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P11;', '#if (FXAA_QUALITY_PS > 12)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P12;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P12;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P12;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P12;', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', 'float dstN = posM.x - posN.x;', 'float dstP = posP.x - posM.x;', 'if(!horzSpan) dstN = posM.y - posN.y;', 'if(!horzSpan) dstP = posP.y - posM.y;', 'bool goodSpanN = (lumaEndN < 0.0) != lumaMLTZero;', 'float spanLength = (dstP + dstN);', 'bool goodSpanP = (lumaEndP < 0.0) != lumaMLTZero;', 'float spanLengthRcp = 1.0 / spanLength;', 'bool directionN = dstN < dstP;', 'float dst = min(dstN, dstP);', 'bool goodSpan = directionN ? goodSpanN : goodSpanP;', 'float subpixG = subpixF * subpixF;', 'float pixelOffset = (dst * (-spanLengthRcp)) + 0.5;', 'float subpixH = subpixG * subpixQuality;', 'float pixelOffsetGood = goodSpan ? pixelOffset : 0.0;', 'float pixelOffsetSubpix = max(pixelOffsetGood, subpixH);', 'if(!horzSpan) posM.x += pixelOffsetSubpix * lengthSign;', 'if( horzSpan) posM.y += pixelOffsetSubpix * lengthSign;', '// maybe return vec4(texture2D(tex, posM).xyz, lumaM);', 'return texture2D(tex, posM);', '}', 'uniform sampler2D fbo_texture;', 'uniform vec2 resolution;', 'varying vec2 f_texcoord;', 'void main(void) {', 'gl_FragColor = fxaa(f_texcoord, fbo_texture, vec2(1.0 / resolution.x, 1.0 / resolution.y), 0.75, 0.166, 0.0833);', '}']);
 /**                if (neighbours[j] == locCode) {
                     // console.log(locCode);

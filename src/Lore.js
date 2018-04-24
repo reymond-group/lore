@@ -3,7 +3,7 @@
  * @typicalname Lore
  */
 let Lore = {
-    Version: '1.0.0'
+    Version: '1.0.6'
 };
 
 if (typeof define === 'function' && define.amd) {
@@ -50,7 +50,7 @@ Lore.getShader = function (shaderName) {
 Lore.init = function(canvas, options) {
     this.opts = Lore.Utils.extend(true, Lore.defaults, options);
     
-    Lore.getGrakaInfo(canvas);
+    // Lore.getGrakaInfo(canvas);
     
     var cc = Lore.Color.fromHex(this.opts.clearColor);
 
