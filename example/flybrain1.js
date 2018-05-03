@@ -17,7 +17,6 @@
         pointHelper = new Lore.Helpers.PointHelper(lore, 'Seppli', 'simpleSphere');
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['c'], 1.0, 1.0)
         pointHelper.setPointScale(1.0);
-        pointHelper.setFogDistance(600, 900);
         pointHelper.addFilter('hueRange', new Lore.Filters.InRangeFilter('color', 0, 0.22, 0.25));
         
         lore.controls.setLookAt(pointHelper.getCenter());

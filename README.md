@@ -19,7 +19,9 @@ Current Version: 1.0.7 ([Godzilla](https://youtu.be/RTzb-sduiWc))
 
 Browsing the SureChEMBL database (containing > 12 million datapoints): [Faerun](http://faerun.gdb.tools).
 
-See the examples folder for more details.
+### Example
+A basic [fiddle](https://jsfiddle.net/bmkxpg7g/2/)
+**See the examples folder for more details.**
 
 
 ### Installation
