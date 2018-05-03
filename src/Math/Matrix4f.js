@@ -1,7 +1,6 @@
 //@ts-check
 
 const Vector3f = require('./Vector3f');
-const Quaternion = require('./Quaternion');
 
 /** A class representing a 4x4 float matrix */
 class Matrix4f {
@@ -333,7 +332,6 @@ class Matrix4f {
    * @returns {Matrix4f} Returns itself.
    */
   decompose(outPosition, outQuaternion, outScale) {
-    let v = new Vector3f(0.0, 0.0, 0.0);
     let m = new Matrix4f();
 
     // The position is the simple one
@@ -541,6 +539,28 @@ class Matrix4f {
     }
 
     return this;
+  }
+
+  /**
+   * Projects the vector from world space into camera space.
+   * 
+   * @param {Vector3f} v A vector to project.
+   * @param {CameraBase} camera A camera instance.
+   * @returns {Vector3f} The vector in camera space.
+   */
+  static projectVector(v, camera) {
+      return v.applyProjection(Matrix4f.multiply(camera.projectionMatrix, Matrix4f.invert(camera.modelMatrix)));
+  }
+
+  /**
+   * Projects the vector from camera space into world space.
+   * 
+   * @param {Vector3f} v A vector to unproject.
+   * @param {CameraBase} camera A camera instance.
+   * @returns {Vector3f} The vector in world space.
+   */
+  static unprojectVector(v, camera) {
+      return v.applyProjection(Matrix4f.multiply(camera.modelMatrix, Matrix4f.invert(camera.projectionMatrix)));
   }
 
   /**

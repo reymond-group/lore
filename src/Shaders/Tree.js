@@ -1,5 +1,8 @@
-module.exports = new Lore.Shader('tree', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-                                                    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, [
+const Shader = require('../Core/Shader')
+const Uniform = require('../Core/Uniform')
+
+module.exports = new Shader('tree', 1, { size: new Uniform('size', 5.0, 'float'),
+                                         cutoff: new Uniform('cutoff', 0.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',
     'attribute vec3 position;',

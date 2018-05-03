@@ -1,5 +1,6 @@
 //@ts-check
-const Lore = require('../Lore');
+// const Lore = require('../Lore');
+const Shaders = require('../Shaders')
 const Effect = require('./Effect')
 const Vector3f = require('../Math/Vector3f');
 const Color = require('./Color');
@@ -293,7 +294,7 @@ class Renderer {
      * @returns {Geometry} The created geometry.
      */
     createGeometry(name, shaderName) {
-        let shader = Lore.getShader(shaderName);
+        let shader = Shaders[shaderName].clone();
         shader.init(this.gl, this.webgl2);
         let geometry = new Geometry(name, this.gl, shader);
 

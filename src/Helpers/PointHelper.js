@@ -1,7 +1,6 @@
 //@ts-check
 
 const HelperBase = require('./HelperBase');
-const Renderer = require('../Core/Renderer');
 const DrawModes = require('../Core/DrawModes')
 const Color = require('../Core/Color');
 const Utils = require('../Utils/Utils');

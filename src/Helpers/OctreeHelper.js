@@ -2,7 +2,6 @@
 
 const HelperBase = require('./HelperBase');
 const PointHelper = require('./PointHelper');
-const Renderer = require('../Core/Renderer');
 const Octree = require('../Spice/Octree');
 const Raycaster = require('../Spice/Raycaster');
 const DrawModes = require('../Core/DrawModes');
@@ -11,6 +10,7 @@ const Vector3f = require('../Math/Vector3f');
 const AABB = require('../Spice/AABB');
 const Matrix4f = require('../Math/Matrix4f');
 const FilterBase = require('../Filters/FilterBase');
+const Ray = require('../Math/Ray')
 
 /** 
  * A helper class to create an octree associated with vertex data. 

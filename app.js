@@ -8,23 +8,15 @@ var canUseDOM = !!(
 
 var Lore = require('./src/Lore');
 
-Lore.version = '1.0.7';
-
-Lore.getShader = function (shaderName) {
-  return Lore.Shaders[shaderName].clone();
-}
-
 // By Shmiddty from stackoverflow
 function Enum(a){
-let i = Object
-  .keys(a)
-  .reduce((o, k)=>(o[a[k]] = k, o), {});
+  let i = Object
+    .keys(a)
+    .reduce((o, k)=>(o[a[k]] = k, o), {});
 
-return Object.freeze(
-  Object.keys(a).reduce(
-    (o, k)=>(o[k] = a[k],o), v => i[v]
-  )
-);
+  return Object.freeze(
+    Object.keys(a).reduce((o, k)=>(o[k] = a[k],o), v => i[v])
+  );
 }
 
 Lore.Mouse = Enum({
@@ -48,13 +40,13 @@ Lore.init = function(canvas, options) {
   
   // Lore.getGrakaInfo(canvas);
   
-  var cc = Lore.Color.fromHex(this.opts.clearColor);
+  var cc = Lore.Core.Color.fromHex(this.opts.clearColor);
 
-  var renderer = new Lore.Renderer(canvas, {
+  var renderer = new Lore.Core.Renderer(canvas, {
       clearColor: cc,
       verbose: true,
       fps: document.getElementById('fps'),
-      center: new Lore.Vector3f(125, 125, 125),
+      center: new Lore.Math.Vector3f(125, 125, 125),
       antialiasing: this.opts.antialiasing
   });
  

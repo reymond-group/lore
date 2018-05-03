@@ -4,7 +4,6 @@ const Node = require ('../Core/Node');
 const ProjectionMatrix = require('../Math/ProjectionMatrix');
 const Matrix4f = require('../Math/Matrix4f');
 const Vector3f = require('../Math/Vector3f');
-const Renderer = require('../Core/Renderer');
 
 /** 
  * An abstract class representing the base for camera implementations. 
@@ -125,7 +124,7 @@ class CameraBase extends Node {
         let vector = vec.clone();
         let canvas = renderer.canvas;
         
-        vector.project(this);
+        Matrix4f.projectVector(vector, this);
         
         // Map to 2D screen space
         // Correct for high dpi display by dividing by device pixel ratio

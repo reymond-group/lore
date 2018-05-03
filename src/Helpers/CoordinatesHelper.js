@@ -1,6 +1,5 @@
 //@ts-check
 
-const Renderer = require('../Core/Renderer');
 const Color = require('../Core/Color');
 const HelperBase = require('./HelperBase');
 const Vector3f = require('../Math/Vector3f');

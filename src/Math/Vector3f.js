@@ -1,8 +1,6 @@
 //@ts-check
 
 const SphericalCoordinates = require('./SphericalCoords');
-const Matrix4f = require('./Matrix4f');
-const Quaternion = require('./Quaternion');
 
 /** 
  * A class representing 3D float vector.
@@ -287,26 +285,6 @@ class Vector3f {
             this.components[2] * v.components[0] - this.components[0] * v.components[2],
             this.components[0] * v.components[1] - this.components[1] * v.components[0]
         );
-    }
-
-    /**
-     * Projects the vector from world space into camera space.
-     * 
-     * @param {CameraBase} camera A camera instance.
-     * @returns {Vector3f} The vector in camera space.
-     */
-    project(camera) {
-        return this.applyProjection(Matrix4f.multiply(camera.projectionMatrix, Matrix4f.invert(camera.modelMatrix)));
-    }
-
-    /**
-     * Projects the vector from camera space into world space.
-     * 
-     * @param {CameraBase} camera A camera instance.
-     * @returns {Vector3f} The vector in world space.
-     */
-    unproject(camera) {
-        return this.applyProjection(Matrix4f.multiply(camera.modelMatrix, Matrix4f.invert(camera.projectionMatrix)));
     }
 
     /**

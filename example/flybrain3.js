@@ -4,7 +4,7 @@
         enableTransparency: true
     });
     
-    let fileReader = new Lore.CsvFileReader('input-upload', {
+    let fileReader = new Lore.IO.CsvFileReader('input-upload', {
         cols: [0, 1, 2, 3],
         types: ['Uint16Array', 'Uint16Array', 'Uint16Array', 'Float32Array']
     });
@@ -14,15 +14,15 @@
 
     fileReader.addEventListener('loaded', function(data) {
         original_data = data;
-        pointHelper = new Lore.PointHelper(lore, 'Seppli', 'circle');
+        pointHelper = new Lore.Helpers.PointHelper(lore, 'Seppli', 'circle');
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['c'], 1.0, 1.0)
         pointHelper.setPointScale(1.0);
-        pointHelper.addFilter('hueRange', new Lore.InRangeFilter('color', 0, 0.22, 0.25));
+        pointHelper.addFilter('hueRange', new Lore.Filters.InRangeFilter('color', 0, 0.22, 0.25));
         
         lore.controls.setLookAt(pointHelper.getCenter());
         lore.controls.setRadius(pointHelper.getMaxRadius());
 
-        octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper, {
+        octreeHelper = new Lore.Helpers.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper, {
             visualize: false
         });
 

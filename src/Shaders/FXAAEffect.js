@@ -1,4 +1,7 @@
-Lore.Shaders['fxaaEffect'] = new Lore.Shader('FXAAEffect', 1, { resolution: new Lore.Uniform('resolution', [ 500.0, 500.0 ], 'float_vec2') }, [
+const Shader = require('../Core/Shader')
+const Uniform = require('../Core/Uniform')
+
+module.exports = new Shader('FXAAEffect', 1, { resolution: new Uniform('resolution', [ 500.0, 500.0 ], 'float_vec2') }, [
     'attribute vec2 v_coord;',
     'uniform sampler2D fbo_texture;',
     'uniform vec2 resolution;',

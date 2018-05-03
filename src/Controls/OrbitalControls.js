@@ -1,7 +1,6 @@
 //@ts-check
 
 const ControlsBase = require('../Controls/ControlsBase')
-const Renderer = require('../Core/Renderer');
 const Vector3f = require('../Math/Vector3f');
 const SphericalCoords = require('../Math/SphericalCoords');
 

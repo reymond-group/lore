@@ -8,12 +8,6 @@ var canUseDOM = !!(typeof window !== 'undefined' && window.document && window.do
 
 var Lore = require('./src/Lore');
 
-Lore.version = '1.0.7';
-
-Lore.getShader = function (shaderName) {
-  return Lore.Shaders[shaderName].clone();
-};
-
 // By Shmiddty from stackoverflow
 function Enum(a) {
   let i = Object.keys(a).reduce((o, k) => (o[a[k]] = k, o), {});
@@ -42,13 +36,13 @@ Lore.init = function (canvas, options) {
 
   // Lore.getGrakaInfo(canvas);
 
-  var cc = Lore.Color.fromHex(this.opts.clearColor);
+  var cc = Lore.Core.Color.fromHex(this.opts.clearColor);
 
-  var renderer = new Lore.Renderer(canvas, {
+  var renderer = new Lore.Core.Renderer(canvas, {
     clearColor: cc,
     verbose: true,
     fps: document.getElementById('fps'),
-    center: new Lore.Vector3f(125, 125, 125),
+    center: new Lore.Math.Vector3f(125, 125, 125),
     antialiasing: this.opts.antialiasing
   });
 
@@ -109,7 +103,6 @@ const Node = require('../Core/Node');
 const ProjectionMatrix = require('../Math/ProjectionMatrix');
 const Matrix4f = require('../Math/Matrix4f');
 const Vector3f = require('../Math/Vector3f');
-const Renderer = require('../Core/Renderer');
 
 /** 
  * An abstract class representing the base for camera implementations. 
@@ -230,7 +223,7 @@ class CameraBase extends Node {
         let vector = vec.clone();
         let canvas = renderer.canvas;
 
-        vector.project(this);
+        Matrix4f.projectVector(vector, this);
 
         // Map to 2D screen space
         // Correct for high dpi display by dividing by device pixel ratio
@@ -243,7 +236,7 @@ class CameraBase extends Node {
 
 module.exports = CameraBase;
 
-},{"../Core/Node":16,"../Core/Renderer":17,"../Math/Matrix4f":38,"../Math/ProjectionMatrix":39,"../Math/Vector3f":45}],3:[function(require,module,exports){
+},{"../Core/Node":16,"../Math/Matrix4f":38,"../Math/ProjectionMatrix":39,"../Math/Vector3f":45}],3:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -262,68 +255,68 @@ const CameraBase = require('./CameraBase');
  * @property {number} far The far plane distance of the frustum.
  * */
 class OrthographicCamera extends CameraBase {
-  /**
-   * Creates an instance of OrthographicCamera.
-   * @param {Number} left Left extend of the viewing volume.
-   * @param {Number} right Right extend of the viewing volume.
-   * @param {Number} top Top extend of the viewing volume.
-   * @param {Number} bottom Bottom extend of the viewing volume.
-   * @param {Number} near Near extend of the viewing volume.
-   * @param {Number} far Far extend of the viewing volume.
-   */
-  constructor(left, right, top, bottom, near = 0.1, far = 2500) {
-    super();
+    /**
+     * Creates an instance of OrthographicCamera.
+     * @param {Number} left Left extend of the viewing volume.
+     * @param {Number} right Right extend of the viewing volume.
+     * @param {Number} top Top extend of the viewing volume.
+     * @param {Number} bottom Bottom extend of the viewing volume.
+     * @param {Number} near Near extend of the viewing volume.
+     * @param {Number} far Far extend of the viewing volume.
+     */
+    constructor(left, right, top, bottom, near = 0.1, far = 2500) {
+        super();
 
-    this.type = 'Lore.OrthographicCamera';
-    this.zoom = 1.0;
-    this.left = left;
-    this.right = right;
-    this.top = top;
-    this.bottom = bottom;
-    this.near = near;
-    this.far = far;
+        this.type = 'Lore.OrthographicCamera';
+        this.zoom = 1.0;
+        this.left = left;
+        this.right = right;
+        this.top = top;
+        this.bottom = bottom;
+        this.near = near;
+        this.far = far;
 
-    this.updateProjectionMatrix();
-  }
+        this.updateProjectionMatrix();
+    }
 
-  /**
-   * Updates the projection matrix of this orthographic camera.
-   * 
-   * @returns {OrthographicCamera} Returns itself.
-   */
-  updateProjectionMatrix() {
-    let width = (this.right - this.left) / (2.0 * this.zoom);
-    let height = (this.top - this.bottom) / (2.0 * this.zoom);
-    let x = (this.right + this.left) / 2.0;
-    let y = (this.top + this.bottom) / 2.0;
+    /**
+     * Updates the projection matrix of this orthographic camera.
+     * 
+     * @returns {OrthographicCamera} Returns itself.
+     */
+    updateProjectionMatrix() {
+        let width = (this.right - this.left) / (2.0 * this.zoom);
+        let height = (this.top - this.bottom) / (2.0 * this.zoom);
+        let x = (this.right + this.left) / 2.0;
+        let y = (this.top + this.bottom) / 2.0;
 
-    let left = x - width;
-    let right = x + width;
-    let top = y + height;
-    let bottom = y - height;
+        let left = x - width;
+        let right = x + width;
+        let top = y + height;
+        let bottom = y - height;
 
-    this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
-    this.isProjectionMatrixStale = true;
+        this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
+        this.isProjectionMatrixStale = true;
 
-    return this;
-  }
+        return this;
+    }
 
-  /**
-   * Has to be called when the viewport size changes (e.g. window resize).
-   * 
-   * @param {Number} width The width of the viewport.
-   * @param {Number} height The height of the viewport.
-   * 
-   * @returns {OrthographicCamera} Returns itself.
-   */
-  updateViewport(width, height) {
-    this.left = -width / 2.0;
-    this.right = width / 2.0;
-    this.top = height / 2.0;
-    this.bottom = -height / 2.0;
+    /**
+     * Has to be called when the viewport size changes (e.g. window resize).
+     * 
+     * @param {Number} width The width of the viewport.
+     * @param {Number} height The height of the viewport.
+     * 
+     * @returns {OrthographicCamera} Returns itself.
+     */
+    updateViewport(width, height) {
+        this.left = -width / 2.0;
+        this.right = width / 2.0;
+        this.top = height / 2.0;
+        this.bottom = -height / 2.0;
 
-    return this;
-  }
+        return this;
+    }
 }
 
 module.exports = OrthographicCamera;
@@ -337,54 +330,54 @@ const CameraBase = require('./CameraBase');
 
 /** A class representing an perspective camera. */
 class PerspectiveCamera extends CameraBase {
-  /**
-   * Creates an instance of PerspectiveCamera.
-   * @param {Number} fov The field of view.
-   * @param {Number} aspect The aspect ration (width / height).
-   * @param {Number} near Near extend of the viewing volume.
-   * @param {Number} far Far extend of the viewing volume.
-   */
-  constructor(fov, aspect, near = 0.1, far = 2500) {
-    super();
+    /**
+     * Creates an instance of PerspectiveCamera.
+     * @param {Number} fov The field of view.
+     * @param {Number} aspect The aspect ration (width / height).
+     * @param {Number} near Near extend of the viewing volume.
+     * @param {Number} far Far extend of the viewing volume.
+     */
+    constructor(fov, aspect, near = 0.1, far = 2500) {
+        super();
 
-    this.type = 'Lore.PerspectiveCamera';
+        this.type = 'Lore.PerspectiveCamera';
 
-    // TODO: There shouldn't be a zoom here. The problem is, that the orbital controls
-    // and also the point helper and zoom rely on it. However, for the perspective camera,
-    // zooming is achieved by adjusting the fov. 
-    this.zoom = 1.0;
-    this.fov = fov;
-    this.aspect = aspect;
-    this.near = near;
-    this.far = far;
+        // TODO: There shouldn't be a zoom here. The problem is, that the orbital controls
+        // and also the point helper and zoom rely on it. However, for the perspective camera,
+        // zooming is achieved by adjusting the fov. 
+        this.zoom = 1.0;
+        this.fov = fov;
+        this.aspect = aspect;
+        this.near = near;
+        this.far = far;
 
-    this.updateProjectionMatrix();
-  }
+        this.updateProjectionMatrix();
+    }
 
-  /**
-   * Updates the projection matrix of this perspective camera.
-   * 
-   * @returns {PerspectiveCamera} Returns itself.
-   */
-  updateProjectionMatrix() {
-    this.projectionMatrix.setPerspective(this.fov, this.aspect, this.near, this.far);
-    this.isProjectionMatrixStale = true;
+    /**
+     * Updates the projection matrix of this perspective camera.
+     * 
+     * @returns {PerspectiveCamera} Returns itself.
+     */
+    updateProjectionMatrix() {
+        this.projectionMatrix.setPerspective(this.fov, this.aspect, this.near, this.far);
+        this.isProjectionMatrixStale = true;
 
-    return this;
-  }
+        return this;
+    }
 
-  /**
-   * Has to be called when the viewport size changes (e.g. window resize).
-   * 
-   * @param {Number} width The width of the viewport.
-   * @param {Number} height The height of the viewport.
-   * 
-   * @returns {PerspectiveCamera} Returns itself.
-   */
-  updateViewport(width, height) {
-    this.aspect = width / height;
-    return this;
-  }
+    /**
+     * Has to be called when the viewport size changes (e.g. window resize).
+     * 
+     * @param {Number} width The width of the viewport.
+     * @param {Number} height The height of the viewport.
+     * 
+     * @returns {PerspectiveCamera} Returns itself.
+     */
+    updateViewport(width, height) {
+        this.aspect = width / height;
+        return this;
+    }
 }
 
 module.exports = PerspectiveCamera;
@@ -407,10 +400,7 @@ module.exports = {
 
 //@ts-check
 
-const Renderer = require('../Core/Renderer');
 const Vector3f = require('../Math/Vector3f');
-const OrbitalControls = require('../Controls/OrbitalControls');
-
 /** 
  * An abstract class representing the base for controls implementations. 
  * 
@@ -733,8 +723,8 @@ class ControlsBase {
         if (displays.length === 0) {
           return;
         }
-         for (var i = 0; i < displays.length; ++i) {
-         }
+          for (var i = 0; i < displays.length; ++i) {
+          }
       });
     }
   }
@@ -823,83 +813,81 @@ class ControlsBase {
 
 module.exports = ControlsBase;
 
-},{"../Controls/OrbitalControls":8,"../Core/Renderer":17,"../Math/Vector3f":45}],7:[function(require,module,exports){
+},{"../Math/Vector3f":45}],7:[function(require,module,exports){
 'use strict';
 
 //@ts-check
 
 const ControlsBase = require('../Controls/ControlsBase');
-const Renderer = require('../Core/Renderer');
 const Vector3f = require('../Math/Vector3f');
 
 /** A class representing orbital controls. */
 class FirstPersonControls extends ControlsBase {
 
-    /**
-     * Creates an instance of FirstPersonControls.
-     * @param {Renderer} renderer An instance of a Lore renderer.
-     */
-    constructor(renderer, radius) {
-        super(renderer);
+        /**
+         * Creates an instance of FirstPersonControls.
+         * @param {Renderer} renderer An instance of a Lore renderer.
+         */
+        constructor(renderer, radius) {
+                super(renderer);
 
-        this.up = Vector3f.up();
-        this.renderer = renderer;
-        this.camera = renderer.camera;
-        this.canvas = renderer.canvas;
+                this.up = Vector3f.up();
+                this.renderer = renderer;
+                this.camera = renderer.camera;
+                this.canvas = renderer.canvas;
 
-        this.camera.position = new Vector3f(radius, radius, radius);
-        this.camera.updateProjectionMatrix();
-        this.camera.updateViewMatrix();
+                this.camera.position = new Vector3f(radius, radius, radius);
+                this.camera.updateProjectionMatrix();
+                this.camera.updateViewMatrix();
 
-        this.rotationLocked = false;
+                this.rotationLocked = false;
 
-        let that = this;
+                let that = this;
 
-        this.addEventListener('mousedrag', function (e) {
-            that.update(e.e, e.source);
-        });
+                this.addEventListener('mousedrag', function (e) {
+                        that.update(e.e, e.source);
+                });
 
-        // Initial update
-        this.update({
-            x: 0,
-            y: 0
-        }, 'left');
-    }
+                // Initial update
+                this.update({
+                        x: 0,
+                        y: 0
+                }, 'left');
+        }
 
-    /**
-     * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
-     * 
-     * @param {any} e A mouse or touch events data.
-     * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
-     * @returns {FirstPersonControls} Returns itself.
-     */
-    update(e, source) {
-        if (source === 'left') {}
-        // Move forward here
+        /**
+         * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
+         * 
+         * @param {any} e A mouse or touch events data.
+         * @param {String} source The source of the input ('left', 'middle', 'right', 'wheel', ...).
+         * @returns {FirstPersonControls} Returns itself.
+         */
+        update(e, source) {
+                if (source === 'left') {}
+                // Move forward here
 
 
-        // Update the camera
-        let offset = this.camera.position.clone().subtract(this.lookAt);
+                // Update the camera
+                let offset = this.camera.position.clone().subtract(this.lookAt);
 
-        this.camera.position.copyFrom(this.lookAt).add(offset);
-        this.camera.setLookAt(this.lookAt);
-        this.camera.updateViewMatrix();
+                this.camera.position.copyFrom(this.lookAt).add(offset);
+                this.camera.setLookAt(this.lookAt);
+                this.camera.updateViewMatrix();
 
-        this.raiseEvent('updated');
+                this.raiseEvent('updated');
 
-        return this;
-    }
+                return this;
+        }
 }
 
 module.exports = FirstPersonControls;
 
-},{"../Controls/ControlsBase":6,"../Core/Renderer":17,"../Math/Vector3f":45}],8:[function(require,module,exports){
+},{"../Controls/ControlsBase":6,"../Math/Vector3f":45}],8:[function(require,module,exports){
 'use strict';
 
 //@ts-check
 
 const ControlsBase = require('../Controls/ControlsBase');
-const Renderer = require('../Core/Renderer');
 const Vector3f = require('../Math/Vector3f');
 const SphericalCoords = require('../Math/SphericalCoords');
 
@@ -1218,7 +1206,7 @@ class OrbitalControls extends ControlsBase {
 
 module.exports = OrbitalControls;
 
-},{"../Controls/ControlsBase":6,"../Core/Renderer":17,"../Math/SphericalCoords":43,"../Math/Vector3f":45}],9:[function(require,module,exports){
+},{"../Controls/ControlsBase":6,"../Math/SphericalCoords":43,"../Math/Vector3f":45}],9:[function(require,module,exports){
 'use strict';
 
 const ControlsBase = require('./ControlsBase');
@@ -1672,7 +1660,7 @@ module.exports = DrawModes;
 
 //@ts-check
 
-const Lore = require('../Lore');
+const Shaders = require('../Shaders');
 
 class Effect {
     constructor(renderer, shaderName) {
@@ -1682,8 +1670,7 @@ class Effect {
         this.framebuffer = this.initFramebuffer();
         this.texture = this.initTexture();
         this.renderbuffer = this.initRenderbuffer();
-
-        this.shader = Lore.getShader(shaderName);
+        this.shader = Shaders[shaderName].clone();
         this.shader.init(this.renderer.gl);
 
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
@@ -1764,7 +1751,7 @@ class Effect {
 
 module.exports = Effect;
 
-},{"../Lore":36}],14:[function(require,module,exports){
+},{"../Shaders":57}],14:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -2803,7 +2790,8 @@ module.exports = Node;
 'use strict';
 
 //@ts-check
-const Lore = require('../Lore');
+// const Lore = require('../Lore');
+const Shaders = require('../Shaders');
 const Effect = require('./Effect');
 const Vector3f = require('../Math/Vector3f');
 const Color = require('./Color');
@@ -3095,7 +3083,7 @@ class Renderer {
      * @returns {Geometry} The created geometry.
      */
     createGeometry(name, shaderName) {
-        let shader = Lore.getShader(shaderName);
+        let shader = Shaders[shaderName].clone();
         shader.init(this.gl, this.webgl2);
         let geometry = new Geometry(name, this.gl, shader);
 
@@ -3125,7 +3113,7 @@ class Renderer {
 
 module.exports = Renderer;
 
-},{"../Cameras/CameraBase":2,"../Cameras/OrthographicCamera":3,"../Controls/ControlsBase":6,"../Controls/OrbitalControls":8,"../Lore":36,"../Math/Vector3f":45,"../Utils/Utils":60,"./Color":11,"./Effect":13,"./Geometry":14}],18:[function(require,module,exports){
+},{"../Cameras/CameraBase":2,"../Cameras/OrthographicCamera":3,"../Controls/ControlsBase":6,"../Controls/OrbitalControls":8,"../Math/Vector3f":45,"../Shaders":57,"../Utils/Utils":62,"./Color":11,"./Effect":13,"./Geometry":14}],18:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -3533,57 +3521,57 @@ const Geometry = require('../Core/Geometry');
  */
 class FilterBase {
 
-  /**
-   * Creates an instance of FilterBase.
-   * @param {string} attribute The name of the attribute to filter on.
-   * @param {number} attributeIndex The attribute-index to filter on.
-   */
-  constructor(attribute, attributeIndex) {
-    this.type = 'Lore.FilterBase';
-    this.geometry = null;
-    this.attribute = attribute;
-    this.attributeIndex = attributeIndex;
-    this.active = false;
-  }
+    /**
+     * Creates an instance of FilterBase.
+     * @param {string} attribute The name of the attribute to filter on.
+     * @param {number} attributeIndex The attribute-index to filter on.
+     */
+    constructor(attribute, attributeIndex) {
+        this.type = 'Lore.FilterBase';
+        this.geometry = null;
+        this.attribute = attribute;
+        this.attributeIndex = attributeIndex;
+        this.active = false;
+    }
 
-  /**
-   * Returns the geometry associated with this filter.
-   * 
-   * @returns {Geometry} The geometry associated with this filter.
-   */
-  getGeometry() {
-    return this.geometry;
-  }
+    /**
+     * Returns the geometry associated with this filter.
+     * 
+     * @returns {Geometry} The geometry associated with this filter.
+     */
+    getGeometry() {
+        return this.geometry;
+    }
 
-  /**
-   * Sets the geometry associated with this filter.
-   * 
-   * @param {Geometry} value The geometry to be associated with this filter.
-   */
-  setGeometry(value) {
-    this.geometry = value;
-  }
+    /**
+     * Sets the geometry associated with this filter.
+     * 
+     * @param {Geometry} value The geometry to be associated with this filter.
+     */
+    setGeometry(value) {
+        this.geometry = value;
+    }
 
-  /**
-   * Abstract method. 
-   */
-  filter() {}
+    /**
+     * Abstract method. 
+     */
+    filter() {}
 
-  /**
-   * Abstract method. 
-   */
-  reset() {}
+    /**
+     * Abstract method. 
+     */
+    reset() {}
 
-  /**
-   * Check whether or not a vertex with a given index is visible. A vertex is visible when its color attribute is > 0.0 at attribute-index 2 (the size in HSS).
-   *
-   * @param {Geometry} geometry A Lore.Geometry with a color attribute.
-   * @param {number} index A vertex index.
-   * @returns {boolean} A boolean indicating whether or not the vertex specified by index is visible (HSS size > 0.0).
-   */
-  static isVisible(geometry, index) {
-    return geometry.attributes['color'].data[index * 3 + 2] > 0.0;
-  }
+    /**
+     * Check whether or not a vertex with a given index is visible. A vertex is visible when its color attribute is > 0.0 at attribute-index 2 (the size in HSS).
+     *
+     * @param {Geometry} geometry A Lore.Geometry with a color attribute.
+     * @param {number} index A vertex index.
+     * @returns {boolean} A boolean indicating whether or not the vertex specified by index is visible (HSS size > 0.0).
+     */
+    static isVisible(geometry, index) {
+        return geometry.attributes['color'].data[index * 3 + 2] > 0.0;
+    }
 }
 
 module.exports = FilterBase;
@@ -3703,98 +3691,96 @@ module.exports = {
 
 //@ts-check
 
-const Renderer = require('../Core/Renderer');
 const DrawModes = require('../Core/DrawModes');
 const HelperBase = require('./HelperBase');
 const Utils = require('../Utils/Utils');
 
 /** A helper class for drawing axis aligned bounding boxes. */
 class AABBHelper extends HelperBase {
-    /**
-     * Creates an instance of AABBHelper.
-     * 
-     * @param {Renderer} renderer A Lore.Renderer object.
-     * @param {array} aabbs An array containing axis-aligned bounding boxes.
-     * @param {string} geometryName The name of the geometry used to render the axis-aligned bounding boxes.
-     * @param {string} shaderName The name of the shader used to render the axis-aligned bounding boxes.
-     * @param {object} options Options for drawing the axis-aligned bounding boxes.
-     */
-    constructor(renderer, aabbs, geometryName, shaderName, options) {
-        // TODO: Fix error
-        super(renderer, geometryName, shaderName);
+            /**
+             * Creates an instance of AABBHelper.
+             * 
+             * @param {Renderer} renderer A Lore.Renderer object.
+             * @param {array} aabbs An array containing axis-aligned bounding boxes.
+             * @param {string} geometryName The name of the geometry used to render the axis-aligned bounding boxes.
+             * @param {string} shaderName The name of the shader used to render the axis-aligned bounding boxes.
+             * @param {object} options Options for drawing the axis-aligned bounding boxes.
+             */
+            constructor(renderer, aabbs, geometryName, shaderName, options) {
+                        // TODO: Fix error
+                        super(renderer, geometryName, shaderName);
 
-        // Create lines
-        // Replaced with indexed?
+                        // Create lines
+                        // Replaced with indexed?
 
-        let p = new Float32Array(aabbs.length * 24 * 3);
-        let c = new Float32Array(aabbs.length * 24 * 3);
+                        let p = new Float32Array(aabbs.length * 24 * 3);
+                        let c = new Float32Array(aabbs.length * 24 * 3);
 
-        let index = 0;
+                        let index = 0;
 
-        for (let i = 0; i < aabbs.length; i++) {
-            let aabb = aabbs[0];
-            let cx = aabb.center.components[0];
-            let cy = aabb.center.components[1];
-            let cz = aabb.center.components[2];
-            let r = aabb.radius;
+                        for (let i = 0; i < aabbs.length; i++) {
+                                    let aabb = aabbs[0];
+                                    let cx = aabb.center.components[0];
+                                    let cy = aabb.center.components[1];
+                                    let cz = aabb.center.components[2];
+                                    let r = aabb.radius;
 
-            let p0 = [cx - r, cy - r, cz - r];
-            let p1 = [cx - r, cy - r, cz + r];
-            let p2 = [cx - r, cy + r, cz - r];
-            let p3 = [cx - r, cy + r, cz + r];
-            let p4 = [cx + r, cy - r, cz - r];
-            let p5 = [cx + r, cy - r, cz + r];
-            let p6 = [cx + r, cy + r, cz - r];
-            let p7 = [cx + r, cy + r, cz + r];
+                                    let p0 = [cx - r, cy - r, cz - r];
+                                    let p1 = [cx - r, cy - r, cz + r];
+                                    let p2 = [cx - r, cy + r, cz - r];
+                                    let p3 = [cx - r, cy + r, cz + r];
+                                    let p4 = [cx + r, cy - r, cz - r];
+                                    let p5 = [cx + r, cy - r, cz + r];
+                                    let p6 = [cx + r, cy + r, cz - r];
+                                    let p7 = [cx + r, cy + r, cz + r];
 
-            p[index++] = p0[0];p[index++] = p0[1];p[index++] = p0[2];
-            p[index++] = p1[0];p[index++] = p1[1];p[index++] = p1[2];
-            p[index++] = p0[0];p[index++] = p0[1];p[index++] = p0[2];
-            p[index++] = p2[0];p[index++] = p2[1];p[index++] = p2[2];
-            p[index++] = p0[0];p[index++] = p0[1];p[index++] = p0[2];
-            p[index++] = p4[0];p[index++] = p4[1];p[index++] = p4[2];
+                                    p[index++] = p0[0];p[index++] = p0[1];p[index++] = p0[2];
+                                    p[index++] = p1[0];p[index++] = p1[1];p[index++] = p1[2];
+                                    p[index++] = p0[0];p[index++] = p0[1];p[index++] = p0[2];
+                                    p[index++] = p2[0];p[index++] = p2[1];p[index++] = p2[2];
+                                    p[index++] = p0[0];p[index++] = p0[1];p[index++] = p0[2];
+                                    p[index++] = p4[0];p[index++] = p4[1];p[index++] = p4[2];
 
-            p[index++] = p1[0];p[index++] = p1[1];p[index++] = p1[2];
-            p[index++] = p3[0];p[index++] = p3[1];p[index++] = p3[2];
-            p[index++] = p1[0];p[index++] = p1[1];p[index++] = p1[2];
-            p[index++] = p5[0];p[index++] = p5[1];p[index++] = p5[2];
+                                    p[index++] = p1[0];p[index++] = p1[1];p[index++] = p1[2];
+                                    p[index++] = p3[0];p[index++] = p3[1];p[index++] = p3[2];
+                                    p[index++] = p1[0];p[index++] = p1[1];p[index++] = p1[2];
+                                    p[index++] = p5[0];p[index++] = p5[1];p[index++] = p5[2];
 
-            p[index++] = p2[0];p[index++] = p2[1];p[index++] = p2[2];
-            p[index++] = p3[0];p[index++] = p3[1];p[index++] = p3[2];
-            p[index++] = p2[0];p[index++] = p2[1];p[index++] = p2[2];
-            p[index++] = p6[0];p[index++] = p6[1];p[index++] = p6[2];
+                                    p[index++] = p2[0];p[index++] = p2[1];p[index++] = p2[2];
+                                    p[index++] = p3[0];p[index++] = p3[1];p[index++] = p3[2];
+                                    p[index++] = p2[0];p[index++] = p2[1];p[index++] = p2[2];
+                                    p[index++] = p6[0];p[index++] = p6[1];p[index++] = p6[2];
 
-            p[index++] = p3[0];p[index++] = p3[1];p[index++] = p3[2];
-            p[index++] = p7[0];p[index++] = p7[1];p[index++] = p7[2];
+                                    p[index++] = p3[0];p[index++] = p3[1];p[index++] = p3[2];
+                                    p[index++] = p7[0];p[index++] = p7[1];p[index++] = p7[2];
 
-            p[index++] = p4[0];p[index++] = p4[1];p[index++] = p4[2];
-            p[index++] = p5[0];p[index++] = p5[1];p[index++] = p5[2];
-            p[index++] = p4[0];p[index++] = p4[1];p[index++] = p4[2];
-            p[index++] = p6[0];p[index++] = p6[1];p[index++] = p6[2];
+                                    p[index++] = p4[0];p[index++] = p4[1];p[index++] = p4[2];
+                                    p[index++] = p5[0];p[index++] = p5[1];p[index++] = p5[2];
+                                    p[index++] = p4[0];p[index++] = p4[1];p[index++] = p4[2];
+                                    p[index++] = p6[0];p[index++] = p6[1];p[index++] = p6[2];
 
-            p[index++] = p5[0];p[index++] = p5[1];p[index++] = p5[2];
-            p[index++] = p7[0];p[index++] = p7[1];p[index++] = p7[2];
+                                    p[index++] = p5[0];p[index++] = p5[1];p[index++] = p5[2];
+                                    p[index++] = p7[0];p[index++] = p7[1];p[index++] = p7[2];
 
-            p[index++] = p6[0];p[index++] = p6[1];p[index++] = p6[2];
-            p[index++] = p7[0];p[index++] = p7[1];p[index++] = p7[2];
-        }
+                                    p[index++] = p6[0];p[index++] = p6[1];p[index++] = p6[2];
+                                    p[index++] = p7[0];p[index++] = p7[1];p[index++] = p7[2];
+                        }
 
-        this.opts = Utils.extend(true, AABBHelper.defaults, options);
-        this.geometry.setMode(DrawModes.lines);
+                        this.opts = Utils.extend(true, AABBHelper.defaults, options);
+                        this.geometry.setMode(DrawModes.lines);
 
-        this.setAttribute('position', p);
-        this.setAttribute('color', c);
-    }
+                        this.setAttribute('position', p);
+                        this.setAttribute('color', c);
+            }
 }
 
 module.exports = AABBHelper;
 
-},{"../Core/DrawModes":12,"../Core/Renderer":17,"../Utils/Utils":60,"./HelperBase":27}],26:[function(require,module,exports){
+},{"../Core/DrawModes":12,"../Utils/Utils":62,"./HelperBase":27}],26:[function(require,module,exports){
 'use strict';
 
 //@ts-check
 
-const Renderer = require('../Core/Renderer');
 const Color = require('../Core/Color');
 const HelperBase = require('./HelperBase');
 const Vector3f = require('../Math/Vector3f');
@@ -3977,16 +3963,15 @@ class CoordinatesHelper extends HelperBase {
 
 module.exports = CoordinatesHelper;
 
-},{"../Core/Color":11,"../Core/DrawModes":12,"../Core/Renderer":17,"../Math/Vector3f":45,"../Utils/Utils":60,"./HelperBase":27}],27:[function(require,module,exports){
+},{"../Core/Color":11,"../Core/DrawModes":12,"../Math/Vector3f":45,"../Utils/Utils":62,"./HelperBase":27}],27:[function(require,module,exports){
 'use strict';
 
 //@ts-check
 
-const Renderer = require('../Core/Renderer');
 const Shader = require('../Core/Shader');
 const Geometry = require('../Core/Geometry');
 const Node = require('../Core/Node');
-const Lore = require('../Lore');
+const Shaders = require('../Shaders');
 
 /** 
  * The base class for helper classes.
@@ -4006,7 +3991,7 @@ class HelperBase extends Node {
   constructor(renderer, geometryName, shaderName) {
     super();
     this.renderer = renderer;
-    this.shader = Lore.Shaders[shaderName];
+    this.shader = Shaders[shaderName].clone();
     this.geometry = this.renderer.createGeometry(geometryName, shaderName);
   }
 
@@ -4080,14 +4065,13 @@ class HelperBase extends Node {
 
 module.exports = HelperBase;
 
-},{"../Core/Geometry":14,"../Core/Node":16,"../Core/Renderer":17,"../Core/Shader":18,"../Lore":36}],28:[function(require,module,exports){
+},{"../Core/Geometry":14,"../Core/Node":16,"../Core/Shader":18,"../Shaders":57}],28:[function(require,module,exports){
 'use strict';
 
 //@ts-check
 
 const HelperBase = require('./HelperBase');
 const PointHelper = require('./PointHelper');
-const Renderer = require('../Core/Renderer');
 const Octree = require('../Spice/Octree');
 const Raycaster = require('../Spice/Raycaster');
 const DrawModes = require('../Core/DrawModes');
@@ -4096,6 +4080,7 @@ const Vector3f = require('../Math/Vector3f');
 const AABB = require('../Spice/AABB');
 const Matrix4f = require('../Math/Matrix4f');
 const FilterBase = require('../Filters/FilterBase');
+const Ray = require('../Math/Ray');
 
 /** 
  * A helper class to create an octree associated with vertex data. 
@@ -4661,13 +4646,12 @@ class OctreeHelper extends HelperBase {
 
 module.exports = OctreeHelper;
 
-},{"../Core/DrawModes":12,"../Core/Renderer":17,"../Filters/FilterBase":22,"../Math/Matrix4f":38,"../Math/Vector3f":45,"../Spice/AABB":56,"../Spice/Octree":57,"../Spice/Raycaster":58,"../Utils/Utils":60,"./HelperBase":27,"./PointHelper":29}],29:[function(require,module,exports){
+},{"../Core/DrawModes":12,"../Filters/FilterBase":22,"../Math/Matrix4f":38,"../Math/Ray":42,"../Math/Vector3f":45,"../Spice/AABB":58,"../Spice/Octree":59,"../Spice/Raycaster":60,"../Utils/Utils":62,"./HelperBase":27,"./PointHelper":29}],29:[function(require,module,exports){
 'use strict';
 
 //@ts-check
 
 const HelperBase = require('./HelperBase');
-const Renderer = require('../Core/Renderer');
 const DrawModes = require('../Core/DrawModes');
 const Color = require('../Core/Color');
 const Utils = require('../Utils/Utils');
@@ -5353,7 +5337,7 @@ class PointHelper extends HelperBase {
 
 module.exports = PointHelper;
 
-},{"../Core/Color":11,"../Core/DrawModes":12,"../Core/Renderer":17,"../Filters/FilterBase":22,"../Math/Vector3f":45,"../Spice/AABB":56,"../Spice/Octree":57,"../Utils/Utils":60,"./HelperBase":27}],30:[function(require,module,exports){
+},{"../Core/Color":11,"../Core/DrawModes":12,"../Filters/FilterBase":22,"../Math/Vector3f":45,"../Spice/AABB":58,"../Spice/Octree":59,"../Utils/Utils":62,"./HelperBase":27}],30:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -5484,7 +5468,7 @@ class TreeHelper extends HelperBase {
 
 module.exports = TreeHelper;
 
-},{"../Core/DrawModes":12,"../Utils/Utils":60,"./HelperBase":27}],31:[function(require,module,exports){
+},{"../Core/DrawModes":12,"../Utils/Utils":62,"./HelperBase":27}],31:[function(require,module,exports){
 'use strict';
 
 const AABBHelper = require('./AABBHelper');
@@ -5646,7 +5630,7 @@ class CsvFileReader extends FileReaderBase {
 
 module.exports = CsvFileReader;
 
-},{"../Utils/Utils":60,"./FileReaderBase":33}],33:[function(require,module,exports){
+},{"../Utils/Utils":62,"./FileReaderBase":33}],33:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -5734,7 +5718,7 @@ class FileReaderBase {
 
 module.exports = FileReaderBase;
 
-},{"../Utils/Utils":60}],34:[function(require,module,exports){
+},{"../Utils/Utils":62}],34:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -5901,7 +5885,7 @@ class MatrixFileReader extends FileReaderBase {
 
 module.exports = MatrixFileReader;
 
-},{"../Utils/Utils":60,"./FileReaderBase":33}],35:[function(require,module,exports){
+},{"../Utils/Utils":62,"./FileReaderBase":33}],35:[function(require,module,exports){
 'use strict';
 
 const CsvFileReader = require('./CsvFileReader');
@@ -5926,6 +5910,7 @@ const IO = require('./IO');
 const Math = require('./Math');
 const Shaders = require('./Shaders');
 const Spice = require('./Spice');
+const Utils = require('./Utils').Utils;
 
 module.exports = {
   Cameras,
@@ -5936,10 +5921,11 @@ module.exports = {
   IO,
   Math,
   Shaders,
-  Spice
+  Spice,
+  Utils
 };
 
-},{"./Cameras":5,"./Controls":9,"./Core":21,"./Filters":24,"./Helpers":31,"./IO":35,"./Math":46,"./Shaders":55,"./Spice":59}],37:[function(require,module,exports){
+},{"./Cameras":5,"./Controls":9,"./Core":21,"./Filters":24,"./Helpers":31,"./IO":35,"./Math":46,"./Shaders":57,"./Spice":61,"./Utils":63}],37:[function(require,module,exports){
 "use strict";
 
 //@ts-check
@@ -5990,7 +5976,6 @@ module.exports = Matrix3f;
 //@ts-check
 
 const Vector3f = require('./Vector3f');
-const Quaternion = require('./Quaternion');
 
 /** A class representing a 4x4 float matrix */
 class Matrix4f {
@@ -6298,7 +6283,6 @@ class Matrix4f {
    * @returns {Matrix4f} Returns itself.
    */
   decompose(outPosition, outQuaternion, outScale) {
-    let v = new Vector3f(0.0, 0.0, 0.0);
     let m = new Matrix4f();
 
     // The position is the simple one
@@ -6417,6 +6401,28 @@ class Matrix4f {
     }
 
     return this;
+  }
+
+  /**
+   * Projects the vector from world space into camera space.
+   * 
+   * @param {Vector3f} v A vector to project.
+   * @param {CameraBase} camera A camera instance.
+   * @returns {Vector3f} The vector in camera space.
+   */
+  static projectVector(v, camera) {
+    return v.applyProjection(Matrix4f.multiply(camera.projectionMatrix, Matrix4f.invert(camera.modelMatrix)));
+  }
+
+  /**
+   * Projects the vector from camera space into world space.
+   * 
+   * @param {Vector3f} v A vector to unproject.
+   * @param {CameraBase} camera A camera instance.
+   * @returns {Vector3f} The vector in world space.
+   */
+  static unprojectVector(v, camera) {
+    return v.applyProjection(Matrix4f.multiply(camera.modelMatrix, Matrix4f.invert(camera.projectionMatrix)));
   }
 
   /**
@@ -6649,7 +6655,7 @@ class Matrix4f {
 
 module.exports = Matrix4f;
 
-},{"./Quaternion":40,"./Vector3f":45}],39:[function(require,module,exports){
+},{"./Vector3f":45}],39:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -6659,105 +6665,105 @@ const Utils = require('../Utils/Utils');
 
 /** A class representing a projection matrix */
 class ProjectionMatrix extends Matrix4f {
-    /**
-     * Set the projection matrix to an orthographic projection.
-     *
-     * @param {number} left The left edge.
-     * @param {number} right The right edge.
-     * @param {number} top The top edge.
-     * @param {number} bottom The bottom edge.
-     * @param {number} near The near-cutoff value.
-     * @param {number} far The far-cutoff value.
-     * @returns {ProjectionMatrix} Returns this projection matrix.
-     */
-    setOrthographic(left, right, top, bottom, near, far) {
-        let w = 1.0 / (right - left);
-        let h = 1.0 / (top - bottom);
-        let d = 1.0 / (far - near);
+        /**
+         * Set the projection matrix to an orthographic projection.
+         *
+         * @param {number} left The left edge.
+         * @param {number} right The right edge.
+         * @param {number} top The top edge.
+         * @param {number} bottom The bottom edge.
+         * @param {number} near The near-cutoff value.
+         * @param {number} far The far-cutoff value.
+         * @returns {ProjectionMatrix} Returns this projection matrix.
+         */
+        setOrthographic(left, right, top, bottom, near, far) {
+                let w = 1.0 / (right - left);
+                let h = 1.0 / (top - bottom);
+                let d = 1.0 / (far - near);
 
-        let x = (right + left) * w;
-        let y = (top + bottom) * h;
-        let z = (far + near) * d;
+                let x = (right + left) * w;
+                let y = (top + bottom) * h;
+                let z = (far + near) * d;
 
-        this.setZero();
+                this.setZero();
 
-        this.entries[0] = 2 * w;
-        this.entries[4] = 0;
-        this.entries[8] = 0;
-        this.entries[12] = -x;
-        this.entries[1] = 0;
-        this.entries[5] = 2 * h;
-        this.entries[9] = 0;
-        this.entries[13] = -y;
-        this.entries[2] = 0;
-        this.entries[6] = 0;
-        this.entries[10] = -2 * d;
-        this.entries[14] = -z;
-        this.entries[3] = 0;
-        this.entries[7] = 0;
-        this.entries[11] = 0;
-        this.entries[15] = 1;
+                this.entries[0] = 2 * w;
+                this.entries[4] = 0;
+                this.entries[8] = 0;
+                this.entries[12] = -x;
+                this.entries[1] = 0;
+                this.entries[5] = 2 * h;
+                this.entries[9] = 0;
+                this.entries[13] = -y;
+                this.entries[2] = 0;
+                this.entries[6] = 0;
+                this.entries[10] = -2 * d;
+                this.entries[14] = -z;
+                this.entries[3] = 0;
+                this.entries[7] = 0;
+                this.entries[11] = 0;
+                this.entries[15] = 1;
 
-        return this;
-    }
+                return this;
+        }
 
-    /**
-     * Set the projection matrix to a perspective projection.
-     *
-     * @param {number} fov The field of view.
-     * @param {number} aspect The aspect ratio (width / height).
-     * @param {number} near The near-cutoff value.
-     * @param {number} far The far-cutoff value.
-     * @returns {ProjectionMatrix} Returns this projection matrix.
-     */
-    setPerspective(fov, aspect, near, far) {
-        let range = near - far;
-        let tanHalfFov = Math.tan(Utils.DEG2RAD * 0.5 * fov);
+        /**
+         * Set the projection matrix to a perspective projection.
+         *
+         * @param {number} fov The field of view.
+         * @param {number} aspect The aspect ratio (width / height).
+         * @param {number} near The near-cutoff value.
+         * @param {number} far The far-cutoff value.
+         * @returns {ProjectionMatrix} Returns this projection matrix.
+         */
+        setPerspective(fov, aspect, near, far) {
+                let range = near - far;
+                let tanHalfFov = Math.tan(Utils.DEG2RAD * 0.5 * fov);
 
-        let top = near * tanHalfFov;
-        let height = 2.0 * top;
-        let width = aspect * height;
-        let left = -width / 2.0;
-        let right = left + width;
-        let bottom = top - height;
-        // let bottom = -top;
-        // let right = top * aspect;
-        // let left = -right;
+                let top = near * tanHalfFov;
+                let height = 2.0 * top;
+                let width = aspect * height;
+                let left = -width / 2.0;
+                let right = left + width;
+                let bottom = top - height;
+                // let bottom = -top;
+                // let right = top * aspect;
+                // let left = -right;
 
-        let x = 2.0 * near / (right - left);
-        let y = 2.0 * near / (top - bottom);
+                let x = 2.0 * near / (right - left);
+                let y = 2.0 * near / (top - bottom);
 
-        let a = (right + left) / (right - left);
-        let b = (top + bottom) / (top - bottom);
-        let c = -(far + near) / (far - near);
-        let d = -2 * far * near / (far - near);
+                let a = (right + left) / (right - left);
+                let b = (top + bottom) / (top - bottom);
+                let c = -(far + near) / (far - near);
+                let d = -2 * far * near / (far - near);
 
-        this.setZero();
+                this.setZero();
 
-        this.entries[0] = x;
-        this.entries[4] = 0;
-        this.entries[8] = a;
-        this.entries[12] = 0;
-        this.entries[1] = 0;
-        this.entries[5] = y;
-        this.entries[9] = b;
-        this.entries[13] = 0;
-        this.entries[2] = 0;
-        this.entries[6] = 0;
-        this.entries[10] = c;
-        this.entries[14] = d;
-        this.entries[3] = 0;
-        this.entries[7] = 0;
-        this.entries[11] = -1;
-        this.entries[15] = 0;
+                this.entries[0] = x;
+                this.entries[4] = 0;
+                this.entries[8] = a;
+                this.entries[12] = 0;
+                this.entries[1] = 0;
+                this.entries[5] = y;
+                this.entries[9] = b;
+                this.entries[13] = 0;
+                this.entries[2] = 0;
+                this.entries[6] = 0;
+                this.entries[10] = c;
+                this.entries[14] = d;
+                this.entries[3] = 0;
+                this.entries[7] = 0;
+                this.entries[11] = -1;
+                this.entries[15] = 0;
 
-        return this;
-    }
+                return this;
+        }
 }
 
 module.exports = ProjectionMatrix;
 
-},{"../Utils/Utils":60,"./Matrix4f":38}],40:[function(require,module,exports){
+},{"../Utils/Utils":62,"./Matrix4f":38}],40:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -8024,8 +8030,6 @@ module.exports = Statistics;
 //@ts-check
 
 const SphericalCoordinates = require('./SphericalCoords');
-const Matrix4f = require('./Matrix4f');
-const Quaternion = require('./Quaternion');
 
 /** 
  * A class representing 3D float vector.
@@ -8305,26 +8309,6 @@ class Vector3f {
     }
 
     /**
-     * Projects the vector from world space into camera space.
-     * 
-     * @param {CameraBase} camera A camera instance.
-     * @returns {Vector3f} The vector in camera space.
-     */
-    project(camera) {
-        return this.applyProjection(Matrix4f.multiply(camera.projectionMatrix, Matrix4f.invert(camera.modelMatrix)));
-    }
-
-    /**
-     * Projects the vector from camera space into world space.
-     * 
-     * @param {CameraBase} camera A camera instance.
-     * @returns {Vector3f} The vector in world space.
-     */
-    unproject(camera) {
-        return this.applyProjection(Matrix4f.multiply(camera.modelMatrix, Matrix4f.invert(camera.projectionMatrix)));
-    }
-
-    /**
      * Applies a projection matrix to the vector.
      * 
      * @param {Matrix4f} m A (projection) matrix.
@@ -8587,7 +8571,7 @@ class Vector3f {
 
 module.exports = Vector3f;
 
-},{"./Matrix4f":38,"./Quaternion":40,"./SphericalCoords":43}],46:[function(require,module,exports){
+},{"./SphericalCoords":43}],46:[function(require,module,exports){
 'use strict';
 
 const Matrix3f = require('./Matrix3f');
@@ -8615,79 +8599,173 @@ module.exports = {
 },{"./Matrix3f":37,"./Matrix4f":38,"./ProjectionMatrix":39,"./Quaternion":40,"./RadixSort":41,"./Ray":42,"./SphericalCoords":43,"./Statistics":44,"./Vector3f":45}],47:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('circle', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-    clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w) * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],48:[function(require,module,exports){
+module.exports = new Shader('circle', 1, { size: new Uniform('size', 5.0, 'float'),
+    cutoff: new Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w) * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],48:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('coordinates', 1, {}, ['attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'void main() {', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'gl_PointSize = 1.0;', 'vColor = color;', '}'], ['varying vec3 vColor;', 'void main() {', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],49:[function(require,module,exports){
+module.exports = new Shader('coordinates', 1, {}, ['attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'void main() {', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'gl_PointSize = 1.0;', 'vColor = color;', '}'], ['varying vec3 vColor;', 'void main() {', 'gl_FragColor = vec4(vColor, 1.0);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],49:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('default', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-    type: new Lore.Uniform('type', 0.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-    clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],50:[function(require,module,exports){
+module.exports = new Shader('default', 1, { size: new Uniform('size', 5.0, 'float'),
+    type: new Uniform('type', 0.0, 'float'),
+    cutoff: new Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],50:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('defaultEffect', 1, {}, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], ['uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main(void) {', 'vec4 color = texture2D(fbo_texture, f_texcoord);', 'gl_FragColor = color;', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],51:[function(require,module,exports){
+module.exports = new Shader('defaultAnimated', 1, { size: new Uniform('size', 5.0, 'float'),
+    cutoff: new Uniform('cutoff', 0.0, 'float'),
+    time: new Uniform('time', 0.0, 'float'),
+    clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'uniform float time;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = size;', 'hsv.g *= max(0.15, abs(sin(time * 0.002)));', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],51:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('simpleSphere', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-    clearColor: new Lore.Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'vec3 color = vColor * diffuse;', 'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],52:[function(require,module,exports){
+module.exports = new Shader('defaultEffect', 1, {}, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], ['uniform sampler2D fbo_texture;', 'varying vec2 f_texcoord;', 'void main(void) {', 'vec4 color = texture2D(fbo_texture, f_texcoord);', 'gl_FragColor = color;', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],52:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('smoothCircle', 2, { size: new Lore.Uniform('size', 5.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-    clearColor: new Lore.Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', '// fragColor = vec4(vec3(gl_FragDepth) * fog, 1.0);', 'fragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity) * alpha;', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],53:[function(require,module,exports){
+module.exports = new Shader('FXAAEffect', 1, { resolution: new Uniform('resolution', [500.0, 500.0], 'float_vec2') }, ['attribute vec2 v_coord;', 'uniform sampler2D fbo_texture;', 'uniform vec2 resolution;', 'varying vec2 f_texcoord;', 'void main() {', 'gl_Position = vec4(v_coord, 0.0, 1.0);', 'f_texcoord = (v_coord + 1.0) / 2.0;', '}'], /*
+                                                                                                                                                                                                                                                                                                                                                    [
+                                                                                                                                                                                                                                                                                                                                                     '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
+                                                                                                                                                                                                                                                                                                                                                     '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
+                                                                                                                                                                                                                                                                                                                                                     '#define FXAA_SPAN_MAX     8.0',
+                                                                                                                                                                                                                                                                                                                                                       'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+                                                                                                                                                                                                                                                                                                                                                     '{',
+                                                                                                                                                                                                                                                                                                                                                         'fragCoord = fragCoord * resolution;',
+                                                                                                                                                                                                                                                                                                                                                         'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
+                                                                                                                                                                                                                                                                                                                                                         'vec3 rgbNW = texture2D(tex, (fragCoord.xy + vec2(-1.0, -1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                         'vec3 rgbNE = texture2D(tex, (fragCoord.xy + vec2(1.0, -1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                         'vec3 rgbSW = texture2D(tex, (fragCoord.xy + vec2(-1.0, 1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                         'vec3 rgbSE = texture2D(tex, (fragCoord.xy + vec2(1.0, 1.0)) * inverseVP).xyz;',
+                                                                                                                                                                                                                                                                                                                                                         'vec4 rgbaM  = texture2D(tex, fragCoord.xy  * inverseVP);',
+                                                                                                                                                                                                                                                                                                                                                         'vec3 rgbM = rgbaM.xyz;',
+                                                                                                                                                                                                                                                                                                                                                         'float opacity = rgbaM.w;',
+                                                                                                                                                                                                                                                                                                                                                         'vec3 luma = vec3(0.299, 0.587, 0.114);',
+                                                                                                                                                                                                                                                                                                                                                         'float lumaNW = dot(rgbNW, luma);',
+                                                                                                                                                                                                                                                                                                                                                         'float lumaNE = dot(rgbNE, luma);',
+                                                                                                                                                                                                                                                                                                                                                         'float lumaSW = dot(rgbSW, luma);',
+                                                                                                                                                                                                                                                                                                                                                         'float lumaSE = dot(rgbSE, luma);',
+                                                                                                                                                                                                                                                                                                                                                         'float lumaM  = dot(rgbM,  luma);',
+                                                                                                                                                                                                                                                                                                                                                         'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
+                                                                                                                                                                                                                                                                                                                                                         'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
+                                                                                                                                                                                                                                                                                                                                                           'vec2 dir;',
+                                                                                                                                                                                                                                                                                                                                                         'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
+                                                                                                                                                                                                                                                                                                                                                         'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
+                                                                                                                                                                                                                                                                                                                                                           'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+                                                                                                                                                                                                                                                                                                                                                         'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
+                                                                                                                                                                                                                                                                                                                                                           'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+                                                                                                                                                                                                                                                                                                                                                           'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                            'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
+                                                                                                                                                                                                                                                                                                                                                           'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+                                                                                                                                                                                                                                                                                                                                                                                          'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
+                                                                                                                                                                                                                                                                                                                                                           'float lumaB = dot(rgbB, luma);',
+                                                                                                                                                                                                                                                                                                                                                         'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
+                                                                                                                                                                                                                                                                                                                                                             'return vec4(rgbA, 1.0);',
+                                                                                                                                                                                                                                                                                                                                                         'else',
+                                                                                                                                                                                                                                                                                                                                                             'return vec4(rgbB, 1.0);',
+                                                                                                                                                                                                                                                                                                                                                     '}',
+                                                                                                                                                                                                                                                                                                                                                       'uniform sampler2D fbo_texture;',
+                                                                                                                                                                                                                                                                                                                                                     'varying vec2 f_texcoord;',
+                                                                                                                                                                                                                                                                                                                                                     'void main(void) {',
+                                                                                                                                                                                                                                                                                                                                                         'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
+                                                                                                                                                                                                                                                                                                                                                     '}'
+                                                                                                                                                                                                                                                                                                                                                    ]);
+                                                                                                                                                                                                                                                                                                                                                    */
+['#define fxaaTexture2D(t, p, o, r) texture2D(t, p + (o * r), 0.0)', '#define fxaaSat(x) clamp(x, 0.0, 1.0)', '#define FXAA_QUALITY_PS 8', '#define FXAA_QUALITY_P0 1.0', '#define FXAA_QUALITY_P1 1.5', '#define FXAA_QUALITY_P2 2.0', '#define FXAA_QUALITY_P3 2.0', '#define FXAA_QUALITY_P4 2.0', '#define FXAA_QUALITY_P5 2.0', '#define FXAA_QUALITY_P6 4.0', '#define FXAA_QUALITY_P7 12.0', 'vec4 fxaa(vec2 pos, sampler2D tex, vec2 resolution,', 'float subpixQuality, float edgeThreshold, float edgeThresholdMin) {', 'vec2 posM;', 'posM.x = pos.x;', 'posM.y = pos.y;', 'vec4 rgbyM = texture2D(tex, posM);', 'vec3 luma = vec3(0.299, 0.587, 0.114);', 'float lumaM = dot(rgbyM.xyz, luma);', 'float lumaS = dot(fxaaTexture2D(tex, posM, vec2(0, 1), resolution.xy).xyz, luma);', 'float lumaE = dot(fxaaTexture2D(tex, posM, vec2(1, 0), resolution.xy).xyz, luma);', 'float lumaN = dot(fxaaTexture2D(tex, posM, vec2(0, -1), resolution.xy).xyz, luma);', 'float lumaW = dot(fxaaTexture2D(tex, posM, vec2(-1, 0), resolution.xy).xyz, luma);', 'float maxSM = max(lumaS, lumaM);', 'float minSM = min(lumaS, lumaM);', 'float maxESM = max(lumaE, maxSM);', 'float minESM = min(lumaE, minSM);', 'float maxWN = max(lumaN, lumaW);', 'float minWN = min(lumaN, lumaW);', 'float rangeMax = max(maxWN, maxESM);', 'float rangeMin = min(minWN, minESM);', 'float rangeMaxScaled = rangeMax * edgeThreshold;', 'float range = rangeMax - rangeMin;', 'float rangeMaxClamped = max(edgeThresholdMin, rangeMaxScaled);', 'bool earlyExit = range < rangeMaxClamped;', '// maybe return rgbyM -> leave unchanged', 'if(earlyExit) return rgbyM;', 'float lumaNW = dot(fxaaTexture2D(tex, posM, vec2(-1, -1), resolution.xy).xyz, luma);', 'float lumaSE = dot(fxaaTexture2D(tex, posM, vec2(1, 1), resolution.xy).xyz, luma);', 'float lumaNE = dot(fxaaTexture2D(tex, posM, vec2(1, -1), resolution.xy).xyz, luma);', 'float lumaSW = dot(fxaaTexture2D(tex, posM, vec2(-1, 1), resolution.xy).xyz, luma);', 'float lumaNS = lumaN + lumaS;', 'float lumaWE = lumaW + lumaE;', 'float subpixRcpRange = 1.0 / range;', 'float subpixNSWE = lumaNS + lumaWE;', 'float edgeHorz1 = (-2.0 * lumaM) + lumaNS;', 'float edgeVert1 = (-2.0 * lumaM) + lumaWE;', 'float lumaNESE = lumaNE + lumaSE;', 'float lumaNWNE = lumaNW + lumaNE;', 'float edgeHorz2 = (-2.0 * lumaE) + lumaNESE;', 'float edgeVert2 = (-2.0 * lumaN) + lumaNWNE;', 'float lumaNWSW = lumaNW + lumaSW;', 'float lumaSWSE = lumaSW + lumaSE;', 'float edgeHorz4 = (abs(edgeHorz1) * 2.0) + abs(edgeHorz2);', 'float edgeVert4 = (abs(edgeVert1) * 2.0) + abs(edgeVert2);', 'float edgeHorz3 = (-2.0 * lumaW) + lumaNWSW;', 'float edgeVert3 = (-2.0 * lumaS) + lumaSWSE;', 'float edgeHorz = abs(edgeHorz3) + edgeHorz4;', 'float edgeVert = abs(edgeVert3) + edgeVert4;', 'float subpixNWSWNESE = lumaNWSW + lumaNESE;', 'float lengthSign = resolution.x;', 'bool horzSpan = edgeHorz >= edgeVert;', 'float subpixA = subpixNSWE * 2.0 + subpixNWSWNESE;', 'if(!horzSpan) lumaN = lumaW;', 'if(!horzSpan) lumaS = lumaE;', 'if(horzSpan) lengthSign = resolution.y;', 'float subpixB = (subpixA * (1.0/12.0)) - lumaM;', 'float gradientN = lumaN - lumaM;', 'float gradientS = lumaS - lumaM;', 'float lumaNN = lumaN + lumaM;', 'float lumaSS = lumaS + lumaM;', 'bool pairN = abs(gradientN) >= abs(gradientS);', 'float gradient = max(abs(gradientN), abs(gradientS));', 'if(pairN) lengthSign = -lengthSign;', 'float subpixC = fxaaSat(abs(subpixB) * subpixRcpRange);', 'vec2 posB;', 'posB.x = posM.x;', 'posB.y = posM.y;', 'vec2 offNP;', 'offNP.x = (!horzSpan) ? 0.0 : resolution.x;', 'offNP.y = ( horzSpan) ? 0.0 : resolution.y;', 'if(!horzSpan) posB.x += lengthSign * 0.5;', 'if( horzSpan) posB.y += lengthSign * 0.5;', 'vec2 posN;', 'posN.x = posB.x - offNP.x * FXAA_QUALITY_P0;', 'posN.y = posB.y - offNP.y * FXAA_QUALITY_P0;', 'vec2 posP;', 'posP.x = posB.x + offNP.x * FXAA_QUALITY_P0;', 'posP.y = posB.y + offNP.y * FXAA_QUALITY_P0;', 'float subpixD = ((-2.0)*subpixC) + 3.0;', 'float lumaEndN = texture2D(tex, posN).w;', 'float subpixE = subpixC * subpixC;', 'float lumaEndP = texture2D(tex, posP).w;', 'if(!pairN) lumaNN = lumaSS;', 'float gradientScaled = gradient * 1.0/4.0;', 'float lumaMM = lumaM - lumaNN * 0.5;', 'float subpixF = subpixD * subpixE;', 'bool lumaMLTZero = lumaMM < 0.0;', 'lumaEndN -= lumaNN * 0.5;', 'lumaEndP -= lumaNN * 0.5;', 'bool doneN = abs(lumaEndN) >= gradientScaled;', 'bool doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P1;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P1;', 'bool doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P1;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P1;', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P2;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P2;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P2;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P2;', '#if (FXAA_QUALITY_PS > 3)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P3;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P3;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P3;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P3;', '#if (FXAA_QUALITY_PS > 4)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P4;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P4;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P4;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P4;', '#if (FXAA_QUALITY_PS > 5)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P5;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P5;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P5;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P5;', '#if (FXAA_QUALITY_PS > 6)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P6;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P6;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P6;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P6;', '#if (FXAA_QUALITY_PS > 7)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P7;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P7;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P7;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P7;', '#if (FXAA_QUALITY_PS > 8)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P8;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P8;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P8;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P8;', '#if (FXAA_QUALITY_PS > 9)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P9;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P9;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P9;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P9;', '#if (FXAA_QUALITY_PS > 10)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P10;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P10;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P10;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P10;', '#if (FXAA_QUALITY_PS > 11)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P11;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P11;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P11;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P11;', '#if (FXAA_QUALITY_PS > 12)', 'if(doneNP) {', 'if(!doneN) lumaEndN = dot(texture2D(tex, posN.xy).xyz, luma);', 'if(!doneP) lumaEndP = dot(texture2D(tex, posP.xy).xyz, luma);', 'if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;', 'if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;', 'doneN = abs(lumaEndN) >= gradientScaled;', 'doneP = abs(lumaEndP) >= gradientScaled;', 'if(!doneN) posN.x -= offNP.x * FXAA_QUALITY_P12;', 'if(!doneN) posN.y -= offNP.y * FXAA_QUALITY_P12;', 'doneNP = (!doneN) || (!doneP);', 'if(!doneP) posP.x += offNP.x * FXAA_QUALITY_P12;', 'if(!doneP) posP.y += offNP.y * FXAA_QUALITY_P12;', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', '#endif', '}', 'float dstN = posM.x - posN.x;', 'float dstP = posP.x - posM.x;', 'if(!horzSpan) dstN = posM.y - posN.y;', 'if(!horzSpan) dstP = posP.y - posM.y;', 'bool goodSpanN = (lumaEndN < 0.0) != lumaMLTZero;', 'float spanLength = (dstP + dstN);', 'bool goodSpanP = (lumaEndP < 0.0) != lumaMLTZero;', 'float spanLengthRcp = 1.0 / spanLength;', 'bool directionN = dstN < dstP;', 'float dst = min(dstN, dstP);', 'bool goodSpan = directionN ? goodSpanN : goodSpanP;', 'float subpixG = subpixF * subpixF;', 'float pixelOffset = (dst * (-spanLengthRcp)) + 0.5;', 'float subpixH = subpixG * subpixQuality;', 'float pixelOffsetGood = goodSpan ? pixelOffset : 0.0;', 'float pixelOffsetSubpix = max(pixelOffsetGood, subpixH);', 'if(!horzSpan) posM.x += pixelOffsetSubpix * lengthSign;', 'if( horzSpan) posM.y += pixelOffsetSubpix * lengthSign;', '// maybe return vec4(texture2D(tex, posM).xyz, lumaM);', 'return texture2D(tex, posM);', '}', 'uniform sampler2D fbo_texture;', 'uniform vec2 resolution;', 'varying vec2 f_texcoord;', 'void main(void) {', 'gl_FragColor = fxaa(f_texcoord, fbo_texture, vec2(1.0 / resolution.x, 1.0 / resolution.y), 0.75, 0.166, 0.0833);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],53:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('sphere', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float'),
-    clearColor: new Lore.Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'vec3 color = vColor * diffuse + specular * 0.5;', 'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],54:[function(require,module,exports){
+module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 'float'),
+    cutoff: new Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'vec3 color = vColor * diffuse;', 'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],54:[function(require,module,exports){
 'use strict';
 
-module.exports = new Lore.Shader('tree', 1, { size: new Lore.Uniform('size', 5.0, 'float'),
-    cutoff: new Lore.Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 0.75);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = size;', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fog = 1.0 - (gl_FragCoord.z / gl_FragCoord.w);', 'gl_FragColor = vec4(vColor * fog, 0.5);', '}']);
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
 
-},{}],55:[function(require,module,exports){
+module.exports = new Shader('smoothCircle', 2, { size: new Uniform('size', 5.0, 'float'),
+    cutoff: new Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', '// fragColor = vec4(vec3(gl_FragDepth) * fog, 1.0);', 'fragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity) * alpha;', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],55:[function(require,module,exports){
+'use strict';
+
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
+
+module.exports = new Shader('sphere', 1, { size: new Uniform('size', 5.0, 'float'),
+    cutoff: new Uniform('cutoff', 0.0, 'float'),
+    clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);', 'fogIntensity = fogIntensity + fogIntensity * 2.0;', 'fogIntensity *= clearColor.w;', 'vec3 color = vColor * diffuse + specular * 0.5;', 'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],56:[function(require,module,exports){
+'use strict';
+
+const Shader = require('../Core/Shader');
+const Uniform = require('../Core/Uniform');
+
+module.exports = new Shader('tree', 1, { size: new Uniform('size', 5.0, 'float'),
+    cutoff: new Uniform('cutoff', 0.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 0.75);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = size;', 'vColor = hsv2rgb(hsv);', '}'], ['varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float fog = 1.0 - (gl_FragCoord.z / gl_FragCoord.w);', 'gl_FragColor = vec4(vColor * fog, 0.5);', '}']);
+
+},{"../Core/Shader":18,"../Core/Uniform":20}],57:[function(require,module,exports){
 'use strict';
 
 var circle = require('./Circle');
 var coordinates = require('./Coordinates');
-var defaultAnimated = require('./Default');
+var defaultSquare = require('./Default');
+var defaultAnimated = require('./DefaultAnimated');
 var defaultEffect = require('./DefaultEffect');
 var simpleSphere = require('./SimpleSphere');
 var smoothCircle = require('./SmoothCircle');
 var sphere = require('./Sphere');
 var tree = require('./Tree');
+var fxaaEffect = require('./FXAAEffect');
 
 module.exports = {
   circle,
   coordinates,
+  defaultSquare,
   defaultAnimated,
   defaultEffect,
   simpleSphere,
   smoothCircle,
   sphere,
-  tree
+  tree,
+  fxaaEffect
 };
 
-},{"./Circle":47,"./Coordinates":48,"./Default":49,"./DefaultEffect":50,"./SimpleSphere":51,"./SmoothCircle":52,"./Sphere":53,"./Tree":54}],56:[function(require,module,exports){
+},{"./Circle":47,"./Coordinates":48,"./Default":49,"./DefaultAnimated":50,"./DefaultEffect":51,"./FXAAEffect":52,"./SimpleSphere":53,"./SmoothCircle":54,"./Sphere":55,"./Tree":56}],58:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -8979,7 +9057,7 @@ class AABB {
 
 module.exports = AABB;
 
-},{"../Math/Vector3f":45}],57:[function(require,module,exports){
+},{"../Math/Vector3f":45}],59:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -9773,12 +9851,13 @@ class Octree {
 
 module.exports = Octree;
 
-},{"../Math/RadixSort":41,"../Math/Vector3f":45,"../Utils/Utils":60,"./AABB":56,"./Raycaster":58}],58:[function(require,module,exports){
+},{"../Math/RadixSort":41,"../Math/Vector3f":45,"../Utils/Utils":62,"./AABB":58,"./Raycaster":60}],60:[function(require,module,exports){
 'use strict';
 
 //@ts-check
 
 const Ray = require('../Math/Ray');
+const Matrix4f = require('../Math/Matrix4f');
 
 /** A class representing a raycaster. */
 class Raycaster {
@@ -9802,7 +9881,7 @@ class Raycaster {
         this.far = camera.far;
 
         this.ray.source.set(mouseX, mouseY, (camera.near + camera.far) / (camera.near - camera.far));
-        this.ray.source.unproject(camera);
+        Matrix4f.unprojectVector(this.ray.source, camera);
 
         this.ray.direction.set(0.0, 0.0, -1.0);
         this.ray.direction.toDirection(camera.modelMatrix);
@@ -9813,7 +9892,7 @@ class Raycaster {
 
 module.exports = Raycaster;
 
-},{"../Math/Ray":42}],59:[function(require,module,exports){
+},{"../Math/Matrix4f":38,"../Math/Ray":42}],61:[function(require,module,exports){
 'use strict';
 
 const AABB = require('./AABB');
@@ -9826,7 +9905,7 @@ module.exports = {
   Raycaster
 };
 
-},{"./AABB":56,"./Octree":57,"./Raycaster":58}],60:[function(require,module,exports){
+},{"./AABB":58,"./Octree":59,"./Raycaster":60}],62:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -9973,5 +10052,14 @@ Utils.DEG2RAD = Math.PI / 180.0;
 
 module.exports = Utils;
 
-},{}]},{},[1])
+},{}],63:[function(require,module,exports){
+'use strict';
+
+const Utils = require('./Utils');
+
+module.exports = {
+  Utils
+};
+
+},{"./Utils":62}]},{},[1])
 

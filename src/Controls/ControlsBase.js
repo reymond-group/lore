@@ -1,9 +1,6 @@
 //@ts-check
 
-const Renderer = require('../Core/Renderer');
 const Vector3f = require('../Math/Vector3f');
-const OrbitalControls = require('../Controls/OrbitalControls');
-
 /** 
  * An abstract class representing the base for controls implementations. 
  * 

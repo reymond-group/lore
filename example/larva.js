@@ -3,21 +3,21 @@
         clearColor: '#ffffff'
     });
     
-    let fileReader = new Lore.CsvFileReader('input-upload');
+    let fileReader = new Lore.IO.CsvFileReader('input-upload');
     let pointHelper = null;
     let octreeHelper = null;
     let original_data = null;
 
     fileReader.addEventListener('loaded', function(data) {
         original_data = data;
-        pointHelper = new Lore.PointHelper(lore, 'FlyBaby', 'sphere');
-        pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], Lore.Statistics.normalize(original_data['Sytox Green']), 1.0, 1.0)
+        pointHelper = new Lore.Helpers.PointHelper(lore, 'FlyBaby', 'sphere');
+        pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], Lore.Math.Statistics.normalize(original_data['Sytox Green']), 1.0, 1.0)
         pointHelper.setPointScale(5.0);
         
         lore.controls.setLookAt(pointHelper.getCenter());
         lore.controls.setRadius(pointHelper.getMaxRadius());
 
-        octreeHelper = new Lore.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper);
+        octreeHelper = new Lore.Helpers.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper);
 
         octreeHelper.addEventListener('hoveredchanged', function(e) {
             let indicator = document.getElementById('indicator');
@@ -37,34 +37,34 @@
 
     document.addEventListener('keydown', function(e) {
         if (e.keyCode === 48) {
-            let norm = Lore.Statistics.normalize(original_data['density_15']);
+            let norm = Lore.Math.Statistics.normalize(original_data['density_15']);
             pointHelper.setHue(norm);
         } else if (e.keyCode === 49) {
-            let norm = Lore.Statistics.normalize(original_data['Sytox Green']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Sytox Green']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 50) {
-            let norm = Lore.Statistics.normalize(original_data['Coumarin_nuclear']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Coumarin_nuclear']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 51) {
-            let norm = Lore.Statistics.normalize(original_data['Coumarin_apical']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Coumarin_apical']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 52) {
-            let norm = Lore.Statistics.normalize(original_data['Coumarin_basal']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Coumarin_basal']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 53) {
-            let norm = Lore.Statistics.normalize(original_data['Coumarin_cell']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Coumarin_cell']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 54) {
-            let norm = Lore.Statistics.normalize(original_data['Cy3_nuclear']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Cy3_nuclear']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 55) {
-            let norm = Lore.Statistics.normalize(original_data['Cy3_apical']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Cy3_apical']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 56) {
-            let norm = Lore.Statistics.normalize(original_data['Cy3_basal']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Cy3_basal']);
             pointHelper.setHue(norm);
         } else if (e.keyCode == 57) {
-            let norm = Lore.Statistics.normalize(original_data['Cy3_cell']);
+            let norm = Lore.Math.Statistics.normalize(original_data['Cy3_cell']);
             pointHelper.setHue(norm);
         }
     });

@@ -1,4 +1,7 @@
-module.exports = new Lore.Shader('defaultEffect', 1, {}, [
+const Shader = require('../Core/Shader')
+const Uniform = require('../Core/Uniform')
+
+module.exports = new Shader('defaultEffect', 1, {}, [
     'attribute vec2 v_coord;',
     'uniform sampler2D fbo_texture;',
     'varying vec2 f_texcoord;',

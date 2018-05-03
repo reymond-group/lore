@@ -1,6 +1,7 @@
 //@ts-check
 
 const Ray = require('../Math/Ray');
+const Matrix4f = require('../Math/Matrix4f')
 
 /** A class representing a raycaster. */
 class Raycaster {
@@ -24,7 +25,7 @@ class Raycaster {
         this.far = camera.far;
 
         this.ray.source.set(mouseX, mouseY, (camera.near + camera.far) / (camera.near - camera.far));
-        this.ray.source.unproject(camera);
+        Matrix4f.unprojectVector(this.ray.source, camera);
 
         this.ray.direction.set(0.0, 0.0, -1.0);
         this.ray.direction.toDirection(camera.modelMatrix);

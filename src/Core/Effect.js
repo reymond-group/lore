@@ -1,6 +1,6 @@
 //@ts-check
 
-const Lore = require('../Lore');
+const Shaders = require('../Shaders');
 
 class Effect {
     constructor(renderer, shaderName) {
@@ -10,8 +10,7 @@ class Effect {
         this.framebuffer = this.initFramebuffer();
         this.texture = this.initTexture();
         this.renderbuffer = this.initRenderbuffer();
-        
-        this.shader = Lore.getShader(shaderName);
+        this.shader = Shaders[shaderName].clone();
         this.shader.init(this.renderer.gl);
 
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);

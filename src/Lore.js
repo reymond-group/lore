@@ -7,6 +7,7 @@ const IO = require('./IO');
 const Math = require('./Math');
 const Shaders = require('./Shaders');
 const Spice = require('./Spice');
+const Utils = require('./Utils').Utils
 
 module.exports = {
   Cameras,
@@ -17,5 +18,6 @@ module.exports = {
   IO,
   Math,
   Shaders,
-  Spice
+  Spice,
+  Utils
 }

@@ -1,4 +1,7 @@
-module.exports = new Lore.Shader('coordinates', 1, { }, [
+const Shader = require('../Core/Shader')
+const Uniform = require('../Core/Uniform')
+
+module.exports = new Shader('coordinates', 1, { }, [
     'attribute vec3 position;',
     'attribute vec3 color;',
     'varying vec3 vColor;',

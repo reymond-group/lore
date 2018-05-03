@@ -1,10 +1,9 @@
 //@ts-check
 
-const Renderer = require('../Core/Renderer');
 const Shader = require('../Core/Shader');
 const Geometry = require('../Core/Geometry');
 const Node = require('../Core/Node');
-const Lore = require('../Lore');
+const Shaders = require('../Shaders');
 
 /** 
  * The base class for helper classes.
@@ -24,7 +23,7 @@ class HelperBase extends Node {
   constructor(renderer, geometryName, shaderName) {
     super();
     this.renderer = renderer;
-    this.shader = Lore.Shaders[shaderName];
+    this.shader = Shaders[shaderName].clone();
     this.geometry = this.renderer.createGeometry(geometryName, shaderName);
   }
 
