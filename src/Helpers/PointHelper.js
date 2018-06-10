@@ -363,16 +363,20 @@ class PointHelper extends HelperBase {
   }
 
   /**
-   * Sets the fog start and end distances, as seen from the camera.
+   * Sets the fog colour and it's density, as seen from the camera.
    * 
-   * @param {Number} fogStart The start distance of the fog.
-   * @param {Number} fogEnd The end distance of the fog.
+   * @param {Array} color An array defining the rgba values of the fog colour.
+   * @param {Number} fogDensity The density of the fog.
    * @returns {PointHelper} Itself.
    */
-  setFogDistance(fogStart, fogEnd) {
-    console.warn('This function is deprecated.');
-    // this.geometry.shader.uniforms.fogStart.value = fogStart;
-    // this.geometry.shader.uniforms.fogEnd.value = fogEnd;
+  setFog(color, fogDensity = 6.0) {
+    if (!this.geometry.shader.uniforms.clearColor || !this.geometry.shader.uniforms.fogDensity) {
+      console.warn('Shader "' + this.geometry.shader.name + '" does not support fog.');
+      return this;
+    }
+
+    this.geometry.shader.uniforms.clearColor.value = color;
+    this.geometry.shader.uniforms.fogDensity.value = fogDensity;
 
     return this;
   }

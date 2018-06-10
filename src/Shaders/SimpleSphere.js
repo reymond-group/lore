@@ -3,7 +3,9 @@ const Uniform = require('../Core/Uniform')
 
 module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 'float'),
                                                  cutoff: new Uniform('cutoff', 0.0, 'float'),
-                                                 clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, [
+                                                 clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
+                                                 fogFar: new Uniform('fogFar', 50.0, 'float'),
+                                                 fogDensity: new Uniform('fogDensity', 6.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',
     'attribute vec3 position;',
@@ -42,6 +44,8 @@ module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 
     'uniform vec4 clearColor;',
     'varying vec3 vColor;',
     'varying float vDiscard;',
+    'uniform float fogDensity;',
+    'uniform float fogFar;',
     'float rand(vec2 co) {',
         'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);',
     '}',
@@ -54,10 +58,9 @@ module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 
         'N.z = sqrt(1.0 - mag);',
         'vec3 light_dir = vec3(0.25, -0.25, 1.0);',
         'float diffuse = max(0.25, dot(light_dir, N));',
-        'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);',
-        'fogIntensity = fogIntensity + fogIntensity * 2.0;',
-        'fogIntensity *= clearColor.w;',
+        'float z = gl_FragCoord.z / gl_FragCoord.w;',
+        'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);',
         'vec3 color = vColor * diffuse;',
-        'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);',
+        'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);',
     '}'
 ]);
