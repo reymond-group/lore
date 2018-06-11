@@ -4,7 +4,6 @@ const Uniform = require('../Core/Uniform')
 module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 'float'),
                                                  cutoff: new Uniform('cutoff', 0.0, 'float'),
                                                  clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
-                                                 fogFar: new Uniform('fogFar', 50.0, 'float'),
                                                  fogDensity: new Uniform('fogDensity', 6.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',
@@ -42,10 +41,9 @@ module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 
     '}'
 ], [
     'uniform vec4 clearColor;',
+    'uniform float fogDensity;',
     'varying vec3 vColor;',
     'varying float vDiscard;',
-    'uniform float fogDensity;',
-    'uniform float fogFar;',
     'float rand(vec2 co) {',
         'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);',
     '}',

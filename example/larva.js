@@ -13,7 +13,8 @@
         pointHelper = new Lore.Helpers.PointHelper(lore, 'FlyBaby', 'sphere');
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], Lore.Math.Statistics.normalize(original_data['Sytox Green']), 1.0, 1.0)
         pointHelper.setPointScale(5.0);
-        
+        pointHelper.setFog([1.0, 1.0, 1.0, 1.0], 6.0);
+
         lore.controls.setLookAt(pointHelper.getCenter());
         lore.controls.setRadius(pointHelper.getMaxRadius());
 

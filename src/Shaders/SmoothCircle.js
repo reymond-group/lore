@@ -3,7 +3,8 @@ const Uniform = require('../Core/Uniform')
 
 module.exports = new Shader('smoothCircle', 2, { size: new Uniform('size', 5.0, 'float'),
                                                  cutoff: new Uniform('cutoff', 0.0, 'float'),
-                                                 clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, [
+                                                 clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4'),
+                                                 fogDensity: new Uniform('fogDensity', 6.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',
     'in vec3 position;',
@@ -40,6 +41,7 @@ module.exports = new Shader('smoothCircle', 2, { size: new Uniform('size', 5.0, 
     '}'
 ], [
     'uniform vec4 clearColor;',
+    'uniform float fogDensity;',
     'in vec3 vColor;',
     'in float vDiscard;',
     'out vec4 fragColor;',
@@ -53,10 +55,9 @@ module.exports = new Shader('smoothCircle', 2, { size: new Uniform('size', 5.0, 
         'r = dot(cxy, cxy);',
         'delta = fwidth(r);',
         'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);',
-        'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);',
-        'fogIntensity = fogIntensity + fogIntensity * 2.0;',
-        'fogIntensity *= clearColor.w;',
+        'float z = gl_FragCoord.z / gl_FragCoord.w;',
+        'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);',,
         '// fragColor = vec4(vec3(gl_FragDepth) * fog, 1.0);',
-        'fragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity) * alpha;',
+        'fragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);',
     '}'
 ]);

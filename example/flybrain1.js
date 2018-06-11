@@ -14,13 +14,6 @@
 
     fileReader.addEventListener('loaded', function(data) {
         original_data = data;
-
-        // for (var i = 0; i < data['x'].length; i++) {
-        //   data['x'][i] = data['x'][i] * 2.0;
-        //   data['y'][i] = data['y'][i] * 2.0;
-        //   data['z'][i] = data['z'][i] * 2.0;
-        // }
-
         pointHelper = new Lore.Helpers.PointHelper(lore, 'Seppli', 'simpleSphere');
         pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['c'], 1.0, 1.0)
         pointHelper.setPointScale(1.0);

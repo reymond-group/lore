@@ -4,7 +4,8 @@ const Uniform = require('../Core/Uniform')
 module.exports = new Shader('default', 1, { size: new Uniform('size', 5.0, 'float'),
                                             type: new Uniform('type', 0.0, 'float'),
                                             cutoff: new Uniform('cutoff', 0.0, 'float'),
-                                            clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4') }, [
+                                            clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
+                                            fogDensity: new Uniform('fogDensity', 6.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',
     'attribute vec3 position;',
@@ -44,13 +45,13 @@ module.exports = new Shader('default', 1, { size: new Uniform('size', 5.0, 'floa
     '}'
 ], [
     'uniform vec4 clearColor;',
+    'uniform float fogDensity;',
     'varying vec3 vColor;',
     'varying float vDiscard;',
     'void main() {',
         'if(vDiscard > 0.5) discard;',
-        'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);',
-        'fogIntensity = fogIntensity + fogIntensity * 2.0;',
-        'fogIntensity *= clearColor.w;',
-        'gl_FragColor = mix(vec4(vColor, 1.0), clearColor, fogIntensity);',
+        'float z = gl_FragCoord.z / gl_FragCoord.w;',
+        'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);',
+        'gl_FragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);',
     '}'
 ]);

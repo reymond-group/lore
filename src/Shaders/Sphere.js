@@ -3,7 +3,8 @@ const Uniform = require('../Core/Uniform')
 
 module.exports = new Shader('sphere', 1, { size: new Uniform('size', 5.0, 'float'),
                                            cutoff: new Uniform('cutoff', 0.0, 'float'),
-                                           clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4') }, [
+                                           clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4'),
+                                           fogDensity: new Uniform('fogDensity', 6.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',
     'attribute vec3 position;',
@@ -40,6 +41,7 @@ module.exports = new Shader('sphere', 1, { size: new Uniform('size', 5.0, 'float
     '}'
 ], [
     'uniform vec4 clearColor;',
+    'uniform float fogDensity;',
     'varying vec3 vColor;',
     'varying float vDiscard;',
     'float rand(vec2 co) {',
@@ -58,10 +60,9 @@ module.exports = new Shader('sphere', 1, { size: new Uniform('size', 5.0, 'float
         'vec3 h = normalize(light_dir + v);',
         'float specular = pow(max(0.0, dot(N, h)), 100.0);',
         '// specular += 0.1 * rand(gl_PointCoord);',
-        'float fogIntensity = (gl_FragCoord.z / gl_FragCoord.w);',
-        'fogIntensity = fogIntensity + fogIntensity * 2.0;',
-        'fogIntensity *= clearColor.w;',
+        'float z = gl_FragCoord.z / gl_FragCoord.w;',
+        'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);',
         'vec3 color = vColor * diffuse + specular * 0.5;',
-        'gl_FragColor = mix(vec4(color, 1.0), clearColor, fogIntensity);',
+        'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);',
     '}'
 ]);
