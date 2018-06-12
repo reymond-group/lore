@@ -71,6 +71,8 @@ class Color {
         return result ? new Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
     }
 
+    
+
     /**
      * Get the r, g or b value from a hue component.
      * 
@@ -174,6 +176,20 @@ class Color {
         }
 
         return [h, s, l];
+    }
+
+    /**
+     * Encode rgba colour values as a 32-bit float.
+     * 
+     * @static
+     * @param {Number} r 
+     * @param {Number} g 
+     * @param {Number} b
+     * @param {Number} a
+     * @returns {number} A 32-bit colour encoded as a float.
+     */
+    static rgbaToFloat(r, g, b, a) {
+        return r + g * 256.0 + b * 65536.0 + a * 16777216.0;
     }
 
     /**
