@@ -1612,6 +1612,20 @@ class Color {
     }
 
     /**
+     * Encode rgba colour values as a 32-bit float.
+     * 
+     * @static
+     * @param {Number} r 
+     * @param {Number} g 
+     * @param {Number} b
+     * @param {Number} a
+     * @returns {number} A 32-bit colour encoded as a float.
+     */
+    static rgbaToFloat(r, g, b, a) {
+        return r + g * 256.0 + b * 65536.0 + a * 16777216.0;
+    }
+
+    /**
      * Shifts the hue so that 0.0 represents blue and 1.0 represents magenta.
      * 
      * @static
@@ -5454,6 +5468,25 @@ class TreeHelper extends HelperBase {
     }
 
     this.setColors(c);
+  }
+
+  /**
+   * Sets the fog colour and it's density, as seen from the camera.
+   * 
+   * @param {Array} color An array defining the rgba values of the fog colour.
+   * @param {Number} fogDensity The density of the fog.
+   * @returns {TreeHelper} Itself.
+   */
+  setFog(color, fogDensity = 6.0) {
+    if (!this.geometry.shader.uniforms.clearColor || !this.geometry.shader.uniforms.fogDensity) {
+      console.warn('Shader "' + this.geometry.shader.name + '" does not support fog.');
+      return this;
+    }
+
+    this.geometry.shader.uniforms.clearColor.value = color;
+    this.geometry.shader.uniforms.fogDensity.value = fogDensity;
+
+    return this;
   }
 
   addFilter(name, filter) {

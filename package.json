@@ -1,6 +1,6 @@
 {
   "name": "lore-engine",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A WebGL based 3D data visualization engine.",
   "main": "./dist/lore.js",
   "directories": {

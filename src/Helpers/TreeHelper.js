@@ -110,6 +110,25 @@ class TreeHelper extends HelperBase {
     this.setColors(c);
   }
 
+  /**
+   * Sets the fog colour and it's density, as seen from the camera.
+   * 
+   * @param {Array} color An array defining the rgba values of the fog colour.
+   * @param {Number} fogDensity The density of the fog.
+   * @returns {TreeHelper} Itself.
+   */
+  setFog(color, fogDensity = 6.0) {
+    if (!this.geometry.shader.uniforms.clearColor || !this.geometry.shader.uniforms.fogDensity) {
+      console.warn('Shader "' + this.geometry.shader.name + '" does not support fog.');
+      return this;
+    }
+
+    this.geometry.shader.uniforms.clearColor.value = color;
+    this.geometry.shader.uniforms.fogDensity.value = fogDensity;
+
+    return this;
+  }
+
 
   addFilter(name, filter) {
     filter.setGeometry(this.geometry);
