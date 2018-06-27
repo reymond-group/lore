@@ -1114,7 +1114,7 @@ class OrbitalControls extends ControlsBase {
         this.camera.zoom = zoom;
         this.camera.updateProjectionMatrix();
         this.raiseEvent('zoomchanged', this.camera.zoom);
-        this.raiseEvent('updated');
+        this.update();
 
         return this;
     }
