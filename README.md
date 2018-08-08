@@ -3,7 +3,7 @@
 If you use this code or application, please cite the original paper published by Bioinformatics: [10.1093/bioinformatics/btx760](http://dx.doi.org/10.1093/bioinformatics/btx760)
 
 # Lore
-Current Version: 1.0.13 ([Godzilla](https://youtu.be/RTzb-sduiWc))
+Current Version: 1.0.14 ([Godzilla](https://youtu.be/RTzb-sduiWc))
 
 ### Teasers
 <table style="width=100%">
@@ -52,6 +52,7 @@ A simple example can be found in the `example` folder. The [example data file](h
 | Clear Depth | clearDepth | number | 1.0 |
 | Center (LookAt) | center | Lore.Vector3f | new Lore.Vector3f() |
 | Enable depth test | enableDepthTest | boolean | true |
+| Enable alpha blending | alphaBlending | boolean | false |
 
 #### CoordinatesHelper
 The options for the coordinate helper are self-explanatory:
