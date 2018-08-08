@@ -47,7 +47,8 @@ Lore.init = function(canvas, options) {
       verbose: true,
       fps: document.getElementById('fps'),
       center: new Lore.Math.Vector3f(125, 125, 125),
-      antialiasing: this.opts.antialiasing
+      antialiasing: this.opts.antialiasing,
+      alphaBlending: this.opts.alphaBlending
   });
  
   renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);

@@ -1,7 +1,8 @@
 (function() {
     let lore = Lore.init('lore', {
         clearColor: '#222222',
-        enableTransparency: true
+        enableTransparency: true,
+        alphaBlending: true
     });
     
     let fileReader = new Lore.IO.CsvFileReader('input-upload', {
