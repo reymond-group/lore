@@ -1480,6 +1480,42 @@ class Color {
     }
 
     /**
+     * Get the red component of the color.
+     * 
+     * @returns {Number} The red component of the color.
+     */
+    getR() {
+        return this.components[0];
+    }
+
+    /**
+     * Get the green component of the color.
+     * 
+     * @returns {Number} The green component of the color.
+     */
+    getG() {
+        return this.components[0];
+    }
+
+    /**
+     * Get the blue component of the color.
+     * 
+     * @returns {Number} The blue component of the color.
+     */
+    getB() {
+        return this.components[0];
+    }
+
+    /**
+     * Get the alpha component of the color.
+     * 
+     * @returns {Number} The alpha component of the color.
+     */
+    getA() {
+        return this.components[0];
+    }
+
+    /**
      * Set the r,g,b,a components from a hex string.
      * 
      * @static
