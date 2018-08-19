@@ -1517,6 +1517,15 @@ class Color {
   }
 
   /**
+   * Convert this colour to a float.
+   * 
+   * @returns {Number} A float representing this colour.
+   */
+  toFloat() {
+    return Color.rgbToFloat(this.getR() * 255.0, this.getG() * 255.0, this.getB() * 255.0);
+  }
+
+  /**
    * Set the r,g,b components from a hex string.
    * 
    * @static
@@ -4904,10 +4913,10 @@ class PointHelper extends HelperBase {
    * @param {Number[]|Array|Float32Array} x An array containing the x components.
    * @param {Number[]|Array|Float32Array} y An array containing the y components.
    * @param {Number[]|Array|Float32Array} z An array containing the z components.
-   * @param {Number} length The length of the arrays.
    * @returns {PointHelper} Itself.
    */
-  setPositionsXYZ(x, y, z, length) {
+  setPositionsXYZ(x, y, z) {
+    const length = x.length;
     let positions = new Float32Array(length * 3);
 
     for (var i = 0; i < length; i++) {
@@ -4960,20 +4969,114 @@ class PointHelper extends HelperBase {
   }
 
   /**
+   * Set the positions (XYZ), the color (RGB) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {Number[]|Array|Float32Array} r An array containing the r components.
+   * @param {Number[]|Array|Float32Array} g An array containing the g components.
+   * @param {Number[]|Array|Float32Array} b An array containing the b components.
+   * @param {Number} [s=1.0] The size of the points.
+   * @returns {PointHelper} Itself.
+   */
+  setXYZRGBS(x, y, z, r, g, b, s = 1.0) {
+    const length = r.length;
+    let c = new Float32Array(length);
+
+    for (var i = 0; i < length; i++) {
+      c[i] = Color.rgbToFloat(r[i], g[i], b[i]);
+    }
+
+    this._setValues(x, y, z, c, s);
+    return this;
+  }
+
+  /**
+   * Set the positions (XYZ), the hue (H) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {Number[]|Array|Float32Array|Number} [h=1.0] The hue as a number or an array.
+   * @param {Number[]|Array|Float32Array|Number} [s=1.0] The size of the points.
+   * @returns {PointHelper} Itself.
+   */
+  setXYZHS(x, y, z, h = 1.0, s = 1.0) {
+    const length = x.length;
+    let c = new Float32Array(length);
+
+    if (typeof h !== 'number') {
+      for (var i = 0; i < length; i++) {
+        c[i] = Color.hslToFloat(h[i]);
+      }
+    } else if (typeof h) {
+      h = Color.hslToFloat(h);
+      for (var i = 0; i < length; i++) {
+        c[i] = Color.hslToFloat(h);
+      }
+    }
+
+    this._setValues(x, y, z, c, s);
+    return this;
+  }
+
+  // TODO: Get rid of saturation
+  _setValues(x, y, z, c, s) {
+    let length = this.getMaxLength(x, y, z);
+    let saturation = new Float32Array(length);
+
+    for (var i = 0; i < length; i++) {
+      saturation[i] = 0.0;
+    }
+
+    if (typeof s === 'number') {
+      let tmpSize = new Float32Array(length);
+      for (var i = 0; i < length; i++) {
+        tmpSize[i] = s;
+      }
+      s = tmpSize;
+    }
+
+    this.setPositionsXYZ(x, y, z);
+    this.setHSSFromArrays(c, saturation, s);
+
+    // TODO: Check why the projection matrix update is needed
+    this.renderer.camera.updateProjectionMatrix();
+    this.renderer.camera.updateViewMatrix();
+
+    return this;
+  }
+
+  /**
    * Set the positions and the HSS (Hue, Saturation, Size) values of the points in the point cloud.
    * 
    * @param {Number[]|Array|Float32Array} x An array containing the x components.
    * @param {Number[]|Array|Float32Array} y An array containing the y components.
    * @param {Number[]|Array|Float32Array} z An array containing the z components.
-   * @param {Number[]|Array|Float32Array} hue An array containing the hues of the data points.
-   * @param {Number[]|Array|Float32Array} saturation An array containing the saturations of the data points.
-   * @param {Number[]|Array|Float32Array} size An array containing the sizes of the data points.
+   * @param {Number[]|Array|Float32Array|Number} hue An array containing the hues of the data points.
+   * @param {Number[]|Array|Float32Array|Number} saturation An array containing the saturations of the data points.
+   * @param {Number[]|Array|Float32Array|Number} size An array containing the sizes of the data points.
    * @returns {PointHelper} Itself.
    */
   setPositionsXYZHSS(x, y, z, hue, saturation, size) {
+    console.warn('The method "setPositionsXYZHSS" is marked as deprecated.');
     let length = this.getMaxLength(x, y, z);
+    saturation = new Float32Array(length);
 
-    this.setPositionsXYZ(x, y, z, length);
+    for (var i = 0; i < length; i++) {
+      saturation[i] = 0.0;
+    }
+
+    if (typeof size === 'number') {
+      let tmpSize = new Float32Array(length);
+      for (var i = 0; i < length; i++) {
+        tmpSize[i] = size;
+      }
+      size = tmpSize;
+    }
+
+    this.setPositionsXYZ(x, y, z);
 
     if (typeof hue === 'number' && typeof saturation === 'number' && typeof size === 'number') {
       let rgb = Color.hslToRgb(hue, 1.0, 0.5);
@@ -4983,7 +5086,7 @@ class PointHelper extends HelperBase {
         let rgb = Color.hslToRgb(hue[i], 1.0, 0.5);
         hue[i] = Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
       }
-      this.setHSSFromArrays(hue, saturation, size, length);
+      this.setHSSFromArrays(hue, saturation, size);
     } else {
       if (typeof hue === 'number') {
         let hueTmp = new Float32Array(length);
@@ -4995,7 +5098,7 @@ class PointHelper extends HelperBase {
           let rgb = Color.hslToRgb(hue[i], 1.0, 0.5);
           hue[i] = Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
         }
-        this.setHSSFromArrays(hue, saturation, size, length);
+        this.setHSSFromArrays(hue, saturation, size);
       }
 
       if (typeof saturation === 'number') {
@@ -5010,48 +5113,12 @@ class PointHelper extends HelperBase {
         size = sizeTmp;
       }
 
-      this.setHSSFromArrays(hue, saturation, size, length);
+      this.setHSSFromArrays(hue, saturation, size);
     }
 
     // TODO: Check why the projection matrix update is needed
     this.renderer.camera.updateProjectionMatrix();
     this.renderer.camera.updateViewMatrix();
-
-    return this;
-  }
-
-  /**
-   * Set the hue from an rgb values.
-   * 
-   * @param {Number[]|Array|Float32Array} r An array containing the red components of the colors.
-   * @param {Number[]|Array|Float32Array} g An array containing the green components of the colors.
-   * @param {Number[]|Array|Float32Array} b An array containing the blue components of the colors.
-   * @returns {PointHelper} Itself.
-   */
-  setRGB(r, g, b) {
-    let c = new Float32Array(r.length * 3);
-    let colors = this.getAttribute('color');
-
-    for (let i = 0; i < r.length; i++) {
-      let j = 3 * i;
-
-      c[j] = r[i];
-      c[j + 1] = g[i];
-      c[j + 2] = b[i];
-    }
-
-    // Convert to HOS (Hue, Saturation, Size)
-    for (let i = 0; i < c.length; i += 3) {
-      let r = c[i];
-      let g = c[i + 1];
-      let b = c[i + 2];
-
-      c[i] = Color.rgbToHsl(r, g, b)[0];
-      c[i + 1] = colors[i + 1];
-      c[i + 2] = colors[i + 2];
-    }
-
-    this.updateColors(c);
 
     return this;
   }
@@ -5270,8 +5337,8 @@ class PointHelper extends HelperBase {
 
     if (typeof hue === 'number') {
       let length = colors.length;
-
       c = new Float32Array(length * 3);
+      hue = Color.hslToFloat(hue);
 
       for (let i = 0; i < length * 3; i += 3) {
         c[i] = hue;
@@ -5291,46 +5358,6 @@ class PointHelper extends HelperBase {
     }
 
     this.setColors(c);
-  }
-
-  /**
-   * Update the hue of the points.
-   * 
-   * @param {Number[]|Array|Float32Array|Number} hue The hue to be set. If a number is supplied, all hues are set to its value.
-   * @param {Number|Array|Number[]} index The index or the indices of vertices to be set to a hue.
-   */
-  updateHue(hue, index) {
-    let colors = this.getAttribute('color');
-    let c = null;
-
-    if (index > colors.length - 1) {
-      console.warn('The color index is out of range.');
-      return;
-    }
-
-    if (typeof index === 'number') {
-      if (typeof hue !== 'number') {
-        console.warn('The hue value cannot be an array if index is a number.');
-      } else {
-        this.updateColor(index, new Color(hue, colors[index + 1], colors[index + 2]));
-      }
-    } else if (Array.isArray(index)) {
-      if (Array.isArray(hue)) {
-        if (hue.length !== index.length) {
-          console.warn('Hue and index arrays have to be of the same length.');
-        } else {
-          for (var i = 0; i < index.length; i++) {
-            this.updateColor(index[i], new Color(hue[i], colors[index[i] + 1], colors[index[i] + 2]));
-          }
-        }
-      } else if (typeof hue === 'number') {
-        for (var i = 0; i < index.length; i++) {
-          this.updateColor(index[i], new Color(hue, colors[index[i] + 1], colors[index[i] + 2]));
-        }
-      }
-    } else {
-      console.warn('The type of index is not supported: ' + typeof index);
-    }
   }
 
   /**
@@ -5424,14 +5451,49 @@ class PointHelper extends HelperBase {
   }
 
   /**
+   * Set the color from RGB values. Sets all indices to the same values.
+   * 
+   * @param {Number} r The red colour component.
+   * @param {Number} g The green colour component.
+   * @param {Number} b The blue colour component.
+   */
+  setRGB(r, g, b) {
+    let c = new Float32Array(length * 3);
+
+    for (let i = 0; i < length * 3; i += 3) {
+      c[i] = Color.rgbToFloat(r, g, b);
+    }
+
+    this.setColors(c);
+  }
+
+  /**
+   * Set the color from RGB values. Sets all indices to the same values.
+   * 
+   * @param {Number[]|Array|Float32Array} r The red colour component.
+   * @param {Number[]|Array|Float32Array} g The green colour component.
+   * @param {Number[]|Array|Float32Array} b The blue colour component.
+   */
+  setRGBFromArrays(r, g, b) {
+    const length = r.length;
+    let c = new Float32Array(length * 3);
+
+    for (let i = 0; i < length; i++) {
+      c[i * 3] = Color.rgbToFloat(r[i], g[i], b[i]);
+    }
+
+    this.setColors(c);
+  }
+
+  /**
    * Set the HSS values.
    * 
    * @param {Number[]|Array|Float32Array} hue An array of hue values.
    * @param {Number[]|Array|Float32Array} saturation An array of saturation values.
    * @param {Number[]|Array|Float32Array} size An array of size values.
-   * @param {Number} length The length of the arrays.
    */
-  setHSSFromArrays(hue, saturation, size, length) {
+  setHSSFromArrays(hue, saturation, size) {
+    let length = hue.length;
     let c = new Float32Array(length * 3);
     let index = 0;
 

@@ -83,6 +83,15 @@ class Color {
   }
 
   /**
+   * Convert this colour to a float.
+   * 
+   * @returns {Number} A float representing this colour.
+   */
+  toFloat() {
+    return Color.rgbToFloat(this.getR() * 255.0, this.getG() * 255.0, this.getB() * 255.0);
+  }
+
+  /**
    * Set the r,g,b components from a hex string.
    * 
    * @static

@@ -56,7 +56,7 @@ let edgeZ = [50,20,50,80];
       let pointHelper = new Lore.Helpers.PointHelper(lore, 'python-lore', 'sphere');
       let currentPoint = null;
       
-      pointHelper.setPositionsXYZHSS(x, y, z, c, 1.0, 1.0);
+      pointHelper.setXYZHS(x, y, z, c, 1.0);
       pointHelper.setPointScale(10.000000);
 
       let cc = Lore.Core.Color.fromHex(clearColor);
