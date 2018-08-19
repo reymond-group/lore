@@ -409,7 +409,7 @@ class OctreeHelper extends HelperBase {
     let p = new Float32Array(length * 24 * 3);
 
     for (let i = 0; i < c.length; i++) {
-      c[i] = 1;
+      c[i] = 255.0;
     }
 
     let index = 0;

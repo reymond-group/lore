@@ -191,14 +191,26 @@ class PointHelper extends HelperBase {
     this.setPositionsXYZ(x, y, z, length);
 
     if (typeof hue === 'number' && typeof saturation === 'number' && typeof size === 'number') {
-      this.setHSS(hue, saturation, size, length);
+      let rgb = Color.hslToRgb(hue, 1.0, 0.5);
+      this.setHSS(Color.rgbToFloat(rgb[0], rgb[1], rgb[2]), saturation, size, length);
     } else if (typeof hue !== 'number' && typeof saturation !== 'number' && typeof size !== 'number') {
+      for (var i = 0; i < hue.length; i++) {
+        let rgb = Color.hslToRgb(hue[i], 1.0, 0.5);
+        hue[i] = Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
+      }
       this.setHSSFromArrays(hue, saturation, size, length);
     } else {
       if (typeof hue === 'number') {
         let hueTmp = new Float32Array(length);
-        hueTmp.fill(hue);
+        let rgb = Color.hslToRgb(hue, 1.0, 0.5);
+        hueTmp.fill(Color.rgbToFloat(rgb[0], rgb[1], rgb[2]));
         hue = hueTmp;
+      } else if (typeof hue !== 'number') {
+        for (var i = 0; i < hue.length; i++) {
+          let rgb = Color.hslToRgb(hue[i], 1.0, 0.5);
+          hue[i] = Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
+        }
+        this.setHSSFromArrays(hue, saturation, size, length);
       }
 
       if (typeof saturation === 'number') {

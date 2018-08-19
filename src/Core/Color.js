@@ -83,13 +83,25 @@ class Color {
   }
 
   /**
-   * Set the r,g,b,a components from a hex string.
+   * Set the r,g,b components from a hex string.
    * 
    * @static
    * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
    * @returns {Color} A color representing the hex string.
    */
   static fromHex(hex) {
+    let rgb = Color.hexToRgb(hex);
+    return new Color(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0, 1.0);
+  }
+
+  /**
+   * Create an rgb array from the r,g,b components from a hex string.
+   * 
+   * @static
+   * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
+   * @returns {Array} Returns an array containing rgb values.
+   */
+  static hexToRgb(hex) {
     // Thanks to Tim Down
     // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 
@@ -104,7 +116,7 @@ class Color {
     let g = parseInt(result[2], 16);
     let b = parseInt(result[3], 16);
 
-    return result ? new Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
+    return [r, g, b];
   }
 
   /**
@@ -149,13 +161,24 @@ class Color {
     } else {
       let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
       let p = 2 * l - q;
-
-      r = Color.hueToRgb(p, q, h + 0.3333);
-      g = Color.hueToRgb(p, q, h);
-      b = Color.hueToRgb(p, q, h - 0.3333);
+      r = Color._hue2rgb(p, q, h + 1 / 3);
+      g = Color._hue2rgb(p, q, h);
+      b = Color._hue2rgb(p, q, h - 1 / 3);
     }
 
-    return [r, g, b];
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+
+  /**
+   * Helper for HSL to RGB converter.
+   */
+  static _hue2rgb(p, q, t) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 0.16666666666) return p + (q - p) * 6 * t;
+    if (t < 0.5) return q;
+    if (t < 0.66666666666) return p + (q - p) * (0.66666666666 - t) * 6;
+    return p;
   }
 
   /**
@@ -186,34 +209,45 @@ class Color {
    */
   static rgbToHsl(r, g, b) {
     r /= 255, g /= 255, b /= 255;
-    let max = Math.max(r, g, b),
-      min = Math.min(r, g, b);
+
+    let max = Math.max(r, g, b);
+    let min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
 
     if (max == min) {
       h = s = 0; // achromatic
     } else {
-      let d = max - min;
+      var d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
       switch (max) {
-        case r:
-          h = (g - b) / d + (g < b ? 6 : 0);
-          break;
-        case g:
-          h = (b - r) / d + 2;
-          break;
-        case b:
-          h = (r - g) / d + 4;
-          break;
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
       }
+
       h /= 6;
     }
 
-    return [h, s, l];
+    return [ h, s, l ];
   }
 
   /**
-   * Encode rgba colour values as a 24-bit (highp) float.
+   * Transform hsl to rgb colour values and then encode them as a 24-bit (highp) float.
+   * 
+   * @static
+   * @param {Number} h 
+   * @param {Number} [s=1.0] 
+   * @param {Number} [l=0.5]
+   * @returns {number} A RGB colour (NOT hsl) encoded as a float.
+   */
+  static hslToFloat(h, s = 1.0, l = 0.5) {
+    let rgb = Color.hslToRgb(h, s, l);
+    return Math.floor(rgb[0] + rgb[1] * 256.0 + rgb[2] * 256.0 * 256.0);
+  }
+
+  /**
+   * Encode rgb colour values as a 24-bit (highp) float.
    * 
    * @static
    * @param {Number} r 
@@ -221,23 +255,50 @@ class Color {
    * @param {Number} b
    * @returns {number} A RGB colour encoded as a float.
    */
-  static rgbaToFloat(r, g, b) {
-    return r + g * 256.0 + b * 65536.0;
+  static rgbToFloat(r, g, b) {
+    return Math.floor(r + g * 256.0 + b * 256.0 * 256.0);
   }
 
   /**
-   * Decode rgba colour values from a 24-bit (highp) float.
+   * Encode a hex colour values as a 24-bit (highp) float.
+   * 
+   * @static
+   * @param {String} hex A hex value encoding a colour. 
+   * @returns {number} A RGB colour encoded as a float.
+   */
+  static hexToFloat(hex) {
+    let rgb = Color.hexToRgb(hex);
+    return Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
+  }
+
+  /**
+   * Decode rgb colour values from a 24-bit (highp) float.
    * 
    * @static
    * @param {Number} n 
    * @returns {*} An array containing rgb values. 
    */
-  static floatToRgba(n) {
-    let b = Math.floor(n / 65536.0);
-    let g = Math.floor((n - b * 65536.0) / 256.0);
-    let r = Math.floor(n - b * 65536.0 - g * 256.0);
+  static floatToRgb(n) {
+    let b = Math.floor(n / (256.0 * 256.0));
+    let g = Math.floor((n - b * (256.0 * 256.0)) / 256.0);
+    let r = Math.floor(n - b * (256.0 * 256.0) - g * 256.0);
 
-    return [ r, g, b ]
+    return [r, g, b]
+  }
+
+  /**
+   * Decode hsl colour values from a 24-bit (highp) float.
+   * 
+   * @static
+   * @param {Number} n 
+   * @returns {*} An array containing hsl values. 
+   */
+  static floatToHsl(n) {
+    let b = Math.floor(n / (256.0 * 256.0));
+    let g = Math.floor((n - b * (256.0 * 256.0)) / 256.0);
+    let r = Math.floor(n - b * (256.0 * 256.0) - g * 256.0);
+
+    return Color.rgbToHsl(r, g, b);
   }
 
   /**

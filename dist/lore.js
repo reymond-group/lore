@@ -1517,13 +1517,25 @@ class Color {
   }
 
   /**
-   * Set the r,g,b,a components from a hex string.
+   * Set the r,g,b components from a hex string.
    * 
    * @static
    * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
    * @returns {Color} A color representing the hex string.
    */
   static fromHex(hex) {
+    let rgb = Color.hexToRgb(hex);
+    return new Color(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0, 1.0);
+  }
+
+  /**
+   * Create an rgb array from the r,g,b components from a hex string.
+   * 
+   * @static
+   * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
+   * @returns {Array} Returns an array containing rgb values.
+   */
+  static hexToRgb(hex) {
     // Thanks to Tim Down
     // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 
@@ -1538,7 +1550,7 @@ class Color {
     let g = parseInt(result[2], 16);
     let b = parseInt(result[3], 16);
 
-    return result ? new Color(r / 255.0, g / 255.0, b / 255.0, 1.0) : null;
+    return [r, g, b];
   }
 
   /**
@@ -1583,13 +1595,24 @@ class Color {
     } else {
       let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
       let p = 2 * l - q;
-
-      r = Color.hueToRgb(p, q, h + 0.3333);
-      g = Color.hueToRgb(p, q, h);
-      b = Color.hueToRgb(p, q, h - 0.3333);
+      r = Color._hue2rgb(p, q, h + 1 / 3);
+      g = Color._hue2rgb(p, q, h);
+      b = Color._hue2rgb(p, q, h - 1 / 3);
     }
 
-    return [r, g, b];
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+
+  /**
+   * Helper for HSL to RGB converter.
+   */
+  static _hue2rgb(p, q, t) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 0.16666666666) return p + (q - p) * 6 * t;
+    if (t < 0.5) return q;
+    if (t < 0.66666666666) return p + (q - p) * (0.66666666666 - t) * 6;
+    return p;
   }
 
   /**
@@ -1620,8 +1643,9 @@ class Color {
    */
   static rgbToHsl(r, g, b) {
     r /= 255, g /= 255, b /= 255;
-    let max = Math.max(r, g, b),
-        min = Math.min(r, g, b);
+
+    let max = Math.max(r, g, b);
+    let min = Math.min(r, g, b);
     let h,
         s,
         l = (max + min) / 2;
@@ -1629,19 +1653,18 @@ class Color {
     if (max == min) {
       h = s = 0; // achromatic
     } else {
-      let d = max - min;
+      var d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
       switch (max) {
         case r:
-          h = (g - b) / d + (g < b ? 6 : 0);
-          break;
+          h = (g - b) / d + (g < b ? 6 : 0);break;
         case g:
-          h = (b - r) / d + 2;
-          break;
+          h = (b - r) / d + 2;break;
         case b:
-          h = (r - g) / d + 4;
-          break;
+          h = (r - g) / d + 4;break;
       }
+
       h /= 6;
     }
 
@@ -1649,7 +1672,21 @@ class Color {
   }
 
   /**
-   * Encode rgba colour values as a 24-bit (highp) float.
+   * Transform hsl to rgb colour values and then encode them as a 24-bit (highp) float.
+   * 
+   * @static
+   * @param {Number} h 
+   * @param {Number} [s=1.0] 
+   * @param {Number} [l=0.5]
+   * @returns {number} A RGB colour (NOT hsl) encoded as a float.
+   */
+  static hslToFloat(h, s = 1.0, l = 0.5) {
+    let rgb = Color.hslToRgb(h, s, l);
+    return Math.floor(rgb[0] + rgb[1] * 256.0 + rgb[2] * 256.0 * 256.0);
+  }
+
+  /**
+   * Encode rgb colour values as a 24-bit (highp) float.
    * 
    * @static
    * @param {Number} r 
@@ -1657,23 +1694,50 @@ class Color {
    * @param {Number} b
    * @returns {number} A RGB colour encoded as a float.
    */
-  static rgbaToFloat(r, g, b) {
-    return r + g * 256.0 + b * 65536.0;
+  static rgbToFloat(r, g, b) {
+    return Math.floor(r + g * 256.0 + b * 256.0 * 256.0);
   }
 
   /**
-   * Decode rgba colour values from a 24-bit (highp) float.
+   * Encode a hex colour values as a 24-bit (highp) float.
+   * 
+   * @static
+   * @param {String} hex A hex value encoding a colour. 
+   * @returns {number} A RGB colour encoded as a float.
+   */
+  static hexToFloat(hex) {
+    let rgb = Color.hexToRgb(hex);
+    return Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
+  }
+
+  /**
+   * Decode rgb colour values from a 24-bit (highp) float.
    * 
    * @static
    * @param {Number} n 
    * @returns {*} An array containing rgb values. 
    */
-  static floatToRgba(n) {
-    let b = Math.floor(n / 65536.0);
-    let g = Math.floor((n - b * 65536.0) / 256.0);
-    let r = Math.floor(n - b * 65536.0 - g * 256.0);
+  static floatToRgb(n) {
+    let b = Math.floor(n / (256.0 * 256.0));
+    let g = Math.floor((n - b * (256.0 * 256.0)) / 256.0);
+    let r = Math.floor(n - b * (256.0 * 256.0) - g * 256.0);
 
     return [r, g, b];
+  }
+
+  /**
+   * Decode hsl colour values from a 24-bit (highp) float.
+   * 
+   * @static
+   * @param {Number} n 
+   * @returns {*} An array containing hsl values. 
+   */
+  static floatToHsl(n) {
+    let b = Math.floor(n / (256.0 * 256.0));
+    let g = Math.floor((n - b * (256.0 * 256.0)) / 256.0);
+    let r = Math.floor(n - b * (256.0 * 256.0) - g * 256.0);
+
+    return Color.rgbToHsl(r, g, b);
   }
 
   /**
@@ -3647,6 +3711,7 @@ module.exports = FilterBase;
 //@ts-check
 
 const FilterBase = require('./FilterBase');
+const Color = require('../Core/Color');
 
 /** 
  * A class representing an In-Range-Filter. It is used to filter a geometry based on a min and max value. 
@@ -3654,93 +3719,99 @@ const FilterBase = require('./FilterBase');
  * @property {number} max The maximum value.
  * */
 class InRangeFilter extends FilterBase {
-    /**
-     * Creates an instance of InRangeFilter.
-     * @param {string} attribute The name of the attribute to filter on.
-     * @param {number} attributeIndex The attribute-index to filter on.
-     * @param {number} min The minum value.
-     * @param {number} max The maximum value.
-     */
-    constructor(attribute, attributeIndex, min, max) {
-        super(attribute, attributeIndex);
+  /**
+   * Creates an instance of InRangeFilter.
+   * @param {string} attribute The name of the attribute to filter on.
+   * @param {number} attributeIndex The attribute-index to filter on.
+   * @param {number} min The minum value.
+   * @param {number} max The maximum value.
+   */
+  constructor(attribute, attributeIndex, min, max) {
+    super(attribute, attributeIndex);
 
-        this.min = min;
-        this.max = max;
+    this.min = min;
+    this.max = max;
+  }
+
+  /**
+   * Get the minimum.
+   * 
+   * @returns {number} The minimum.
+   */
+  getMin() {
+    return this.min;
+  }
+
+  /**
+   * Set the minimum.
+   * 
+   * @param {number} value The minimum.
+   */
+  setMin(value) {
+    this.min = value;
+  }
+
+  /**
+   * Get the maximum.
+   * 
+   * @returns {number} The maximum.
+   */
+  getMax() {
+    return this.max;
+  }
+
+  /**
+   * Set the maximum.
+   * 
+   * @param {number} value The maximum.
+   */
+  setMax(value) {
+    this.max = value;
+  }
+
+  /**
+   * Execute the filter operation on the specified attribute and attribute-index. In order to filter, the HSS size value (attribute-index 2 of the color attribute) is set to its negative (1.0 -> -1.0, 2.5 -> -2.5).
+   */
+  filter() {
+    let attribute = this.geometry.attributes[this.attribute];
+    let isHue = this.attribute === 'color' && this.attributeIndex === 0;
+
+    for (let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+      let value = attribute.data[i + this.attributeIndex];
+
+      if (isHue) {
+        value = Color.floatToHsl(value)[0];
+      }
+
+      let size = this.geometry.attributes['color'].data[i + 2];
+      if (value > this.max || value < this.min) {
+        this.geometry.attributes['color'].data[i + 2] = -Math.abs(size);
+      } else {
+        this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
+      }
     }
 
-    /**
-     * Get the minimum.
-     * 
-     * @returns {number} The minimum.
-     */
-    getMin() {
-        return this.min;
+    this.geometry.updateAttribute('color');
+  }
+
+  /**
+   * Resets the filter ("removes" it). The HSS size value is set back to its original value (-1.0 -> 1.0, -2.5 -> 2.5). 
+   */
+  reset() {
+    let attribute = this.geometry.attributes[this.attribute];
+
+    for (let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
+      let size = this.geometry.attributes['color'].data[i + 2];
+      this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
     }
 
-    /**
-     * Set the minimum.
-     * 
-     * @param {number} value The minimum.
-     */
-    setMin(value) {
-        this.min = value;
-    }
-
-    /**
-     * Get the maximum.
-     * 
-     * @returns {number} The maximum.
-     */
-    getMax() {
-        return this.max;
-    }
-
-    /**
-     * Set the maximum.
-     * 
-     * @param {number} value The maximum.
-     */
-    setMax(value) {
-        this.max = value;
-    }
-
-    /**
-     * Execute the filter operation on the specified attribute and attribute-index. In order to filter, the HSS size value (attribute-index 2 of the color attribute) is set to its negative (1.0 -> -1.0, 2.5 -> -2.5).
-     */
-    filter() {
-        let attribute = this.geometry.attributes[this.attribute];
-
-        for (let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            let value = attribute.data[i + this.attributeIndex];
-            let size = this.geometry.attributes['color'].data[i + 2];
-            if (value > this.max || value < this.min) {
-                this.geometry.attributes['color'].data[i + 2] = -Math.abs(size);
-            } else {
-                this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
-            }
-        }
-
-        this.geometry.updateAttribute('color');
-    }
-
-    /**
-     * Resets the filter ("removes" it). The HSS size value is set back to its original value (-1.0 -> 1.0, -2.5 -> 2.5). 
-     */
-    reset() {
-        let attribute = this.geometry.attributes[this.attribute];
-
-        for (let i = 0; i < attribute.data.length; i += attribute.attributeLength) {
-            let size = this.geometry.attributes['color'].data[i + 2];
-            this.geometry.attributes['color'].data[i + 2] = Math.abs(size);
-        }
-
-        this.geometry.updateAttribute('color');
-    }
+    this.geometry.updateAttribute('color');
+  }
 }
 
 module.exports = InRangeFilter;
 
-},{"./FilterBase":22}],24:[function(require,module,exports){
+},{"../Core/Color":11,"./FilterBase":22}],24:[function(require,module,exports){
 'use strict';
 
 const FilterBase = require('./FilterBase');
@@ -4544,7 +4615,7 @@ class OctreeHelper extends HelperBase {
     let p = new Float32Array(length * 24 * 3);
 
     for (let i = 0; i < c.length; i++) {
-      c[i] = 1;
+      c[i] = 255.0;
     }
 
     let index = 0;
@@ -4905,14 +4976,26 @@ class PointHelper extends HelperBase {
     this.setPositionsXYZ(x, y, z, length);
 
     if (typeof hue === 'number' && typeof saturation === 'number' && typeof size === 'number') {
-      this.setHSS(hue, saturation, size, length);
+      let rgb = Color.hslToRgb(hue, 1.0, 0.5);
+      this.setHSS(Color.rgbToFloat(rgb[0], rgb[1], rgb[2]), saturation, size, length);
     } else if (typeof hue !== 'number' && typeof saturation !== 'number' && typeof size !== 'number') {
+      for (var i = 0; i < hue.length; i++) {
+        let rgb = Color.hslToRgb(hue[i], 1.0, 0.5);
+        hue[i] = Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
+      }
       this.setHSSFromArrays(hue, saturation, size, length);
     } else {
       if (typeof hue === 'number') {
         let hueTmp = new Float32Array(length);
-        hueTmp.fill(hue);
+        let rgb = Color.hslToRgb(hue, 1.0, 0.5);
+        hueTmp.fill(Color.rgbToFloat(rgb[0], rgb[1], rgb[2]));
         hue = hueTmp;
+      } else if (typeof hue !== 'number') {
+        for (var i = 0; i < hue.length; i++) {
+          let rgb = Color.hslToRgb(hue[i], 1.0, 0.5);
+          hue[i] = Color.rgbToFloat(rgb[0], rgb[1], rgb[2]);
+        }
+        this.setHSSFromArrays(hue, saturation, size, length);
       }
 
       if (typeof saturation === 'number') {
@@ -8693,7 +8776,7 @@ const Uniform = require('../Core/Uniform');
 module.exports = new Shader('circle', 1, { size: new Uniform('size', 5.0, 'float'),
     cutoff: new Uniform('cutoff', 0.0, 'float'),
     clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
-    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'gl_FragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);', '}']);
+    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'gl_FragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);', '}']);
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],48:[function(require,module,exports){
 'use strict';
@@ -8713,7 +8796,7 @@ module.exports = new Shader('default', 1, { size: new Uniform('size', 5.0, 'floa
     type: new Uniform('type', 0.0, 'float'),
     cutoff: new Uniform('cutoff', 0.0, 'float'),
     clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
-    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'gl_FragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);', '}']);
+    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'gl_FragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);', '}']);
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],50:[function(require,module,exports){
 'use strict';
@@ -8799,7 +8882,7 @@ const Uniform = require('../Core/Uniform');
 module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 'float'),
     cutoff: new Uniform('cutoff', 0.0, 'float'),
     clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
-    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'vec3 color = vColor * diffuse;', 'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);', '}']);
+    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'vec3 color = vColor * diffuse;', 'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);', '}']);
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],54:[function(require,module,exports){
 'use strict';
@@ -8810,7 +8893,7 @@ const Uniform = require('../Core/Uniform');
 module.exports = new Shader('smoothCircle', 2, { size: new Uniform('size', 5.0, 'float'),
     cutoff: new Uniform('cutoff', 0.0, 'float'),
     clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4'),
-    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'fragColor = mix(clearColor, vec4(vColor, alpha), fog_factor);', 'fragColor.a = alpha;', 'fragColor.rgb *= fragColor.a;', '}']);
+    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'fragColor = mix(clearColor, vec4(vColor, alpha), fog_factor);', 'fragColor.a = alpha;', 'fragColor.rgb *= fragColor.a;', '}']);
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],55:[function(require,module,exports){
 'use strict';
@@ -8821,7 +8904,7 @@ const Uniform = require('../Core/Uniform');
 module.exports = new Shader('sphere', 1, { size: new Uniform('size', 5.0, 'float'),
     cutoff: new Uniform('cutoff', 0.0, 'float'),
     clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4'),
-    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 1.0);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'vec3 color = vColor * diffuse + specular * 0.5;', 'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);', '}']);
+    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'vec3 color = vColor * diffuse + specular * 0.5;', 'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);', '}']);
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],56:[function(require,module,exports){
 'use strict';
@@ -8832,7 +8915,7 @@ const Uniform = require('../Core/Uniform');
 module.exports = new Shader('tree', 1, { size: new Uniform('size', 5.0, 'float'),
     cutoff: new Uniform('cutoff', 0.0, 'float'),
     clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
-    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 rgb2hsv(vec3 c) {', 'vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);', 'vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));', 'vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));', 'float d = q.x - min(q.w, q.y);', 'float e = 1.0e-10;', 'return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);', '}', 'vec3 hsv2rgb(vec3 c) {', 'vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);', 'vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);', 'return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);', '}', 'void main() {', 'vec3 hsv = vec3(color.r, color.g, 0.75);', 'float saturation = color.g;', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = size;', 'vColor = hsv2rgb(hsv);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'gl_FragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);', '}']);
+    fogDensity: new Uniform('fogDensity', 6.0, 'float') }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'gl_FragColor = mix(clearColor, vec4(vColor, 1.0), fog_factor);', '}']);
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],57:[function(require,module,exports){
 'use strict';

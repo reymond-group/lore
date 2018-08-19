@@ -1,96 +1,152 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>python-faerun</title>
+    <script src="../dist/lore.js"></script>
+    <script src="https://unpkg.com/smiles-drawer@1.0.2/dist/smiles-drawer.min.js"></script>
+    <style>
+      body { margin: 0px; padding: 0px; height: 100%; user-select: none; }
+      #lore { position: absolute; width: 100%; height: 100%; }
+      #smiles-canvas { position: absolute; z-index: 9999; left: -999px; top: -999px; width: 250px; height: 250px; }
+      #tip-image-container { position: absolute; z-index: 9999; width: 250px; height: 250px; background-color: rgba(255, 255, 255, 0.75); border-radius: 50%; pointer-events: none; opacity: 0.0; transition: opacity 0.1s ease-out; }
+      #tip-image-container.show { opacity: 1.0; transition: opacity 0.1s ease-out; }
+      #tip-image { pointer-events: none; filter: drop-shadow(0px 0px 5px rgba(255, 255, 255, 1.0)); }
+      #selected { position: absolute; z-index: 9997; left: 5px; right: 5px; bottom: 5px; height: 100px; padding: 5px;
+                  border: 2px solid rgba(255, 255, 255, 0.1); background-color: rgba(0, 0, 0, 0.9); 
+                  overflow-y: auto; overflow-x: hidden; color: #eeeeee;
+                  font-family: Consolas, monaco, monospace; font-size: 0.8em;
+                  user-select: text }
+      #controls { position: absolute; z-index: 9998; left: 5px; right: 5px; bottom: 120px;
+                  text-align: right; font-size: 0.7em;
+                  font-family: Verdana, sans-serif; }
+      #controls a { padding: 5px; color: #ccc; text-decoration: none; }
+      #controls a:hover { color: #fff }
+      #hover-indicator { display: none; position: absolute; z-index: 999; border: 1px solid #fff; 
+                         background-color: rgba(255, 255, 255, 0.25); border-radius: 50%; pointer-events: none; }
+      #hover-indicator.show { display: block !important }
+    </style>
+  </head>
+  <body>
+    <canvas id="smiles-canvas"></canvas>
+    <div id="hover-indicator"></div>
+    <div id="selected"></div>
+    <div  id="controls">
+      <a href="#" id="clear">&#8416;&nbsp;&nbsp;CLEAR</a>
+      <a href="#" id="hide" title="Press c to toggle visibility of the console">&times;&nbsp;HIDE</a>
+      <a href="https://github.com/reymond-group/faerun-python" id="clear">?&nbsp;HELP</a>
+    </div>
+    <div  id="tip-image-container">
+      <img id="tip-image" />
+    </div>
+    <canvas id="lore"></canvas>
+    <script>let x = [10,50,100];
+let y = [20,10,60];
+let z = [50,20,80];
+let c = [0.1,0.5,0.9];
+let smiles = ['C1CCCC1', 'CNCNC(=O)C', 'CCCCCC'];
+let edgeX = [10,50,10,100];
+let edgeY = [20,10,20,60];
+let edgeZ = [50,20,50,80];
+</script>
+    <script>
+      let clearColor = '#222222';
+      let smilesDrawer = new SmilesDrawer.Drawer({ width: 250, height: 250 });
+      let lore = Lore.init('lore', { clearColor: clearColor });
+      let pointHelper = new Lore.Helpers.PointHelper(lore, 'python-lore', 'sphere');
+      let currentPoint = null;
+      
+      pointHelper.setPositionsXYZHSS(x, y, z, c, 1.0, 1.0);
+      pointHelper.setPointScale(10.000000);
 
-<head>
-  <meta charset="UTF-8">
-  <title>Lore.js Example</title>
+      let cc = Lore.Core.Color.fromHex(clearColor);
+      pointHelper.setFog([cc.components[0], cc.components[1], cc.components[2], cc.components[3]], 6.000000)
 
-  <style>
-    body {
-      margin: 0px;
-      padding: 0px;
-      height: 100%;
-      user-select: none;
-    }
-  </style>
-</head>
+      lore.controls.setLookAt(pointHelper.getCenter());
+      lore.controls.setRadius(pointHelper.getMaxRadius());
 
-<body>
-  <div id="data"></div>
-  <script src="../dist/lore.js"></script>
-  <script src="lesmiserables.edges.js"></script>
-  <script src="celegans.edges.js"></script>
-  <script src="compounds.edges.js"></script>
-  <script src="compounds.mqn.js"></script>
-  <script src="compounds.morgan.edges.js"></script>
-  <script src="drugbank.edges.js"></script>
-  <canvas id="output" width="1200" height="1200"></canvas>
-  <script>
+      let octreeHelper = new Lore.Helpers.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper);
+      let tip = document.getElementById('tip-image-container');
+      let tipImage = document.getElementById('tip-image');
+      let canvas = document.getElementById('smiles-canvas');
+      let hoverIndicator = document.getElementById('hover-indicator');
 
-    // let graph = new Lore.Graph([
-    //   [0, 6, 10, 0, 0, 0, 0, 0, 0, 0],
-    //   [6, 0, 12, 11, 14, 0, 0, 0, 0, 0],
-    //   [10, 12, 0, 12, 0, 0, 8, 16, 0, 0],
-    //   [0, 11, 12, 0, 0, 6, 3, 0, 0, 0],
-    //   [0, 14, 0, 0, 0, 4, 0, 0, 6, 0],
-    //   [0, 0, 0, 6, 4, 0, 0, 0, 12, 0],
-    //   [0, 0, 8, 3, 0, 0, 0, 0, 16, 6],
-    //   [0, 0, 16, 0, 0, 0, 0, 0, 0, 8],
-    //   [0, 0, 0, 0, 6, 12, 16, 0, 0, 13],
-    //   [0, 0, 0, 0, 0, 0, 6, 8, 13, 0]
-    // ]);
+      octreeHelper.addEventListener('hoveredchanged', function(e) {
+        if (e.e) {
+          currentPoint = { index: e.e.index, smiles: smiles[e.e.index] }
+          SmilesDrawer.parse(smiles[e.e.index], function(tree) {
+            smilesDrawer.draw(tree, 'smiles-canvas', 'light', false);
+            tipImage.src = canvas.toDataURL();
+            tip.classList.add('show');
+          });
 
-    let dummy = [
-      [0, 1, 1],
-      [1, 2, 1],
-      [2, 3, 2],
-      [3, 4, 1],
-      [4, 5, 2],
-      [5, 0, 1],
-      [5, 6, 1],
-      [6, 7, 1],
-      [7, 8, 1],
-      [8, 4, 1]
-    ]
+          let pointSize = pointHelper.getPointSize();
+          let x = octreeHelper.hovered.screenPosition[0];
+          let y = octreeHelper.hovered.screenPosition[1];
 
-    // let tree = Lore.Tree.fromEdgeList(compounds);
-    // let positions = tree.layout();
+          hoverIndicator.style.width = pointSize + 'px';
+          hoverIndicator.style.height = pointSize + 'px';
+          hoverIndicator.style.left = (x - pointSize / 2.0 - 2) + 'px';
+          hoverIndicator.style.top = (y - pointSize / 2.0 - 2) + 'px';
 
-    let graph = Lore.Graph.fromEdgeList(morganCompounds, false);
-    [positions, edges] = graph.forceLayout(1000, 1000, 1.5, 0.001, 500.0, 1.0);
+          hoverIndicator.classList.add('show');
+        } else {
+          currentPoint = null;
+          tip.classList.remove('show');
+          hoverIndicator.classList.remove('show');
+        }
+      });
+    
+        let treeHelper = new Lore.Helpers.TreeHelper(lore, 'TreeGeometry', 'tree')
+        treeHelper.setPositionsXYZHSS(edgeX, edgeY, edgeZ, Lore.Core.Color.hexToFloat('#8e44ad'), 1.0, 0.5)
 
-    let tCompoundsMqn = Lore.Statistics.transpose2dArray(compoundsMqn);
-    let prop = Lore.Statistics.normalize(tCompoundsMqn[0]);
-    console.log(prop);
+      document.addEventListener('mousemove', function (event) {
+        let tip = document.getElementById('tip-image-container');
 
-    let canvas = document.getElementById('output');
-    let ctx = canvas.getContext('2d');
+        let x = event.clientX;
+        let y = event.clientY - 48;
 
-    for (var i = 0; i < morganCompounds.length; i++) {
-      let a = positions[morganCompounds[i][0]];
-      let b = positions[morganCompounds[i][1]];
+        if (x > window.innerWidth - 300) {
+          x -= 250;
+        }
 
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.lineWidth = morganCompounds[i][2];
-      ctx.lineCap = 'round';
-      ctx.moveTo(a[0] + 4.0, a[1] + 4.0);
-      ctx.lineTo(b[0] + 4.0, b[1] + 4.0);
-      ctx.stroke();
-    }
+        if (y > window.innerHeight - 300) {
+          y -= 250;
+        }
 
-    // for (var i = 0; i < positions.length; i++) {
-    //   ctx.fillStyle = Lore.Color.hslToHex(prop[i], 0.75, 0.5);
-    //   ctx.beginPath();
-    //   ctx.arc(positions[i][0] + 4.0, positions[i][1] + 4.0, 4.0, 0, 2 * Math.PI, false);
-    //   ctx.closePath();
-    //   ctx.fill();
+        if (tip) {
+          tip.style.top = y + 'px';
+          tip.style.left = x + 'px';
+        }
+      });
+    
+      let selected = document.getElementById('selected');
+      document.addEventListener('dblclick', function (event) {
+        if (currentPoint) {
+          selected.innerHTML += currentPoint.smiles + '<br />';
+          selected.scrollTop = selected.scrollHeight;
+        }
+      });
+    
+      let clear = document.getElementById('clear');
+      clear.addEventListener('click', function(event) {
+        event.preventDefault();
+        selected.innerHTML = '';
+      }, false);
+    
+      let hide = document.getElementById('hide');
+      let toggleConsole = function () {
+        selected.style.display = selected.style.display == 'none' ? 'block' : 'none';
+        controls.style.display = controls.style.display == 'none' ? 'block' : 'none';
+      }
 
-    //   // ctx.fillText(i, positions[i][0] + 8, positions[i][1] + 5);
-    //   // ctx.fillRect(positions[i][0], positions[i][1], 8.0, 8.0);
-    // }
-
-  </script>
-</body>
-
+      let controls = document.getElementById('controls');
+      document.addEventListener('keypress', function(event) {
+        if (event.keyCode === 67 || event.keyCode === 99) {
+          toggleConsole();
+        }
+      });
+      hide.addEventListener('click', toggleConsole);
+    </script>
+  </body>
 </html>
