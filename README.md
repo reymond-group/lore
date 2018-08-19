@@ -3,7 +3,7 @@
 If you use this code or application, please cite the original paper published by Bioinformatics: [10.1093/bioinformatics/btx760](http://dx.doi.org/10.1093/bioinformatics/btx760)
 
 # Lore
-Current Version: 1.0.16 ([Godzilla](https://youtu.be/RTzb-sduiWc))
+Current Version: 1.0.17 ([Godzilla](https://youtu.be/RTzb-sduiWc))
 
 ### Teasers
 <table style="width=100%">
