@@ -5,6 +5,7 @@ const HelperBase = require('./HelperBase');
 const Vector3f = require('../Math/Vector3f');
 const Utils = require('../Utils/Utils');
 const DrawModes = require('../Core/DrawModes');
+const PointHelper = require('./PointHelper')
 
 /** A helper class for drawing coordinate system indicators. For example, a grid cube. */
 class CoordinatesHelper extends HelperBase {
@@ -17,10 +18,8 @@ class CoordinatesHelper extends HelperBase {
      * @param {string} shaderName The name of the shader used to render the coordinates.
      * @param {object} options Options for drawing the coordinates. See documentation for details.
      */
-    constructor(renderer, geometryName, shaderName, options) {
+    constructor(renderer, geometryName, options = {}, shaderName = 'coordinates') {
         super(renderer, geometryName, shaderName);
-
-        
         this.defaults = {
             position: new Vector3f(0.0, 0.0, 0.0),
             axis: {
@@ -209,6 +208,29 @@ class CoordinatesHelper extends HelperBase {
 
         this.setAttribute('position', new Float32Array(positions));
         this.setAttribute('color', new Float32Array(colors));
+    }
+
+    /**
+     * Creates an instance of CoordinatesHelper from a PointHelper.
+     * 
+     * @param {PointHelper} pointHelper A Lore.Helpers.PointHelper object.
+     */
+    static fromPointHelper(pointHelper, options = {}) {
+      let renderer = pointHelper.renderer;
+      let geometryName = pointHelper.geometry.name + '_Coordinates';
+
+      let opts = {
+        axis: {
+          x: { length: Math.abs(pointHelper.getDimensions().max.getX()) + Math.abs(pointHelper.getDimensions().min.getX()) },
+          y: { length: Math.abs(pointHelper.getDimensions().max.getY()) + Math.abs(pointHelper.getDimensions().min.getY()) },
+          z: { length: Math.abs(pointHelper.getDimensions().max.getZ()) + Math.abs(pointHelper.getDimensions().min.getZ()) }
+        }
+      }
+
+
+      opts = Utils.extend(true, opts, options);
+
+      return new CoordinatesHelper(renderer, geometryName, opts)
     }
 }
 

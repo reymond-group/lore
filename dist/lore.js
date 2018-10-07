@@ -3931,6 +3931,7 @@ const HelperBase = require('./HelperBase');
 const Vector3f = require('../Math/Vector3f');
 const Utils = require('../Utils/Utils');
 const DrawModes = require('../Core/DrawModes');
+const PointHelper = require('./PointHelper');
 
 /** A helper class for drawing coordinate system indicators. For example, a grid cube. */
 class CoordinatesHelper extends HelperBase {
@@ -3943,9 +3944,8 @@ class CoordinatesHelper extends HelperBase {
      * @param {string} shaderName The name of the shader used to render the coordinates.
      * @param {object} options Options for drawing the coordinates. See documentation for details.
      */
-    constructor(renderer, geometryName, shaderName, options) {
+    constructor(renderer, geometryName, options = {}, shaderName = 'coordinates') {
         super(renderer, geometryName, shaderName);
-
         this.defaults = {
             position: new Vector3f(0.0, 0.0, 0.0),
             axis: {
@@ -4104,11 +4104,33 @@ class CoordinatesHelper extends HelperBase {
         this.setAttribute('position', new Float32Array(positions));
         this.setAttribute('color', new Float32Array(colors));
     }
+
+    /**
+     * Creates an instance of CoordinatesHelper from a PointHelper.
+     * 
+     * @param {PointHelper} pointHelper A Lore.Helpers.PointHelper object.
+     */
+    static fromPointHelper(pointHelper, options = {}) {
+        let renderer = pointHelper.renderer;
+        let geometryName = pointHelper.geometry.name + '_Coordinates';
+
+        let opts = {
+            axis: {
+                x: { length: Math.abs(pointHelper.getDimensions().max.getX()) + Math.abs(pointHelper.getDimensions().min.getX()) },
+                y: { length: Math.abs(pointHelper.getDimensions().max.getY()) + Math.abs(pointHelper.getDimensions().min.getY()) },
+                z: { length: Math.abs(pointHelper.getDimensions().max.getZ()) + Math.abs(pointHelper.getDimensions().min.getZ()) }
+            }
+        };
+
+        opts = Utils.extend(true, opts, options);
+
+        return new CoordinatesHelper(renderer, geometryName, opts);
+    }
 }
 
 module.exports = CoordinatesHelper;
 
-},{"../Core/Color":11,"../Core/DrawModes":12,"../Math/Vector3f":45,"../Utils/Utils":62,"./HelperBase":27}],27:[function(require,module,exports){
+},{"../Core/Color":11,"../Core/DrawModes":12,"../Math/Vector3f":45,"../Utils/Utils":62,"./HelperBase":27,"./PointHelper":29}],27:[function(require,module,exports){
 'use strict';
 
 //@ts-check
@@ -5332,32 +5354,21 @@ class PointHelper extends HelperBase {
    */
   setHue(hue) {
     let colors = this.getAttribute('color');
-    let c = null;
     let index = 0;
 
     if (typeof hue === 'number') {
-      let length = colors.length;
-      c = new Float32Array(length * 3);
       hue = Color.hslToFloat(hue);
 
-      for (let i = 0; i < length * 3; i += 3) {
-        c[i] = hue;
-        c[i + 1] = colors[i + 1];
-        c[i + 2] = colors[i + 2];
+      for (let i = 0; i < colors.length; i++) {
+        colors[i * 3] = hue;
       }
     } else {
-      let length = hue.length;
-
-      c = new Float32Array(length * 3);
-
-      for (let i = 0; i < length * 3; i += 3) {
-        c[i] = hue[index++];
-        c[i + 1] = colors[i + 1];
-        c[i + 2] = colors[i + 2];
+      for (let i = 0; i < hue.length; i++) {
+        colors[i * 3] = Color.hslToFloat(hue[i]);
       }
     }
 
-    this.setColors(c);
+    this.setColors(colors);
   }
 
   /**
@@ -5458,10 +5469,10 @@ class PointHelper extends HelperBase {
    * @param {Number} b The blue colour component.
    */
   setRGB(r, g, b) {
-    let c = new Float32Array(length * 3);
+    let c = this.getAttribute('color');
 
-    for (let i = 0; i < length * 3; i += 3) {
-      c[i] = Color.rgbToFloat(r, g, b);
+    for (let i = 0; i < c.length; i++) {
+      c[i * 3] = Color.rgbToFloat(r, g, b);
     }
 
     this.setColors(c);
@@ -5475,8 +5486,8 @@ class PointHelper extends HelperBase {
    * @param {Number[]|Array|Float32Array} b The blue colour component.
    */
   setRGBFromArrays(r, g, b) {
-    const length = r.length;
-    let c = new Float32Array(length * 3);
+    const length = Math.min(Math.min(r.length, g.length), b.length);
+    let c = this.getAttribute('color');
 
     for (let i = 0; i < length; i++) {
       c[i * 3] = Color.rgbToFloat(r[i], g[i], b[i]);

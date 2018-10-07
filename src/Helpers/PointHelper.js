@@ -219,7 +219,7 @@ class PointHelper extends HelperBase {
     } else if (typeof h) {
       h = Color.hslToFloat(h);
       for (var i = 0; i < length; i++) {
-        c[i] = Color.hslToFloat(h);
+        c[i] = h;
       }
     }
 
@@ -539,32 +539,21 @@ class PointHelper extends HelperBase {
    */
   setHue(hue) {
     let colors = this.getAttribute('color');
-    let c = null;
     let index = 0;
 
     if (typeof hue === 'number') {
-      let length = colors.length;
-      c = new Float32Array(length * 3);
       hue = Color.hslToFloat(hue);
 
-      for (let i = 0; i < length * 3; i += 3) {
-        c[i] = hue;
-        c[i + 1] = colors[i + 1];
-        c[i + 2] = colors[i + 2];
+      for (let i = 0; i < colors.length; i++) {
+        colors[i * 3] = hue;
       }
     } else {
-      let length = hue.length;
-
-      c = new Float32Array(length * 3);
-
-      for (let i = 0; i < length * 3; i += 3) {
-        c[i] = hue[index++];
-        c[i + 1] = colors[i + 1];
-        c[i + 2] = colors[i + 2];
+      for (let i = 0; i < hue.length; i++) {
+        colors[i * 3] = Color.hslToFloat(hue[i]);
       }
     }
 
-    this.setColors(c);
+    this.setColors(colors);
   }
 
   /**
@@ -665,10 +654,10 @@ class PointHelper extends HelperBase {
    * @param {Number} b The blue colour component.
    */
   setRGB(r, g, b) {
-    let c = new Float32Array(length * 3);
+    let c = this.getAttribute('color');
 
-    for (let i = 0; i < length * 3; i += 3) {
-      c[i] = Color.rgbToFloat(r, g, b);
+    for (let i = 0; i < c.length; i++) {
+      c[i * 3] = Color.rgbToFloat(r, g, b);
     }
 
     this.setColors(c);
@@ -682,8 +671,8 @@ class PointHelper extends HelperBase {
    * @param {Number[]|Array|Float32Array} b The blue colour component.
    */
   setRGBFromArrays(r, g, b) {
-    const length = r.length;
-    let c = new Float32Array(length * 3);
+    const length = Math.min(Math.min(r.length, g.length), b.length);
+    let c = this.getAttribute('color');
 
     for (let i = 0; i < length; i++) {
       c[i * 3] = Color.rgbToFloat(r[i], g[i], b[i]);
