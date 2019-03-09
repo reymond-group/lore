@@ -5029,6 +5029,31 @@ class PointHelper extends HelperBase {
     return this;
   }
   /**
+   * Set the positions (XYZ), the color (RGB) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {String} hex A hex value.
+   * @param {Number} [s=1.0] The size of the points.
+   * @returns {PointHelper} Itself.
+   */
+
+
+  setXYZHexS(x, y, z, hex, s = 1.0) {
+    const length = x.length;
+    let c = new Float32Array(length);
+    let floatColor = Color.hexToFloat(hex);
+
+    for (var i = 0; i < length; i++) {
+      c[i] = floatColor;
+    }
+
+    this._setValues(x, y, z, c, s);
+
+    return this;
+  }
+  /**
    * Set the positions (XYZ), the hue (H) and size (S) of the points.
    * 
    * @param {Number[]|Array|Float32Array} x An array containing the x components.
@@ -5599,6 +5624,8 @@ const HelperBase = require('./HelperBase');
 
 const DrawModes = require('../Core/DrawModes');
 
+const Color = require('../Core/Color');
+
 const Utils = require('../Utils/Utils');
 
 class TreeHelper extends HelperBase {
@@ -5623,7 +5650,8 @@ class TreeHelper extends HelperBase {
     this.setAttribute('position', positions);
   }
 
-  setPositionsXYZ(x, y, z, length) {
+  setPositionsXYZ(x, y, z) {
+    const length = x.length;
     let positions = new Float32Array(length * 3);
 
     for (let i = 0; i < length; i++) {
@@ -5635,8 +5663,119 @@ class TreeHelper extends HelperBase {
 
     this.setAttribute('position', positions);
   }
+  /**
+   * Set the positions (XYZ), the color (RGB) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {Number[]|Array|Float32Array} r An array containing the r components.
+   * @param {Number[]|Array|Float32Array} g An array containing the g components.
+   * @param {Number[]|Array|Float32Array} b An array containing the b components.
+   * @param {Number} [s=1.0] The size of the points.
+   * @returns {TreeHelper} Itself.
+   */
+
+
+  setXYZRGBS(x, y, z, r, g, b, s = 1.0) {
+    const length = r.length;
+    let c = new Float32Array(length);
+
+    for (var i = 0; i < length; i++) {
+      c[i] = Color.rgbToFloat(r[i], g[i], b[i]);
+    }
+
+    this._setValues(x, y, z, c, s);
+
+    return this;
+  }
+  /**
+   * Set the positions (XYZ), the color (RGB) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {String} hex A hex value.
+   * @param {Number} [s=1.0] The size of the points.
+   * @returns {TreeHelper} Itself.
+   */
+
+
+  setXYZHexS(x, y, z, hex, s = 1.0) {
+    const length = x.length;
+    let c = new Float32Array(length);
+    let floatColor = Color.hexToFloat(hex);
+
+    for (var i = 0; i < length; i++) {
+      c[i] = floatColor;
+    }
+
+    this._setValues(x, y, z, c, s);
+
+    return this;
+  }
+  /**
+   * Set the positions (XYZ), the hue (H) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {Number[]|Array|Float32Array|Number} [h=1.0] The hue as a number or an array.
+   * @param {Number[]|Array|Float32Array|Number} [s=1.0] The size of the points.
+   * @returns {TreeHelper} Itself.
+   */
+
+
+  setXYZHS(x, y, z, h = 1.0, s = 1.0) {
+    const length = x.length;
+    let c = new Float32Array(length);
+
+    if (typeof h !== 'number') {
+      for (var i = 0; i < length; i++) {
+        c[i] = Color.hslToFloat(h[i]);
+      }
+    } else if (typeof h) {
+      h = Color.hslToFloat(h);
+
+      for (var i = 0; i < length; i++) {
+        c[i] = h;
+      }
+    }
+
+    this._setValues(x, y, z, c, s);
+
+    return this;
+  } // TODO: Get rid of saturation
+
+
+  _setValues(x, y, z, c, s) {
+    let length = this.getMaxLength(x, y, z);
+    let saturation = new Float32Array(length);
+
+    for (var i = 0; i < length; i++) {
+      saturation[i] = 0.0;
+    }
+
+    if (typeof s === 'number') {
+      let tmpSize = new Float32Array(length);
+
+      for (var i = 0; i < length; i++) {
+        tmpSize[i] = s;
+      }
+
+      s = tmpSize;
+    }
+
+    this.setPositionsXYZ(x, y, z);
+    this.setHSSFromArrays(c, saturation, s); // TODO: Check why the projection matrix update is needed
+
+    this.renderer.camera.updateProjectionMatrix();
+    this.renderer.camera.updateViewMatrix();
+    return this;
+  }
 
   setPositionsXYZHSS(x, y, z, hue, saturation, size) {
+    console.warn('The method "setPositionsXYZHSS" is marked as deprecated.');
     let length = this.getMaxLength(x, y, z);
     this.setPositionsXYZ(x, y, z, length);
     this.setHSS(hue, saturation, size, length);
@@ -5718,6 +5857,33 @@ class TreeHelper extends HelperBase {
     this.geometry.shader.uniforms.fogDensity.value = fogDensity;
     return this;
   }
+  /**
+   * Set the HSS values.
+   * 
+   * @param {Number[]|Array|Float32Array} hue An array of hue values.
+   * @param {Number[]|Array|Float32Array} saturation An array of saturation values.
+   * @param {Number[]|Array|Float32Array} size An array of size values.
+   */
+
+
+  setHSSFromArrays(hue, saturation, size) {
+    let length = hue.length;
+    let c = new Float32Array(length * 3);
+    let index = 0;
+
+    if (hue.length !== length && saturation.length !== length && size.length !== length) {
+      throw 'Hue, saturation and size have to be arrays of length "length" (' + length + ').';
+    }
+
+    for (let i = 0; i < length * 3; i += 3) {
+      c[i] = hue[index];
+      c[i + 1] = saturation[index];
+      c[i + 2] = size[index];
+      index++;
+    }
+
+    this.setColors(c);
+  }
 
   addFilter(name, filter) {
     filter.setGeometry(this.geometry);
@@ -5736,7 +5902,7 @@ class TreeHelper extends HelperBase {
 
 module.exports = TreeHelper;
 
-},{"../Core/DrawModes":12,"../Utils/Utils":62,"./HelperBase":27}],31:[function(require,module,exports){
+},{"../Core/Color":11,"../Core/DrawModes":12,"../Utils/Utils":62,"./HelperBase":27}],31:[function(require,module,exports){
 "use strict";
 
 const AABBHelper = require('./AABBHelper');
@@ -9001,7 +9167,7 @@ const Uniform = require('../Core/Uniform');
 module.exports = new Shader('smoothCircle', 2, {
   size: new Uniform('size', 5.0, 'float'),
   cutoff: new Uniform('cutoff', 0.0, 'float'),
-  clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 0.0], 'float_vec4'),
+  clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
   fogDensity: new Uniform('fogDensity', 6.0, 'float')
 }, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'fragColor = mix(clearColor, vec4(vColor, alpha), fog_factor);', 'fragColor.a = alpha;', 'fragColor.rgb *= fragColor.a;', '}']);
 

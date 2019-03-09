@@ -199,6 +199,28 @@ class PointHelper extends HelperBase {
   }
 
   /**
+   * Set the positions (XYZ), the color (RGB) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {String} hex A hex value.
+   * @param {Number} [s=1.0] The size of the points.
+   * @returns {PointHelper} Itself.
+   */
+  setXYZHexS(x, y, z, hex, s = 1.0) {
+    const length = x.length;
+    let c = new Float32Array(length);
+    let floatColor = Color.hexToFloat(hex);
+    for (var i = 0; i < length; i++) {
+      c[i] = floatColor;
+    }
+
+    this._setValues(x, y, z, c, s);
+    return this;
+  }
+
+  /**
    * Set the positions (XYZ), the hue (H) and size (S) of the points.
    * 
    * @param {Number[]|Array|Float32Array} x An array containing the x components.
