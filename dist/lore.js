@@ -3226,7 +3226,13 @@ class Shader {
   }
 
   clone() {
-    return new Shader(this.name, this.glVersion, this.uniforms, this.vertexShader, this.fragmentShader);
+    let uniforms = {};
+
+    for (let key in this.uniforms) {
+      uniforms[key] = this.uniforms[key].clone();
+    }
+
+    return new Shader(this.name, this.glVersion, uniforms, this.vertexShader, this.fragmentShader);
   }
 
   getVertexShaderCode() {
@@ -3483,6 +3489,16 @@ class Uniform {
     this.value = value;
     this.type = type;
     this.stale = true;
+  }
+  /**
+   * Create and return a new instance of this uniform.
+   * 
+   * @returns {Uniform} A clone of this uniform.
+   */
+
+
+  clone() {
+    return new Uniform(this.name, this.value, this.type);
   }
   /**
    * Set the value of this uniform.
@@ -4297,9 +4313,11 @@ class OctreeHelper extends HelperBase {
     this.target = target;
     this.renderer = renderer;
     this.octree = this.target.octree;
-    this.raycaster = new Raycaster();
+    this.raycaster = new Raycaster(1.0);
     this.hovered = null;
-    this.selected = [];
+    this.selected = []; // Register this octreeHelper with the pointHelper
+
+    this.target.octreeHelper = this;
     let that = this;
 
     this._dblclickHandler = function (e) {
@@ -4349,12 +4367,6 @@ class OctreeHelper extends HelperBase {
 
     renderer.controls.addEventListener('mousemove', this._mousemoveHandler);
 
-    this._zoomchangedHandler = function (zoom) {
-      that.setPointSizeFromZoom(zoom);
-    };
-
-    renderer.controls.addEventListener('zoomchanged', this._zoomchangedHandler);
-
     this._updatedHandler = function () {
       for (let i = 0; i < that.selected.length; i++) {
         that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
@@ -4383,19 +4395,6 @@ class OctreeHelper extends HelperBase {
     } else {
       this.geometry.isVisible = false;
     }
-
-    this.setPointSizeFromZoom(1.0);
-  }
-  /**
-   * Sets the point size of the associated Lore.PointHelper object as well as the threshold for the associated raycaster used for vertex picking.
-   * 
-   * @param {Number} zoom The current zoom value of the orthographic view.
-   */
-
-
-  setPointSizeFromZoom(zoom) {
-    let threshold = this.target.setPointSize(zoom + 0.1);
-    this.setThreshold(threshold);
   }
   /**
    * Get the screen position of a vertex by its index.
@@ -4617,6 +4616,35 @@ class OctreeHelper extends HelperBase {
     }
   }
   /**
+   * Adds a hoveredchanged event to multiple octrees and merges the event property e.
+   * 
+   * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
+   * @param {Function} eventListener A event listener for hoveredchanged.
+   */
+
+
+  static joinHoveredChanged(octreeHelpers, eventListener) {
+    for (let i = 0; i < octreeHelpers.length; i++) {
+      octreeHelpers[i].addEventListener('hoveredchanged', function (e) {
+        let result = {
+          e: null,
+          source: null
+        };
+
+        for (let j = 0; j < octreeHelpers.length; j++) {
+          if (octreeHelpers[j].hovered !== null) {
+            result = {
+              e: octreeHelpers[j].hovered,
+              source: j
+            };
+          }
+        }
+
+        eventListener(result);
+      });
+    }
+  }
+  /**
    * Draw the centers of the axis-aligned bounding boxes of this octree.
    */
 
@@ -4812,7 +4840,6 @@ class OctreeHelper extends HelperBase {
   destruct() {
     this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
     this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler);
-    this.renderer.controls.removeEventListener('zoomchanged', this._zoomchangedHandler);
     this.renderer.controls.removeEventListener('updated', this._updatedHandler);
   }
 
@@ -4845,6 +4872,7 @@ const FilterBase = require('../Filters/FilterBase');
  * @property {Object} opts An object containing options.
  * @property {Number[]} indices Indices associated with the data.
  * @property {Octree} octree The octree associated with the point cloud.
+ * @property {OctreeHelper} octreeHelper The octreeHelper associated with the pointHelper.
  * @property {Object} filters A map mapping filter names to Lore.Filter instances associated with this helper class.
  * @property {Number} pointSize The scaled and constrained point size of this data.
  * @property {Number} pointScale The scale of the point size.
@@ -4873,6 +4901,7 @@ class PointHelper extends HelperBase {
     this.opts = Utils.extend(true, defaults, options);
     this.indices = null;
     this.octree = null;
+    this.octreeHelper = null;
     this.geometry.setMode(DrawModes.points);
     this.initPointSize();
     this.filters = {};
@@ -4883,6 +4912,17 @@ class PointHelper extends HelperBase {
       min: new Vector3f(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
       max: new Vector3f(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY)
     };
+    let that = this;
+
+    this._zoomchangedHandler = function (zoom) {
+      let threshold = that.setPointSize(zoom + 0.1);
+
+      if (that.octreeHelper) {
+        that.octreeHelper.setThreshold(threshold);
+      }
+    };
+
+    renderer.controls.addEventListener('zoomchanged', this._zoomchangedHandler);
   }
   /**
    * Get the max length of the length of three arrays.
@@ -5610,6 +5650,14 @@ class PointHelper extends HelperBase {
 
   getFilter(name) {
     return this.filters[name];
+  }
+  /**
+   * Remove eventhandlers from associated controls.
+   */
+
+
+  destruct() {
+    this.renderer.controls.removeEventListener('zoomchanged', this._zoomchangedHandler);
   }
 
 }
@@ -8063,12 +8111,12 @@ const Matrix4f = require('./Matrix4f');
 class Ray {
   /**
    * Creates an instance of Ray.
-   * @param {Vector3f} source The source of the ray.
-   * @param {Vector3f} direction The direction of the ray.
+   * @param {Vector3f} [source = new Vector3f(0.0, 0.0, 0.0)] The source of the ray.
+   * @param {Vector3f} [direction = new Vector3f(0.0, 0.0, 0.0)] The direction of the ray.
    */
-  constructor(source, direction) {
-    this.source = source || new Vector3f(0.0, 0.0, 0.0);
-    this.direction = direction || new Vector3f(0.0, 0.0, 0.0);
+  constructor(source = new Vector3f(0.0, 0.0, 0.0), direction = new Vector3f(0.0, 0.0, 0.0)) {
+    this.source = source;
+    this.direction = direction;
   }
   /**
    * Copy the values from another ray.
@@ -10314,11 +10362,16 @@ const Matrix4f = require('../Math/Matrix4f');
 
 
 class Raycaster {
-  constructor() {
+  /**
+   * Creates an instance of Raycaster.
+   * 
+   * @param {Number} [threshold=0.1] Data to be sent to the listening functions.
+   */
+  constructor(threshold = 0.1) {
     this.ray = new Ray();
     this.near = 0;
     this.far = 1000;
-    this.threshold = 0.1;
+    this.threshold = threshold;
   }
   /**
    * Set the raycaster based on a camera and the current mouse coordinates.

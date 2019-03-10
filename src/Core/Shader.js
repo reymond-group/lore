@@ -31,7 +31,13 @@ class Shader {
     }
     
     clone() {
-        return new Shader(this.name, this.glVersion, this.uniforms, this.vertexShader, this.fragmentShader);
+        let uniforms = {};
+
+        for (let key in this.uniforms) {
+            uniforms[key] = this.uniforms[key].clone();
+        }
+
+        return new Shader(this.name, this.glVersion, uniforms, this.vertexShader, this.fragmentShader);
     }
 
     getVertexShaderCode() {

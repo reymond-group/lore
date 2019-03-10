@@ -23,6 +23,15 @@ class Uniform {
     }
 
     /**
+     * Create and return a new instance of this uniform.
+     * 
+     * @returns {Uniform} A clone of this uniform.
+     */
+    clone() {
+      return new Uniform(this.name, this.value, this.type);
+    }
+
+    /**
      * Set the value of this uniform.
      * 
      * @param {Number} value A number which is valid for the specified type.

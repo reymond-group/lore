@@ -15,6 +15,7 @@ const FilterBase = require('../Filters/FilterBase');
  * @property {Object} opts An object containing options.
  * @property {Number[]} indices Indices associated with the data.
  * @property {Octree} octree The octree associated with the point cloud.
+ * @property {OctreeHelper} octreeHelper The octreeHelper associated with the pointHelper.
  * @property {Object} filters A map mapping filter names to Lore.Filter instances associated with this helper class.
  * @property {Number} pointSize The scaled and constrained point size of this data.
  * @property {Number} pointScale The scale of the point size.
@@ -43,6 +44,7 @@ class PointHelper extends HelperBase {
     this.opts = Utils.extend(true, defaults, options);
     this.indices = null;
     this.octree = null;
+    this.octreeHelper = null;
     this.geometry.setMode(DrawModes.points);
     this.initPointSize();
     this.filters = {};
@@ -54,6 +56,16 @@ class PointHelper extends HelperBase {
       min: new Vector3f(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
       max: new Vector3f(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY)
     };
+
+    let that = this;
+    this._zoomchangedHandler = function (zoom) {
+      let threshold = that.setPointSize(zoom + 0.1);
+      if (that.octreeHelper) {
+        that.octreeHelper.setThreshold(threshold);
+      }
+    };
+
+    renderer.controls.addEventListener('zoomchanged', this._zoomchangedHandler);
   }
 
   /**
@@ -764,6 +776,13 @@ class PointHelper extends HelperBase {
    */
   getFilter(name) {
     return this.filters[name];
+  }
+
+  /**
+   * Remove eventhandlers from associated controls.
+   */
+  destruct() {
+    this.renderer.controls.removeEventListener('zoomchanged', this._zoomchangedHandler);
   }
 }
 
