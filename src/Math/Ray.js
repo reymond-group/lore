@@ -9,12 +9,12 @@ class Ray {
 
     /**
      * Creates an instance of Ray.
-     * @param {Vector3f} source The source of the ray.
-     * @param {Vector3f} direction The direction of the ray.
+     * @param {Vector3f} [source = new Vector3f(0.0, 0.0, 0.0)] The source of the ray.
+     * @param {Vector3f} [direction = new Vector3f(0.0, 0.0, 0.0)] The direction of the ray.
      */
-    constructor(source, direction) {
-        this.source = source || new Vector3f(0.0, 0.0, 0.0);
-        this.direction = direction || new Vector3f(0.0, 0.0, 0.0);
+    constructor(source = new Vector3f(0.0, 0.0, 0.0), direction = new Vector3f(0.0, 0.0, 0.0)) {
+        this.source = source;
+        this.direction = direction;
     }
 
     /**

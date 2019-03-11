@@ -19,9 +19,6 @@ var gulpJsdoc2md = require('gulp-jsdoc-to-markdown');
 var gutil = require('gulp-util');
 var webpack = require('webpack-stream');
 
-gulp.task('default', ['build', 'doc', 'md']);
-
-
 function compile(watch) {
   var bundler = watchify(browserify('./app.js', {
     debug: true
@@ -69,33 +66,48 @@ function watch() {
 }
 
 gulp.task('build', function () {
-  return compile();
+  return new Promise(function(resolve, reject) {
+    compile();
+    resolve();
+  })
 });
 
 gulp.task('watch', function () {
-  return watch();
+  return new Promise(function(resolve, reject) {
+    watch();
+    resolve();
+  });
 });
 
 gulp.task('doc', function (cb) {
-  var config = require('./jsdocConfig.json');
-  gulp.src(['README.md', './src/*.js'], {
-      read: false
-    })
-    .pipe(jsdoc(config, cb))
+  return new Promise(function(resolve, reject) {
+    var config = require('./jsdocConfig.json');
+    gulp.src(['README.md', './src/*.js'], {
+        read: false
+      })
+      .pipe(jsdoc(config, cb))
+    
+    resolve();
+  });
 });
 
 gulp.task('md', function (cb) {
-  var config = require('./jsdocConfig.json');
-  gulp.src('./src/*.js')
-    .pipe(concat('all.md'))
-    .pipe(gulpJsdoc2md({
-      template: fs.readFileSync('./readme.hbs', 'utf8')
-    }))
-    .on('error', function (err) {
-      gutil.log(gutil.colors.red('jsdoc2md failed'), err.message);
-    })
-    .pipe(rename(function (path) {
-      path.extname = '.md';
-    }))
-    .pipe(gulp.dest('doc'));
+  return new Promise(function(resolve, reject) {
+    var config = require('./jsdocConfig.json');
+    gulp.src('./src/*.js')
+      .pipe(concat('all.md'))
+      .pipe(gulpJsdoc2md({
+        template: fs.readFileSync('./readme.hbs', 'utf8')
+      }))
+      .on('error', function (err) {
+        gutil.log(gutil.colors.red('jsdoc2md failed'), err.message);
+      })
+      .pipe(rename(function (path) {
+        path.extname = '.md';
+      }))
+      .pipe(gulp.dest('doc'));
+    resolve();
+  });
 });
+
+gulp.task('default', gulp.series('build', 'doc', 'md'));

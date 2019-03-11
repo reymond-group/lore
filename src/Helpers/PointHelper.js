@@ -15,6 +15,7 @@ const FilterBase = require('../Filters/FilterBase');
  * @property {Object} opts An object containing options.
  * @property {Number[]} indices Indices associated with the data.
  * @property {Octree} octree The octree associated with the point cloud.
+ * @property {OctreeHelper} octreeHelper The octreeHelper associated with the pointHelper.
  * @property {Object} filters A map mapping filter names to Lore.Filter instances associated with this helper class.
  * @property {Number} pointSize The scaled and constrained point size of this data.
  * @property {Number} pointScale The scale of the point size.
@@ -43,6 +44,7 @@ class PointHelper extends HelperBase {
     this.opts = Utils.extend(true, defaults, options);
     this.indices = null;
     this.octree = null;
+    this.octreeHelper = null;
     this.geometry.setMode(DrawModes.points);
     this.initPointSize();
     this.filters = {};
@@ -54,6 +56,16 @@ class PointHelper extends HelperBase {
       min: new Vector3f(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
       max: new Vector3f(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY)
     };
+
+    let that = this;
+    this._zoomchangedHandler = function (zoom) {
+      let threshold = that.setPointSize(zoom + 0.1);
+      if (that.octreeHelper) {
+        that.octreeHelper.setThreshold(threshold);
+      }
+    };
+
+    renderer.controls.addEventListener('zoomchanged', this._zoomchangedHandler);
   }
 
   /**
@@ -192,6 +204,28 @@ class PointHelper extends HelperBase {
 
     for (var i = 0; i < length; i++) {
       c[i] = Color.rgbToFloat(r[i], g[i], b[i]);
+    }
+
+    this._setValues(x, y, z, c, s);
+    return this;
+  }
+
+  /**
+   * Set the positions (XYZ), the color (RGB) and size (S) of the points.
+   * 
+   * @param {Number[]|Array|Float32Array} x An array containing the x components.
+   * @param {Number[]|Array|Float32Array} y An array containing the y components.
+   * @param {Number[]|Array|Float32Array} z An array containing the z components.
+   * @param {String} hex A hex value.
+   * @param {Number} [s=1.0] The size of the points.
+   * @returns {PointHelper} Itself.
+   */
+  setXYZHexS(x, y, z, hex, s = 1.0) {
+    const length = x.length;
+    let c = new Float32Array(length);
+    let floatColor = Color.hexToFloat(hex);
+    for (var i = 0; i < length; i++) {
+      c[i] = floatColor;
     }
 
     this._setValues(x, y, z, c, s);
@@ -742,6 +776,13 @@ class PointHelper extends HelperBase {
    */
   getFilter(name) {
     return this.filters[name];
+  }
+
+  /**
+   * Remove eventhandlers from associated controls.
+   */
+  destruct() {
+    this.renderer.controls.removeEventListener('zoomchanged', this._zoomchangedHandler);
   }
 }
 

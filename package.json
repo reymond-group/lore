@@ -1,6 +1,6 @@
 {
   "name": "lore-engine",
-  "version": "1.0.17",
+  "version": "1.0.20",
   "description": "A WebGL based 3D data visualization engine.",
   "main": "./app.js",
   "directories": {
@@ -22,18 +22,18 @@
     "babel-preset-env": ">=1.7.0",
     "babelify": "^10.0.0",
     "browserify": ">=16.2.3",
-    "docdash": "^1.0.1",
-    "gulp": ">=3.9.1",
+    "docdash": "^1.0.3",
+    "gulp": "^4.0.0",
     "gulp-babel-minify": "^0.5.0",
     "gulp-concat": ">=2.6.1",
     "gulp-exit": "0.0.2",
     "gulp-jsdoc-to-markdown": ">=1.2.2",
     "gulp-jsdoc3": ">=2.0.0",
     "gulp-rename": ">=1.4.0",
-    "gulp-sourcemaps": ">=2.6.4",
+    "gulp-sourcemaps": "^2.6.5",
     "vinyl-buffer": ">=1.0.1",
     "vinyl-source-stream": ">=2.0.0",
-    "watchify": ">=3.11.0",
+    "watchify": "^3.11.1",
     "webpack-stream": "^5.2.1"
   },
   "private": false

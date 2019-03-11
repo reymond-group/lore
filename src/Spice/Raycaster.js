@@ -5,11 +5,16 @@ const Matrix4f = require('../Math/Matrix4f')
 
 /** A class representing a raycaster. */
 class Raycaster {
-    constructor() {
+  /**
+   * Creates an instance of Raycaster.
+   * 
+   * @param {Number} [threshold=0.1] Data to be sent to the listening functions.
+   */
+    constructor(threshold = 0.1) {
         this.ray = new Ray();
         this.near = 0;
         this.far = 1000;
-        this.threshold = 0.1;
+        this.threshold = threshold;
     }
 
     /**

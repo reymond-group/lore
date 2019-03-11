@@ -47,9 +47,12 @@ class OctreeHelper extends HelperBase {
     this.target = target;
     this.renderer = renderer;
     this.octree = this.target.octree;
-    this.raycaster = new Raycaster();
+    this.raycaster = new Raycaster(1.0);
     this.hovered = null;
     this.selected = [];
+
+    // Register this octreeHelper with the pointHelper
+    this.target.octreeHelper = this;
 
     let that = this;
 
@@ -101,12 +104,6 @@ class OctreeHelper extends HelperBase {
 
     renderer.controls.addEventListener('mousemove', this._mousemoveHandler);
 
-    this._zoomchangedHandler = function (zoom) {
-      that.setPointSizeFromZoom(zoom);
-    };
-
-    renderer.controls.addEventListener('zoomchanged', this._zoomchangedHandler);
-
     this._updatedHandler = function () {
       for (let i = 0; i < that.selected.length; i++) {
         that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
@@ -135,19 +132,6 @@ class OctreeHelper extends HelperBase {
     } else {
       this.geometry.isVisible = false;
     }
-
-    this.setPointSizeFromZoom(1.0);
-  }
-
-  /**
-   * Sets the point size of the associated Lore.PointHelper object as well as the threshold for the associated raycaster used for vertex picking.
-   * 
-   * @param {Number} zoom The current zoom value of the orthographic view.
-   */
-  setPointSizeFromZoom(zoom) {
-    let threshold = this.target.setPointSize(zoom + 0.1);
-
-    this.setThreshold(threshold);
   }
 
   /**
@@ -366,6 +350,26 @@ class OctreeHelper extends HelperBase {
   }
 
   /**
+   * Adds a hoveredchanged event to multiple octrees and merges the event property e.
+   * 
+   * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
+   * @param {Function} eventListener A event listener for hoveredchanged.
+   */
+  static joinHoveredChanged(octreeHelpers, eventListener) {
+    for (let i = 0; i < octreeHelpers.length; i++) {
+      octreeHelpers[i].addEventListener('hoveredchanged', function(e) {
+        let result = { e: null, source: null };
+        for (let j = 0; j < octreeHelpers.length; j++) {
+          if (octreeHelpers[j].hovered !== null) {
+            result = { e: octreeHelpers[j].hovered, source: j };
+          }
+        }
+        eventListener(result);
+      });
+    }
+  }
+
+  /**
    * Draw the centers of the axis-aligned bounding boxes of this octree.
    */
   drawCenters() {
@@ -569,7 +573,6 @@ class OctreeHelper extends HelperBase {
   destruct() {
     this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
     this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler);
-    this.renderer.controls.removeEventListener('zoomchanged', this._zoomchangedHandler);
     this.renderer.controls.removeEventListener('updated', this._updatedHandler);
   }
 }
