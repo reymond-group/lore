@@ -27,6 +27,7 @@ class Geometry extends Node {
       this.attributes = {};
       this.drawMode = this.gl.POINTS;
       this.isVisible = true;
+      this.stale = false;
   }
 
   addAttribute(name, data, length) {
@@ -93,6 +94,15 @@ class Geometry extends Node {
       return 0;
   }
 
+  hide() {
+      this.isVisible = false;
+  }
+
+  show() {
+      this.isVisible = true;
+      this.stale = true;
+  }
+
   draw(renderer) {
       if (!this.isVisible) return;
 
@@ -102,24 +112,23 @@ class Geometry extends Node {
       this.shader.use();
 
       // Update the modelView and projection matrices
-      if (renderer.camera.isProjectionMatrixStale) {
+      if (renderer.camera.isProjectionMatrixStale || this.stale) {
           this.shader.uniforms.projectionMatrix.setValue(renderer.camera.getProjectionMatrix());
       }
 
-      if (renderer.camera.isViewMatrixStale) {
+      if (renderer.camera.isViewMatrixStale || this.stale) {
           let modelViewMatrix = Matrix4f.multiply(renderer.camera.viewMatrix, this.modelMatrix);
           this.shader.uniforms.modelViewMatrix.setValue(modelViewMatrix.entries);
       }
 
       this.shader.updateUniforms();
 
-      // How exactly does the binding work??
-      // What will happen if I want to draw a second geometry?
       for (let prop in this.attributes) {
           this.attributes[prop].bind(this.gl);
       }
 
       this.gl.drawArrays(this.drawMode, 0, this.size());
+      this.stale = false;
   }
 }
 

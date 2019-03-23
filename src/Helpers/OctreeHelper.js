@@ -57,7 +57,8 @@ class OctreeHelper extends HelperBase {
     let that = this;
 
     this._dblclickHandler = function (e) {
-      if (e.e.mouse.state.middle || e.e.mouse.state.right) {
+      if (e.e.mouse.state.middle || e.e.mouse.state.right || 
+          !that.target.geometry.isVisible) {
         return;
       }
 
@@ -76,7 +77,8 @@ class OctreeHelper extends HelperBase {
     renderer.controls.addEventListener('dblclick', this._dblclickHandler);
 
     this._mousemoveHandler = function (e) {
-      if (e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right) {
+      if (e.e.mouse.state.left || e.e.mouse.state.middle || 
+          e.e.mouse.state.right || !that.target.geometry.isVisible) {
         return;
       }
 
@@ -105,6 +107,10 @@ class OctreeHelper extends HelperBase {
     renderer.controls.addEventListener('mousemove', this._mousemoveHandler);
 
     this._updatedHandler = function () {
+      if (!that.target.geometry.isVisible) {
+        return;
+      }
+
       for (let i = 0; i < that.selected.length; i++) {
         that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
       }

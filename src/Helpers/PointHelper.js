@@ -779,6 +779,20 @@ class PointHelper extends HelperBase {
   }
 
   /**
+   * Hide the geometry associated with this pointHelper.
+   */
+  show() {
+    this.geometry.show();
+  }
+
+  /**
+   * Show the geometry associated with this pointHelper.
+   */
+  hide() {
+    this.geometry.hide();
+  }
+
+  /**
    * Remove eventhandlers from associated controls.
    */
   destruct() {
