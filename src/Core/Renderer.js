@@ -308,7 +308,7 @@ class Renderer {
    * @param {Number} fps Maximum frames per second.
    */
   setMaxFps(fps) {
-    this.maxFps = 1000 / fps;
+    this.maxFps = fps;
   }
 
   /**
