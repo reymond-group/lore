@@ -35,7 +35,8 @@ class Renderer {
       radius: 500,
       center: new Vector3f(0.0, 0.0, 0.0),
       enableDepthTest: true,
-      alphaBlending: false
+      alphaBlending: false,
+      preserveDrawingBuffer: false
     }
 
     this.opts = Utils.extend(true, this.defaults, options);
@@ -75,7 +76,8 @@ class Renderer {
     let _this = this;
 
     let settings = {
-      antialias: this.opts.antialiasing
+      antialias: this.opts.antialiasing,
+      preserveDrawingBuffer: this.opts.preserveDrawingBuffer
     };
 
     this.gl = this.canvas.getContext('webgl2', settings) || this.canvas.getContext('experimental-webgl2');

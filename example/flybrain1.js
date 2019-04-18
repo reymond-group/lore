@@ -1,6 +1,13 @@
 (function () {
   let lore = Lore.init('lore', {
-    clearColor: '#222222'
+    clearColor: '#222222', preserveDrawingBuffer: true
+  });
+
+  let dlButton = document.getElementById('btn-download');
+  dlButton.addEventListener('click', function (e) {
+    let canvas = document.getElementById('lore');
+    let dataURL = canvas.toDataURL('image/png');
+    dlButton.href = dataURL;
   });
 
   let fileReader = new Lore.IO.CsvFileReader('input-upload', {
@@ -69,7 +76,7 @@
       filter.setMax(0.85);
       filter.filter();
     } else if (e.keyCode == 55) {
-
+      
     } else if (e.keyCode == 56) {
 
     } else if (e.keyCode == 57) {

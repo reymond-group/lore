@@ -38,7 +38,8 @@ Lore.init = function (canvas, options) {
     fps: document.getElementById('fps'),
     center: new Lore.Math.Vector3f(125, 125, 125),
     antialiasing: this.opts.antialiasing,
-    alphaBlending: this.opts.alphaBlending
+    alphaBlending: this.opts.alphaBlending,
+    preserveDrawingBuffer: this.opts.preserveDrawingBuffer
   });
   renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);
 
@@ -76,7 +77,8 @@ Lore.supportsHighQuality = function (targetId) {
 Lore.defaults = {
   clearColor: '#121212',
   limitRotationToHorizon: false,
-  antialiasing: false
+  antialiasing: false,
+  preserveDrawingBuffer: false
 };
 
 if (canUseDOM) {
@@ -2923,7 +2925,8 @@ class Renderer {
       radius: 500,
       center: new Vector3f(0.0, 0.0, 0.0),
       enableDepthTest: true,
-      alphaBlending: false
+      alphaBlending: false,
+      preserveDrawingBuffer: false
     };
     this.opts = Utils.extend(true, this.defaults, options);
     this.canvas = document.getElementById(targetId);
@@ -2959,7 +2962,8 @@ class Renderer {
     let _this = this;
 
     let settings = {
-      antialias: this.opts.antialiasing
+      antialias: this.opts.antialiasing,
+      preserveDrawingBuffer: this.opts.preserveDrawingBuffer
     };
     this.gl = this.canvas.getContext('webgl2', settings) || this.canvas.getContext('experimental-webgl2');
 
@@ -5279,7 +5283,22 @@ class PointHelper extends HelperBase {
 
 
   updateColor(index, color) {
+    console.warn('The method "updateColor" is marked as deprecated.');
     this.updateAttribute('color', index, color.components);
+    return this;
+  }
+  /**
+   * Update the color (HSS) at a specific index.
+   * 
+   * @param {Number} index The index of the data point.
+   * @param {Color} color An instance of Lore.Color containing HSS values.
+   * @returns {PointHelper} Itself.
+   */
+
+
+  setColor(index, color) {
+    let c = new Color(color.toFloat(), this.getSaturation(index), this.getSize(index));
+    this.updateAttribute('color', index, c.components);
     return this;
   }
   /**
@@ -5412,7 +5431,7 @@ class PointHelper extends HelperBase {
 
   getHue(index) {
     let colors = this.getAttribute('color');
-    return colors[index * 3];
+    return Color.floatToHsl(colors[index * 3]);
   }
   /**
    * Get the saturation for a given index.
