@@ -191,7 +191,7 @@ class Color {
   }
 
   /**
-   * Converts HSL to RGB.
+   * Converts HSL to Hex.
    * 
    * @static
    * @param {Number} h The hue component.
@@ -201,7 +201,23 @@ class Color {
    */
   static hslToHex(h, s, l) {
     let [r, g, b] = Color.hslToRgb(h, s, l);
-    return '#' + [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)].map(e => {
+    return '#' + [r, g, b].map(e => {
+      const hex = e.toString(16);
+      return hex.length === 1 ? '0' + hex : hex
+    }).join('')
+  }
+
+  /**
+   * Converts RGB to Hex.
+   * 
+   * @static
+   * @param {Number} r The red component.
+   * @param {Number} g The green component.
+   * @param {Number} b The blue component.
+   * @returns {String} A hex string representing the color (#RRGGBB).
+   */
+  static rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(e => {
       const hex = e.toString(16);
       return hex.length === 1 ? '0' + hex : hex
     }).join('')

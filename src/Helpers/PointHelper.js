@@ -541,9 +541,22 @@ class PointHelper extends HelperBase {
    * @returns {Number} The hue of the specified index.
    */
   getHue(index) {
+    console.warn('The method "getHue" is marked as deprecated. Please use "getColor".');
     let colors = this.getAttribute('color');
 
     return Color.floatToHsl(colors[index * 3]);
+  }
+
+   /**
+   * Get the color for a given index.
+   * 
+   * @param {Number} index An index.
+   * @returns {Number[]|Array} The color of the specified index in RGB.
+   */
+  getColor(index) {
+    let colors = this.getAttribute('color');
+
+    return Color.floatToRgb(colors[index * 3]);
   }
 
   /**

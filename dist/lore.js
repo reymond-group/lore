@@ -1572,7 +1572,7 @@ class Color {
     return p;
   }
   /**
-   * Converts HSL to RGB.
+   * Converts HSL to Hex.
    * 
    * @static
    * @param {Number} h The hue component.
@@ -1584,7 +1584,24 @@ class Color {
 
   static hslToHex(h, s, l) {
     let [r, g, b] = Color.hslToRgb(h, s, l);
-    return '#' + [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)].map(e => {
+    return '#' + [r, g, b].map(e => {
+      const hex = e.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+  }
+  /**
+   * Converts RGB to Hex.
+   * 
+   * @static
+   * @param {Number} r The red component.
+   * @param {Number} g The green component.
+   * @param {Number} b The blue component.
+   * @returns {String} A hex string representing the color (#RRGGBB).
+   */
+
+
+  static rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(e => {
       const hex = e.toString(16);
       return hex.length === 1 ? '0' + hex : hex;
     }).join('');
@@ -5430,8 +5447,21 @@ class PointHelper extends HelperBase {
 
 
   getHue(index) {
+    console.warn('The method "getHue" is marked as deprecated. Please use "getColor".');
     let colors = this.getAttribute('color');
     return Color.floatToHsl(colors[index * 3]);
+  }
+  /**
+  * Get the color for a given index.
+  * 
+  * @param {Number} index An index.
+  * @returns {Number[]|Array} The color of the specified index in RGB.
+  */
+
+
+  getColor(index) {
+    let colors = this.getAttribute('color');
+    return Color.floatToRgb(colors[index * 3]);
   }
   /**
    * Get the saturation for a given index.
