@@ -19,15 +19,10 @@
   let octreeHelper = null;
   let original_data = null;
 
-  // let hsl = Lore.Core.Color.rgbToHsl(122, 22, 255);
-  // let hsl_enc = Lore.Core.Color.hslToFloat(hsl[0], hsl[1], hsl[2]);
-  // let hsl_back = Lore.Core.Color.floatToHsl(hsl_enc);
-  // console.log(hsl, hsl_enc, hsl_back);
-
   fileReader.addEventListener('loaded', function (data) {
     original_data = data;
 
-    pointHelper = new Lore.Helpers.PointHelper(lore, 'Seppli', 'simpleSphere');
+    pointHelper = new Lore.Helpers.PointHelper(lore, 'Seppli', 'sphere');
     pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['c'], 1.0, 1.0)
     pointHelper.setPointScale(1.0);
     pointHelper.setFog([0.05, 0.05, 0.05, 1.0], 6.0);

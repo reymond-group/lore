@@ -1048,6 +1048,16 @@ class OrbitalControls extends ControlsBase {
     return this;
   }
   /**
+   * Get the zoom.
+   * 
+   * @returns {Number} The zoom value.
+   */
+
+
+  getZoom() {
+    return this.camera.zoom;
+  }
+  /**
    * Set the camera to the top view (locks rotation).
    * 
    * @returns {OrbitalControls} Returns itself.
@@ -3061,20 +3071,6 @@ class Renderer {
       g.blendFunc(g.ONE, g.ONE);
     }
 
-    setTimeout(function () {
-      _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-    }, 1000); // Also do it immediately, in case the timeout is not needed
-
-    this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-    window.addEventListener('resize', function (event) {
-      let width = _this.getWidth();
-
-      let height = _this.getHeight();
-
-      _this.updateViewport(0, 0, width, height);
-    }); // Init effect(s)
-
-    this.effect = new Effect(this, 'fxaaEffect');
     this.ready = true;
     this.animate();
   }
@@ -3135,16 +3131,13 @@ class Renderer {
 
 
   updateViewport(x, y, width, height) {
-    // width *= this.devicePixelRatio;
-    // height *= this.devicePixelRatio;
+    width *= this.devicePixelRatio;
+    height *= this.devicePixelRatio;
     this.canvas.width = width;
     this.canvas.height = height;
     this.gl.viewport(x, y, width, height);
     this.camera.updateViewport(width, height);
-    this.camera.updateProjectionMatrix(); // Also reinit the buffers and textures for the effect(s)
-
-    this.effect = new Effect(this, 'fxaaEffect');
-    this.effect.shader.uniforms.resolution.setValue([width, height]);
+    this.camera.updateProjectionMatrix();
   }
   /**
    * The main rendering loop. 
@@ -3152,6 +3145,7 @@ class Renderer {
 
 
   animate() {
+    this.updateViewport(0, 0, this.getWidth(), this.getHeight());
     let that = this;
     setTimeout(function () {
       requestAnimationFrame(function () {
