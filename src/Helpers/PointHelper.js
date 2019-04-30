@@ -362,6 +362,7 @@ class PointHelper extends HelperBase {
 
     return this;
   }
+  
 
   /**
    * Set the colors (HSS) for the points.
@@ -395,7 +396,23 @@ class PointHelper extends HelperBase {
    * @returns {PointHelper} Itself.
    */
   updateColor(index, color) {
+    console.warn('The method "updateColor" is marked as deprecated.');
     this.updateAttribute('color', index, color.components);
+
+    return this;
+  }
+  
+
+  /**
+   * Update the color (HSS) at a specific index.
+   * 
+   * @param {Number} index The index of the data point.
+   * @param {Color} color An instance of Lore.Color containing HSS values.
+   * @returns {PointHelper} Itself.
+   */
+  setColor(index, color) {
+    let c = new Color(color.toFloat(), this.getSaturation(index), this.getSize(index));
+    this.updateAttribute('color', index, c.components);
 
     return this;
   }
@@ -524,9 +541,22 @@ class PointHelper extends HelperBase {
    * @returns {Number} The hue of the specified index.
    */
   getHue(index) {
+    console.warn('The method "getHue" is marked as deprecated. Please use "getColor".');
     let colors = this.getAttribute('color');
 
-    return colors[index * 3];
+    return Color.floatToHsl(colors[index * 3]);
+  }
+
+   /**
+   * Get the color for a given index.
+   * 
+   * @param {Number} index An index.
+   * @returns {Number[]|Array} The color of the specified index in RGB.
+   */
+  getColor(index) {
+    let colors = this.getAttribute('color');
+
+    return Color.floatToRgb(colors[index * 3]);
   }
 
   /**

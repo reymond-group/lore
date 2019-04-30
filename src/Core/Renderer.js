@@ -35,7 +35,8 @@ class Renderer {
       radius: 500,
       center: new Vector3f(0.0, 0.0, 0.0),
       enableDepthTest: true,
-      alphaBlending: false
+      alphaBlending: false,
+      preserveDrawingBuffer: false
     }
 
     this.opts = Utils.extend(true, this.defaults, options);
@@ -75,7 +76,8 @@ class Renderer {
     let _this = this;
 
     let settings = {
-      antialias: this.opts.antialiasing
+      antialias: this.opts.antialiasing,
+      preserveDrawingBuffer: this.opts.preserveDrawingBuffer
     };
 
     this.gl = this.canvas.getContext('webgl2', settings) || this.canvas.getContext('experimental-webgl2');
@@ -161,22 +163,6 @@ class Renderer {
       g.blendFunc(g.ONE, g.ONE);
     }
 
-    setTimeout(function () {
-      _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-    }, 1000);
-
-    // Also do it immediately, in case the timeout is not needed
-    this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-
-
-    window.addEventListener('resize', function (event) {
-      let width = _this.getWidth();
-      let height = _this.getHeight();
-      _this.updateViewport(0, 0, width, height);
-    });
-
-    // Init effect(s)
-    this.effect = new Effect(this, 'fxaaEffect');
     this.ready = true;
     this.animate();
   }
@@ -234,24 +220,21 @@ class Renderer {
    * @param {Number} height The height of the viewport.
    */
   updateViewport(x, y, width, height) {
-    // width *= this.devicePixelRatio;
-    // height *= this.devicePixelRatio;
+    width *= this.devicePixelRatio;
+    height *= this.devicePixelRatio;
     this.canvas.width = width;
     this.canvas.height = height;
     this.gl.viewport(x, y, width, height);
 
     this.camera.updateViewport(width, height);
     this.camera.updateProjectionMatrix();
-
-    // Also reinit the buffers and textures for the effect(s)
-    this.effect = new Effect(this, 'fxaaEffect');
-    this.effect.shader.uniforms.resolution.setValue([width, height]);
   }
 
   /**
    * The main rendering loop. 
    */
   animate() {
+    this.updateViewport(0, 0, this.getWidth(), this.getHeight());
     let that = this;
 
     setTimeout(function () {

@@ -48,7 +48,8 @@ Lore.init = function(canvas, options) {
       fps: document.getElementById('fps'),
       center: new Lore.Math.Vector3f(125, 125, 125),
       antialiasing: this.opts.antialiasing,
-      alphaBlending: this.opts.alphaBlending
+      alphaBlending: this.opts.alphaBlending,
+      preserveDrawingBuffer: this.opts.preserveDrawingBuffer
   });
  
   renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);
@@ -92,7 +93,8 @@ Lore.supportsHighQuality = function(targetId) {
 Lore.defaults = {
   clearColor: '#121212',
   limitRotationToHorizon: false,
-  antialiasing: false
+  antialiasing: false,
+  preserveDrawingBuffer: false
 };
 
 if (canUseDOM) {

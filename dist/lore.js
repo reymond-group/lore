@@ -38,7 +38,8 @@ Lore.init = function (canvas, options) {
     fps: document.getElementById('fps'),
     center: new Lore.Math.Vector3f(125, 125, 125),
     antialiasing: this.opts.antialiasing,
-    alphaBlending: this.opts.alphaBlending
+    alphaBlending: this.opts.alphaBlending,
+    preserveDrawingBuffer: this.opts.preserveDrawingBuffer
   });
   renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);
 
@@ -76,7 +77,8 @@ Lore.supportsHighQuality = function (targetId) {
 Lore.defaults = {
   clearColor: '#121212',
   limitRotationToHorizon: false,
-  antialiasing: false
+  antialiasing: false,
+  preserveDrawingBuffer: false
 };
 
 if (canUseDOM) {
@@ -1046,6 +1048,16 @@ class OrbitalControls extends ControlsBase {
     return this;
   }
   /**
+   * Get the zoom.
+   * 
+   * @returns {Number} The zoom value.
+   */
+
+
+  getZoom() {
+    return this.camera.zoom;
+  }
+  /**
    * Set the camera to the top view (locks rotation).
    * 
    * @returns {OrbitalControls} Returns itself.
@@ -1570,7 +1582,7 @@ class Color {
     return p;
   }
   /**
-   * Converts HSL to RGB.
+   * Converts HSL to Hex.
    * 
    * @static
    * @param {Number} h The hue component.
@@ -1582,7 +1594,24 @@ class Color {
 
   static hslToHex(h, s, l) {
     let [r, g, b] = Color.hslToRgb(h, s, l);
-    return '#' + [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)].map(e => {
+    return '#' + [r, g, b].map(e => {
+      const hex = e.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+  }
+  /**
+   * Converts RGB to Hex.
+   * 
+   * @static
+   * @param {Number} r The red component.
+   * @param {Number} g The green component.
+   * @param {Number} b The blue component.
+   * @returns {String} A hex string representing the color (#RRGGBB).
+   */
+
+
+  static rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(e => {
       const hex = e.toString(16);
       return hex.length === 1 ? '0' + hex : hex;
     }).join('');
@@ -2923,7 +2952,8 @@ class Renderer {
       radius: 500,
       center: new Vector3f(0.0, 0.0, 0.0),
       enableDepthTest: true,
-      alphaBlending: false
+      alphaBlending: false,
+      preserveDrawingBuffer: false
     };
     this.opts = Utils.extend(true, this.defaults, options);
     this.canvas = document.getElementById(targetId);
@@ -2959,7 +2989,8 @@ class Renderer {
     let _this = this;
 
     let settings = {
-      antialias: this.opts.antialiasing
+      antialias: this.opts.antialiasing,
+      preserveDrawingBuffer: this.opts.preserveDrawingBuffer
     };
     this.gl = this.canvas.getContext('webgl2', settings) || this.canvas.getContext('experimental-webgl2');
 
@@ -3040,20 +3071,6 @@ class Renderer {
       g.blendFunc(g.ONE, g.ONE);
     }
 
-    setTimeout(function () {
-      _this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-    }, 1000); // Also do it immediately, in case the timeout is not needed
-
-    this.updateViewport(0, 0, _this.getWidth(), _this.getHeight());
-    window.addEventListener('resize', function (event) {
-      let width = _this.getWidth();
-
-      let height = _this.getHeight();
-
-      _this.updateViewport(0, 0, width, height);
-    }); // Init effect(s)
-
-    this.effect = new Effect(this, 'fxaaEffect');
     this.ready = true;
     this.animate();
   }
@@ -3114,16 +3131,13 @@ class Renderer {
 
 
   updateViewport(x, y, width, height) {
-    // width *= this.devicePixelRatio;
-    // height *= this.devicePixelRatio;
+    width *= this.devicePixelRatio;
+    height *= this.devicePixelRatio;
     this.canvas.width = width;
     this.canvas.height = height;
     this.gl.viewport(x, y, width, height);
     this.camera.updateViewport(width, height);
-    this.camera.updateProjectionMatrix(); // Also reinit the buffers and textures for the effect(s)
-
-    this.effect = new Effect(this, 'fxaaEffect');
-    this.effect.shader.uniforms.resolution.setValue([width, height]);
+    this.camera.updateProjectionMatrix();
   }
   /**
    * The main rendering loop. 
@@ -3131,6 +3145,7 @@ class Renderer {
 
 
   animate() {
+    this.updateViewport(0, 0, this.getWidth(), this.getHeight());
     let that = this;
     setTimeout(function () {
       requestAnimationFrame(function () {
@@ -5279,7 +5294,22 @@ class PointHelper extends HelperBase {
 
 
   updateColor(index, color) {
+    console.warn('The method "updateColor" is marked as deprecated.');
     this.updateAttribute('color', index, color.components);
+    return this;
+  }
+  /**
+   * Update the color (HSS) at a specific index.
+   * 
+   * @param {Number} index The index of the data point.
+   * @param {Color} color An instance of Lore.Color containing HSS values.
+   * @returns {PointHelper} Itself.
+   */
+
+
+  setColor(index, color) {
+    let c = new Color(color.toFloat(), this.getSaturation(index), this.getSize(index));
+    this.updateAttribute('color', index, c.components);
     return this;
   }
   /**
@@ -5411,8 +5441,21 @@ class PointHelper extends HelperBase {
 
 
   getHue(index) {
+    console.warn('The method "getHue" is marked as deprecated. Please use "getColor".');
     let colors = this.getAttribute('color');
-    return colors[index * 3];
+    return Color.floatToHsl(colors[index * 3]);
+  }
+  /**
+  * Get the color for a given index.
+  * 
+  * @param {Number} index An index.
+  * @returns {Number[]|Array} The color of the specified index in RGB.
+  */
+
+
+  getColor(index) {
+    let colors = this.getAttribute('color');
+    return Color.floatToRgb(colors[index * 3]);
   }
   /**
    * Get the saturation for a given index.

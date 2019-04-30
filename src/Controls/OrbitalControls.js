@@ -235,6 +235,15 @@ class OrbitalControls extends ControlsBase {
     }
 
     /**
+     * Get the zoom.
+     * 
+     * @returns {Number} The zoom value.
+     */
+    getZoom() {
+        return this.camera.zoom;
+    }
+
+    /**
      * Set the camera to the top view (locks rotation).
      * 
      * @returns {OrbitalControls} Returns itself.
