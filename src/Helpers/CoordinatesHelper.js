@@ -18,7 +18,7 @@ class CoordinatesHelper extends HelperBase {
      * @param {string} shaderName The name of the shader used to render the coordinates.
      * @param {object} options Options for drawing the coordinates. See documentation for details.
      */
-    constructor(renderer, geometryName, options = {}, shaderName = 'coordinates') {
+    constructor(renderer, geometryName, shaderName = 'coordinates', options = {}) {
         super(renderer, geometryName, shaderName);
         this.defaults = {
             position: new Vector3f(0.0, 0.0, 0.0),
