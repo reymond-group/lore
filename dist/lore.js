@@ -3066,9 +3066,14 @@ class Renderer {
     } else {
       // Idea, write to fragdepth
       // https://www.reddit.com/r/opengl/comments/1fthbc/is_gl_fragdepth_ignored_when_depth_writes_are_off/
+      // g.disable(g.DEPTH_TEST);
+      // g.enable(g.BLEND);
+      // g.blendFunc(g.ONE, g.ONE);
       g.disable(g.DEPTH_TEST);
+      g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA); // To disable the background color of the canvas element
+
+      g.blendFuncSeparate(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA, g.ZERO, g.ONE);
       g.enable(g.BLEND);
-      g.blendFunc(g.ONE, g.ONE);
     }
 
     this.ready = true;
@@ -9290,7 +9295,7 @@ module.exports = new Shader('smoothCircle', 2, {
   cutoff: new Uniform('cutoff', 0.0, 'float'),
   clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
   fogDensity: new Uniform('fogDensity', 6.0, 'float')
-}, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float r = 0.0, delta = 0.0, alpha = 1.0;', 'vec2 cxy = 2.0 * gl_PointCoord - 1.0;', 'r = dot(cxy, cxy);', 'delta = fwidth(r);', 'alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'fragColor = mix(clearColor, vec4(vColor, alpha), fog_factor);', 'fragColor.a = alpha;', 'fragColor.rgb *= fragColor.a;', '}']);
+}, ['uniform float size;', 'uniform float cutoff;', 'in vec3 position;', 'in vec3 color;', 'out vec3 vColor;', 'out float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'in vec3 vColor;', 'in float vDiscard;', 'out vec4 fragColor;', 'void main() {', 'if(vDiscard > 0.5) discard;', 'float dist = distance(gl_PointCoord, vec2(0.5)) * 1.25;', 'float delta = fwidth(dist);', 'float a = 1.0 - smoothstep(0.5 - delta, 0.5 + delta, dist);', 'fragColor = vec4(vColor, a);', 'if (fogDensity > 0.0) {', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'fragColor = mix(vec4(clearColor.rgb, a), fragColor, fog_factor);', '}', '}']);
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],55:[function(require,module,exports){
 "use strict";

@@ -158,9 +158,13 @@ class Renderer {
     } else {
       // Idea, write to fragdepth
       // https://www.reddit.com/r/opengl/comments/1fthbc/is_gl_fragdepth_ignored_when_depth_writes_are_off/
+      // g.disable(g.DEPTH_TEST);
+      // g.enable(g.BLEND);
+      // g.blendFunc(g.ONE, g.ONE);
       g.disable(g.DEPTH_TEST);
+      g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA); // To disable the background color of the canvas element
+      g.blendFuncSeparate(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA, g.ZERO, g.ONE);
       g.enable(g.BLEND);
-      g.blendFunc(g.ONE, g.ONE);
     }
 
     this.ready = true;
