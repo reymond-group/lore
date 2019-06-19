@@ -3206,7 +3206,7 @@ class Renderer {
 
 
   setMaxFps(fps) {
-    this.maxFps = 1000 / fps;
+    this.maxFps = fps;
   }
   /**
    * Get the device pixel ratio.
@@ -3990,7 +3990,7 @@ class CoordinatesHelper extends HelperBase {
    * @param {string} shaderName The name of the shader used to render the coordinates.
    * @param {object} options Options for drawing the coordinates. See documentation for details.
    */
-  constructor(renderer, geometryName, options = {}, shaderName = 'coordinates') {
+  constructor(renderer, geometryName, shaderName = 'coordinates', options = {}) {
     super(renderer, geometryName, shaderName);
     this.defaults = {
       position: new Vector3f(0.0, 0.0, 0.0),
@@ -4105,7 +4105,7 @@ class CoordinatesHelper extends HelperBase {
       for (let i = 0; i < yTicks.count - 1; i++) {
         pos += yTickOffset; // From
 
-        positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
+        positions.push(p[0] + yTicks.offset.components[0], pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2], p[0] + yTicks.offset.components[0] + yTicks.length, pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2]);
         colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
       }
 
@@ -4114,7 +4114,7 @@ class CoordinatesHelper extends HelperBase {
       for (let i = 0; i < yTicks.count - 1; i++) {
         pos += yTickOffset; // From
 
-        positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+        positions.push(p[0] + yTicks.offset.components[0], pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2], p[0] + yTicks.offset.components[0], pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2] + yTicks.length);
         colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
       } // Z ticks
 
@@ -4125,7 +4125,7 @@ class CoordinatesHelper extends HelperBase {
       for (let i = 0; i < zTicks.count - 1; i++) {
         pos += zTickOffset; // From
 
-        positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
+        positions.push(p[0] + zTicks.offset.components[0], p[1] + zTicks.offset.components[1], pos + zTicks.offset.components[2], p[0] + zTicks.offset.components[0], p[1] + zTicks.offset.components[1] + zTicks.length, pos + zTicks.offset.components[2]);
         colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
       }
 
@@ -4134,7 +4134,7 @@ class CoordinatesHelper extends HelperBase {
       for (let i = 0; i < zTicks.count - 1; i++) {
         pos += zTickOffset; // From
 
-        positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2], p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
+        positions.push(p[0] + zTicks.offset.components[0], p[1] + zTicks.offset.components[1], pos + zTicks.offset.components[2], p[0] + zTicks.offset.components[0] + zTicks.length, p[1] + zTicks.offset.components[1], pos + zTicks.offset.components[2]);
         colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
       }
     }

@@ -168,8 +168,8 @@ class CoordinatesHelper extends HelperBase {
             for (let i = 0; i < yTicks.count - 1; i++) {
                 pos += yTickOffset;
                 // From
-                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
-                            p[0] + xTicks.offset.components[0] + xTicks.length, pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2]);
+                positions.push(p[0] + yTicks.offset.components[0], pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2],
+                            p[0] + yTicks.offset.components[0] + yTicks.length, pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2]);
                 colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
             }
 
@@ -178,8 +178,8 @@ class CoordinatesHelper extends HelperBase {
             for (let i = 0; i < yTicks.count - 1; i++) {
                 pos += yTickOffset;
                 // From
-                positions.push(p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2],
-                            p[0] + xTicks.offset.components[0], pos + xTicks.offset.components[1], p[2] + xTicks.offset.components[2] + xTicks.length);
+                positions.push(p[0] + yTicks.offset.components[0], pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2],
+                            p[0] + yTicks.offset.components[0], pos + yTicks.offset.components[1], p[2] + yTicks.offset.components[2] + yTicks.length);
                 colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
             }
 
@@ -190,8 +190,8 @@ class CoordinatesHelper extends HelperBase {
             for (let i = 0; i < zTicks.count - 1; i++) {
                 pos += zTickOffset;
                 // From
-                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
-                            p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1] + xTicks.length, pos + xTicks.offset.components[2]);
+                positions.push(p[0] + zTicks.offset.components[0], p[1] + zTicks.offset.components[1], pos + zTicks.offset.components[2],
+                            p[0] + zTicks.offset.components[0], p[1] + zTicks.offset.components[1] + zTicks.length, pos + zTicks.offset.components[2]);
                 colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
             }
 
@@ -200,8 +200,8 @@ class CoordinatesHelper extends HelperBase {
             for (let i = 0; i < zTicks.count - 1; i++) {
                 pos += zTickOffset;
                 // From
-                positions.push(p[0] + xTicks.offset.components[0], p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2],
-                            p[0] + xTicks.offset.components[0] + xTicks.length, p[1] + xTicks.offset.components[1], pos + xTicks.offset.components[2]);
+                positions.push(p[0] + zTicks.offset.components[0], p[1] + zTicks.offset.components[1], pos + zTicks.offset.components[2],
+                            p[0] + zTicks.offset.components[0] + zTicks.length, p[1] + zTicks.offset.components[1], pos + zTicks.offset.components[2]);
                 colors.push(col[0], col[1], col[2], col[0], col[1], col[2]);
             }
         }
