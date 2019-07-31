@@ -558,6 +558,10 @@ class ControlsBase {
     let wheelevent = 'mousewheel';
     if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) wheelevent = 'DOMMouseScroll';
     this.canvas.addEventListener(wheelevent, function (e) {
+      if (that.isInIframe() && !e.ctrlKey) {
+        return;
+      }
+
       e.preventDefault();
       let delta = 'wheelDelta' in e ? e.wheelDelta : -40 * e.detail;
       that.raiseEvent('mousewheel', {
@@ -764,6 +768,20 @@ class ControlsBase {
 
   update(e = null, source = null) {
     return this;
+  }
+  /**
+   * Checks whether the script is being run in an IFrame.
+   * 
+   * @returns {Boolean} Returns whether the script is run in an IFrame.
+   */
+
+
+  isInIframe() {
+    try {
+      return window.self !== window.top;
+    } catch (e) {
+      return true;
+    }
   }
 
 }
