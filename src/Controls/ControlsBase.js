@@ -97,8 +97,9 @@ class ControlsBase {
 
       // Set normalized mouse position
       let rect = that.canvas.getBoundingClientRect();
-      that.mouse.normalizedPosition.x = ((e.clientX - rect.left) / that.canvas.width) * 2 - 1;
-      that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+      let s = that.renderer.devicePixelRatio;
+      that.mouse.normalizedPosition.x = ((e.clientX - rect.left * s) / that.canvas.width * s) * 2 - 1;
+      that.mouse.normalizedPosition.y = -((e.clientY - rect.top * s) / that.canvas.height * s) * 2 + 1;
 
       that.raiseEvent('mousemove', {
         e: that

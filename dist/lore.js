@@ -223,10 +223,8 @@ class CameraBase extends Node {
     Matrix4f.projectVector(vector, this); // Map to 2D screen space
     // Correct for high dpi display by dividing by device pixel ratio
 
-    let x = Math.round((vector.components[0] + 1) * canvas.width / 2); // / window.devicePixelRatio;
-
-    let y = Math.round((-vector.components[1] + 1) * canvas.height / 2); // / window.devicePixelRatio;
-
+    let x = Math.round((vector.components[0] + 1) * canvas.width / 2) / renderer.devicePixelRatio;
+    let y = Math.round((-vector.components[1] + 1) * canvas.height / 2) / renderer.devicePixelRatio;
     return [x, y];
   }
 
@@ -484,8 +482,9 @@ class ControlsBase {
 
 
       let rect = that.canvas.getBoundingClientRect();
-      that.mouse.normalizedPosition.x = (e.clientX - rect.left) / that.canvas.width * 2 - 1;
-      that.mouse.normalizedPosition.y = -((e.clientY - rect.top) / that.canvas.height) * 2 + 1;
+      let s = that.renderer.devicePixelRatio;
+      that.mouse.normalizedPosition.x = (e.clientX - rect.left * s) / that.canvas.width * s * 2 - 1;
+      that.mouse.normalizedPosition.y = -((e.clientY - rect.top * s) / that.canvas.height * s) * 2 + 1;
       that.raiseEvent('mousemove', {
         e: that
       });
@@ -677,8 +676,8 @@ class ControlsBase {
         if (displays.length === 0) {
           return;
         }
-         for (var i = 0; i < displays.length; ++i) {
-         }
+          for (var i = 0; i < displays.length; ++i) {
+          }
       });
     }
   }
@@ -9243,7 +9242,7 @@ module.exports = new Shader('FXAAEffect', 1, {
  '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
  '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
  '#define FXAA_SPAN_MAX     8.0',
-  'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+   'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
  '{',
      'fragCoord = fragCoord * resolution;',
      'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -9262,23 +9261,23 @@ module.exports = new Shader('FXAAEffect', 1, {
      'float lumaM  = dot(rgbM,  luma);',
      'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
      'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-      'vec2 dir;',
+       'vec2 dir;',
      'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
      'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-      'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+       'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
      'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-      'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-      'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+       'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+       'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                         'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-      'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+       'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                       'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-      'float lumaB = dot(rgbB, luma);',
+       'float lumaB = dot(rgbB, luma);',
      'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
          'return vec4(rgbA, 1.0);',
      'else',
          'return vec4(rgbB, 1.0);',
  '}',
-  'uniform sampler2D fbo_texture;',
+   'uniform sampler2D fbo_texture;',
  'varying vec2 f_texcoord;',
  'void main(void) {',
      'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',

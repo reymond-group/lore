@@ -128,8 +128,8 @@ class CameraBase extends Node {
         
         // Map to 2D screen space
         // Correct for high dpi display by dividing by device pixel ratio
-        let x = Math.round((vector.components[0] + 1) * canvas.width  / 2);// / window.devicePixelRatio;
-        let y = Math.round((-vector.components[1] + 1) * canvas.height / 2);// / window.devicePixelRatio;
+        let x = Math.round((vector.components[0] + 1) * canvas.width  / 2) / renderer.devicePixelRatio;
+        let y = Math.round((-vector.components[1] + 1) * canvas.height / 2) / renderer.devicePixelRatio;
         
         return [ x, y ];
     }
