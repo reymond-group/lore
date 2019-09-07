@@ -50,6 +50,10 @@ class OrbitalControls extends ControlsBase {
             that.update(e.e, e.source);
         });
 
+        this.addEventListener('touch', function (e) {
+            that.update(e.e, e.source);
+        });
+
         this.addEventListener('mousewheel', function (e) {
             that.update({
                 x: 0,
@@ -126,7 +130,7 @@ class OrbitalControls extends ControlsBase {
             this._dPan.components[0] = r[0] * -x + u[0] * y;
             this._dPan.components[1] = r[1] * -x + u[1] * y;
             this._dPan.components[2] = r[2] * -x + u[2] * y;
-        } else if (source == 'middle' || source == 'wheel') {
+        } else if (source == 'middle' || source == 'wheel' || source == 'pinch') {
             if (e.y > 0) {
                 // Zoom Out
                 this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);

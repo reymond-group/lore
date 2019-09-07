@@ -22,6 +22,15 @@ class HelperBase extends Node {
    */
   constructor(renderer, geometryName, shaderName) {
     super();
+
+    // Check whether the shader requires WebGL 2.0, if it does and the
+    // machine doesn't support it, go to callback.
+    if (Shaders[shaderName].glVersion === 2 && !this.renderer.webgl2) {
+      console.warn('Switching from ' + shaderName + ' to fallback shader ' + 
+                   Shaders[shaderName].fallback + ' due to missing WebGL2 support.');
+      shaderName = Shaders[shaderName].fallback;
+    }
+
     this.renderer = renderer;
     this.shader = Shaders[shaderName].clone();
     this.geometry = this.renderer.createGeometry(geometryName, shaderName);

@@ -51,4 +51,4 @@ module.exports = new Shader('simpleSphere', 1, { size: new Uniform('size', 5.0, 
         'vec3 color = vColor * diffuse;',
         'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);',
     '}'
-]);
+], 'circle');

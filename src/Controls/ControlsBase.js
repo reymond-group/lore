@@ -43,10 +43,6 @@ class ControlsBase {
         x: 0.0,
         y: 0.0
       },
-      position: {
-        x: 0.0,
-        y: 0.0
-      },
       state: {
         left: false,
         middle: false,
@@ -57,7 +53,8 @@ class ControlsBase {
         y: 0.0
       },
       touches: 0,
-      pointerCache: []
+      pointerCache: [],
+      pinchDiff: 0
     };
 
     this.keyboard = {
@@ -70,10 +67,8 @@ class ControlsBase {
 
     let that = this;
 
-    // this.canvas.addEventListener("pointerdown", e => {
-    //   console.log("ponterdown");
-    //   console.log(e);
-    // });
+    // Set the touch action of the canvas
+    this.canvas.style.touchAction = 'none';
 
     this.canvas.addEventListener("pointermove", function(e) {
       // Find this event in the cache and update its record with this event
@@ -83,20 +78,47 @@ class ControlsBase {
           break;
         }
       }
+      
+      // Get the current average / center of mass pointer location
+      let pointerLoc = that.getPointerLocation();
+      
+      // Handle touch gestures and mouse events
+      // If there are two pointer events, it has to be touch
+      if (that.mouse.pointerCache.length === 2) {
+        var diff = Math.pow(that.mouse.pointerCache[1].clientX - that.mouse.pointerCache[0].clientX, 2) +
+                   Math.pow(that.mouse.pointerCache[1].clientY - that.mouse.pointerCache[0].clientY, 2);
 
-      console.log(that.mouse.pointerCache);
+        if (that.mouse.pinchDiff > 0) {
+          if (diff > that.mouse.pinchDiff) {
+            that.raiseEvent("touch", {
+              e: { x: -1, y: -1, speed: 0.5 },
+              source: "pinch"
+            });
+          }
+          else if (diff < that.mouse.pinchDiff) {
+            that.raiseEvent("touch", {
+              e: { x: 1, y: 1, speed: 0.5 },
+              source: "pinch"
+            });
+          }
+        }
 
-      if (
-        (that.mouse.previousPosition.x !== null && that.mouse.state.left) ||
+        that.mouse.pinchDiff = diff;
+      } else if (that.mouse.previousPosition.x !== null && that.mouse.pointerCache.length === 3) {
+        that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
+        that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y;
+
+        that.raiseEvent("mousedrag", {
+          e: that.mouse.delta,
+          source: "right"
+        });
+      } else if (
+        that.mouse.previousPosition.x !== null && (that.mouse.state.left ||
         that.mouse.state.middle ||
-        that.mouse.state.right
+        that.mouse.state.right)
       ) {
-        console.log("...");
-        that.mouse.delta.x = e.pageX - that.mouse.previousPosition.x;
-        that.mouse.delta.y = e.pageY - that.mouse.previousPosition.y;
-
-        that.mouse.position.x += 0.01 * that.mouse.delta.x;
-        that.mouse.position.y += 0.01 * that.mouse.delta.y;
+        that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
+        that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y;
 
         // Give priority to left, then middle, then right
         if (that.mouse.state.left) {
@@ -129,95 +151,9 @@ class ControlsBase {
         e: that
       });
 
-      that.mouse.previousPosition.x = e.pageX;
-      that.mouse.previousPosition.y = e.pageY;
+      that.mouse.previousPosition.x = pointerLoc[0];
+      that.mouse.previousPosition.y = pointerLoc[1];
     });
-
-    // this.canvas.addEventListener("touchstart", function(e) {
-    //   that.mouse.touches++;
-    //   let touch = e.touches[0];
-    //   e.preventDefault();
-
-    //   that.mouse.touched = true;
-
-    //   that.renderer.setMaxFps(that.highFps);
-
-    //   // This is for selecting stuff when touching but not moving
-
-    //   // Set normalized mouse position
-    //   let rect = that.canvas.getBoundingClientRect();
-    //   that.mouse.normalizedPosition.x =
-    //     ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
-    //   that.mouse.normalizedPosition.y =
-    //     -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
-
-    //   if (that.touchMode !== "drag") {
-    //     that.raiseEvent("mousemove", {
-    //       e: that
-    //     });
-    //   }
-
-    //   that.raiseEvent("mousedown", {
-    //     e: that,
-    //     source: "touch"
-    //   });
-    // });
-
-    // this.canvas.addEventListener("touchend", function(e) {
-    //   that.mouse.touches--;
-    //   e.preventDefault();
-
-    //   that.mouse.touched = false;
-
-    //   // Reset the previous position and delta of the mouse
-    //   that.mouse.previousPosition.x = null;
-    //   that.mouse.previousPosition.y = null;
-
-    //   that.renderer.setMaxFps(that.lowFps);
-
-    //   that.raiseEvent("mouseup", {
-    //     e: that,
-    //     source: "touch"
-    //   });
-    // });
-
-    // this.canvas.addEventListener("touchmove", function(e) {
-    //   let touch = e.touches[0];
-    //   let source = "left";
-
-    //   if (that.mouse.touches == 2) source = "right";
-
-    //   e.preventDefault();
-
-    //   if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
-    //     that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
-    //     that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
-
-    //     that.mouse.position.x += 0.01 * that.mouse.delta.x;
-    //     that.mouse.position.y += 0.01 * that.mouse.delta.y;
-
-    //     if (that.touchMode === "drag")
-    //       that.raiseEvent("mousedrag", {
-    //         e: that.mouse.delta,
-    //         source: source
-    //       });
-    //   }
-
-    //   // Set normalized mouse position
-    //   let rect = that.canvas.getBoundingClientRect();
-    //   that.mouse.normalizedPosition.x =
-    //     ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
-    //   that.mouse.normalizedPosition.y =
-    //     -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
-
-    //   if (that.touchMode !== "drag")
-    //     that.raiseEvent("mousemove", {
-    //       e: that
-    //     });
-
-    //   that.mouse.previousPosition.x = touch.pageX;
-    //   that.mouse.previousPosition.y = touch.pageY;
-    // });
 
     let wheelevent = "mousewheel";
     if (navigator.userAgent.toLowerCase().indexOf("firefox") > -1)
@@ -313,6 +249,7 @@ class ControlsBase {
       let btn = e.button;
       let source = "left";
       that.removeEvent(e);
+      that.mouse.pinchDiff = 0;
 
       // Only handle single button events
       if (btn == 0) {
@@ -351,22 +288,6 @@ class ControlsBase {
     this.canvas.addEventListener("pointerleave", function(e) {
       pointerUpEvent(e);
     });
-
-    // this.canvas.addEventListener("mouseleave", function(e) {
-    //   that.mouse.state.left = false;
-    //   that.mouse.state.middle = false;
-    //   that.mouse.state.right = false;
-
-    //   that.mouse.previousPosition.x = null;
-    //   that.mouse.previousPosition.y = null;
-
-    //   that.renderer.setMaxFps(that.lowFps);
-
-    //   that.raiseEvent("mouseleave", {
-    //     e: that,
-    //     source: that.canvas
-    //   });
-    // });
   }
 
   /**
@@ -484,16 +405,36 @@ class ControlsBase {
   /**
    * Removes a pointer event from the event cache.
    *
-   * @param {PointerEvent} e
+   * @param {PointerEvent} e The pointer event
    */
   removeEvent(e) {
-    // Remove this event from the target's cache
     for (var i = 0; i < this.mouse.pointerCache.length; i++) {
       if (this.mouse.pointerCache[i].pointerId == e.pointerId) {
         this.mouse.pointerCache.splice(i, 1);
         break;
       }
     }
+  }
+
+  /**
+   * Get the position of the pointer (e.g. the mouse). In case of multi-
+   * touch, the center of mass is returned.
+   * 
+   * @returns {Number[]} The pointer position
+   */
+  getPointerLocation() {
+    let x = 0;
+    let y = 0;
+    let n = this.mouse.pointerCache.length;
+
+    if (n === 0) return [null, null];
+
+    for (var i = 0; i < n; i++) {
+      x += this.mouse.pointerCache[i].pageX;
+      y += this.mouse.pointerCache[i].pageY;
+    }
+
+    return [x, y];
   }
 }
 

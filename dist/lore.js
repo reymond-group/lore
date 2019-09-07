@@ -433,10 +433,6 @@ class ControlsBase {
         x: 0.0,
         y: 0.0
       },
-      position: {
-        x: 0.0,
-        y: 0.0
-      },
       state: {
         left: false,
         middle: false,
@@ -447,7 +443,8 @@ class ControlsBase {
         y: 0.0
       },
       touches: 0,
-      pointerCache: []
+      pointerCache: [],
+      pinchDiff: 0
     };
     this.keyboard = {
       alt: false,
@@ -455,11 +452,9 @@ class ControlsBase {
       shift: false
     };
     this.VR = {};
-    let that = this; // this.canvas.addEventListener("pointerdown", e => {
-    //   console.log("ponterdown");
-    //   console.log(e);
-    // });
+    let that = this; // Set the touch action of the canvas
 
+    this.canvas.style.touchAction = 'none';
     this.canvas.addEventListener("pointermove", function (e) {
       // Find this event in the cache and update its record with this event
       for (var i = 0; i < that.mouse.pointerCache.length; i++) {
@@ -467,16 +462,48 @@ class ControlsBase {
           that.mouse.pointerCache[i] = e;
           break;
         }
-      }
+      } // Get the current average / center of mass pointer location
 
-      console.log(that.mouse.pointerCache);
 
-      if (that.mouse.previousPosition.x !== null && that.mouse.state.left || that.mouse.state.middle || that.mouse.state.right) {
-        console.log("...");
-        that.mouse.delta.x = e.pageX - that.mouse.previousPosition.x;
-        that.mouse.delta.y = e.pageY - that.mouse.previousPosition.y;
-        that.mouse.position.x += 0.01 * that.mouse.delta.x;
-        that.mouse.position.y += 0.01 * that.mouse.delta.y; // Give priority to left, then middle, then right
+      let pointerLoc = that.getPointerLocation(); // Handle touch gestures and mouse events
+      // If there are two pointer events, it has to be touch
+
+      if (that.mouse.pointerCache.length === 2) {
+        var diff = Math.pow(that.mouse.pointerCache[1].clientX - that.mouse.pointerCache[0].clientX, 2) + Math.pow(that.mouse.pointerCache[1].clientY - that.mouse.pointerCache[0].clientY, 2);
+
+        if (that.mouse.pinchDiff > 0) {
+          if (diff > that.mouse.pinchDiff) {
+            that.raiseEvent("touch", {
+              e: {
+                x: -1,
+                y: -1,
+                speed: 0.5
+              },
+              source: "pinch"
+            });
+          } else if (diff < that.mouse.pinchDiff) {
+            that.raiseEvent("touch", {
+              e: {
+                x: 1,
+                y: 1,
+                speed: 0.5
+              },
+              source: "pinch"
+            });
+          }
+        }
+
+        that.mouse.pinchDiff = diff;
+      } else if (that.mouse.previousPosition.x !== null && that.mouse.pointerCache.length === 3) {
+        that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
+        that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y;
+        that.raiseEvent("mousedrag", {
+          e: that.mouse.delta,
+          source: "right"
+        });
+      } else if (that.mouse.previousPosition.x !== null && (that.mouse.state.left || that.mouse.state.middle || that.mouse.state.right)) {
+        that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
+        that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y; // Give priority to left, then middle, then right
 
         if (that.mouse.state.left) {
           that.raiseEvent("mousedrag", {
@@ -504,74 +531,9 @@ class ControlsBase {
       that.raiseEvent("mousemove", {
         e: that
       });
-      that.mouse.previousPosition.x = e.pageX;
-      that.mouse.previousPosition.y = e.pageY;
-    }); // this.canvas.addEventListener("touchstart", function(e) {
-    //   that.mouse.touches++;
-    //   let touch = e.touches[0];
-    //   e.preventDefault();
-    //   that.mouse.touched = true;
-    //   that.renderer.setMaxFps(that.highFps);
-    //   // This is for selecting stuff when touching but not moving
-    //   // Set normalized mouse position
-    //   let rect = that.canvas.getBoundingClientRect();
-    //   that.mouse.normalizedPosition.x =
-    //     ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
-    //   that.mouse.normalizedPosition.y =
-    //     -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
-    //   if (that.touchMode !== "drag") {
-    //     that.raiseEvent("mousemove", {
-    //       e: that
-    //     });
-    //   }
-    //   that.raiseEvent("mousedown", {
-    //     e: that,
-    //     source: "touch"
-    //   });
-    // });
-    // this.canvas.addEventListener("touchend", function(e) {
-    //   that.mouse.touches--;
-    //   e.preventDefault();
-    //   that.mouse.touched = false;
-    //   // Reset the previous position and delta of the mouse
-    //   that.mouse.previousPosition.x = null;
-    //   that.mouse.previousPosition.y = null;
-    //   that.renderer.setMaxFps(that.lowFps);
-    //   that.raiseEvent("mouseup", {
-    //     e: that,
-    //     source: "touch"
-    //   });
-    // });
-    // this.canvas.addEventListener("touchmove", function(e) {
-    //   let touch = e.touches[0];
-    //   let source = "left";
-    //   if (that.mouse.touches == 2) source = "right";
-    //   e.preventDefault();
-    //   if (that.mouse.previousPosition.x !== null && that.mouse.touched) {
-    //     that.mouse.delta.x = touch.pageX - that.mouse.previousPosition.x;
-    //     that.mouse.delta.y = touch.pageY - that.mouse.previousPosition.y;
-    //     that.mouse.position.x += 0.01 * that.mouse.delta.x;
-    //     that.mouse.position.y += 0.01 * that.mouse.delta.y;
-    //     if (that.touchMode === "drag")
-    //       that.raiseEvent("mousedrag", {
-    //         e: that.mouse.delta,
-    //         source: source
-    //       });
-    //   }
-    //   // Set normalized mouse position
-    //   let rect = that.canvas.getBoundingClientRect();
-    //   that.mouse.normalizedPosition.x =
-    //     ((touch.clientX - rect.left) / that.canvas.width) * 2 - 1;
-    //   that.mouse.normalizedPosition.y =
-    //     -((touch.clientY - rect.top) / that.canvas.height) * 2 + 1;
-    //   if (that.touchMode !== "drag")
-    //     that.raiseEvent("mousemove", {
-    //       e: that
-    //     });
-    //   that.mouse.previousPosition.x = touch.pageX;
-    //   that.mouse.previousPosition.y = touch.pageY;
-    // });
-
+      that.mouse.previousPosition.x = pointerLoc[0];
+      that.mouse.previousPosition.y = pointerLoc[1];
+    });
     let wheelevent = "mousewheel";
     if (navigator.userAgent.toLowerCase().indexOf("firefox") > -1) wheelevent = "DOMMouseScroll";
     this.canvas.addEventListener(wheelevent, function (e) {
@@ -651,9 +613,9 @@ class ControlsBase {
 
     let pointerUpEvent = function (e) {
       let btn = e.button;
-      console.log(e.button);
       let source = "left";
-      that.removeEvent(e); // Only handle single button events
+      that.removeEvent(e);
+      that.mouse.pinchDiff = 0; // Only handle single button events
 
       if (btn == 0) {
         that.mouse.state.left = false;
@@ -686,18 +648,7 @@ class ControlsBase {
     });
     this.canvas.addEventListener("pointerleave", function (e) {
       pointerUpEvent(e);
-    }); // this.canvas.addEventListener("mouseleave", function(e) {
-    //   that.mouse.state.left = false;
-    //   that.mouse.state.middle = false;
-    //   that.mouse.state.right = false;
-    //   that.mouse.previousPosition.x = null;
-    //   that.mouse.previousPosition.y = null;
-    //   that.renderer.setMaxFps(that.lowFps);
-    //   that.raiseEvent("mouseleave", {
-    //     e: that,
-    //     source: that.canvas
-    //   });
-    // });
+    });
   }
   /**
    * Initialiizes WebVR, if the API is available and the device suppports it.
@@ -710,8 +661,8 @@ class ControlsBase {
         if (displays.length === 0) {
           return;
         }
-         for (var i = 0; i < displays.length; ++i) {
-         }
+          for (var i = 0; i < displays.length; ++i) {
+          }
       });
     }
   }
@@ -819,18 +770,38 @@ class ControlsBase {
   /**
    * Removes a pointer event from the event cache.
    *
-   * @param {PointerEvent} e
+   * @param {PointerEvent} e The pointer event
    */
 
 
   removeEvent(e) {
-    // Remove this event from the target's cache
     for (var i = 0; i < this.mouse.pointerCache.length; i++) {
       if (this.mouse.pointerCache[i].pointerId == e.pointerId) {
         this.mouse.pointerCache.splice(i, 1);
         break;
       }
     }
+  }
+  /**
+   * Get the position of the pointer (e.g. the mouse). In case of multi-
+   * touch, the center of mass is returned.
+   * 
+   * @returns {Number[]} The pointer position
+   */
+
+
+  getPointerLocation() {
+    let x = 0;
+    let y = 0;
+    let n = this.mouse.pointerCache.length;
+    if (n === 0) return [null, null];
+
+    for (var i = 0; i < n; i++) {
+      x += this.mouse.pointerCache[i].pageX;
+      y += this.mouse.pointerCache[i].pageY;
+    }
+
+    return [x, y];
   }
 
 }
@@ -944,6 +915,9 @@ class OrbitalControls extends ControlsBase {
     this.addEventListener('mousedrag', function (e) {
       that.update(e.e, e.source);
     });
+    this.addEventListener('touch', function (e) {
+      that.update(e.e, e.source);
+    });
     this.addEventListener('mousewheel', function (e) {
       that.update({
         x: 0,
@@ -1014,7 +988,7 @@ class OrbitalControls extends ControlsBase {
       this._dPan.components[0] = r[0] * -x + u[0] * y;
       this._dPan.components[1] = r[1] * -x + u[1] * y;
       this._dPan.components[2] = r[2] * -x + u[2] * y;
-    } else if (source == 'middle' || source == 'wheel') {
+    } else if (source == 'middle' || source == 'wheel' || source == 'pinch') {
       if (e.y > 0) {
         // Zoom Out
         this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
@@ -3307,12 +3281,13 @@ const Matrix4f = require('../Math/Matrix4f');
 
 
 class Shader {
-  constructor(name, glVersion, uniforms, vertexShader, fragmentShader) {
+  constructor(name, glVersion, uniforms, vertexShader, fragmentShader, fallback = 'default') {
     this.name = name;
     this.uniforms = uniforms || {};
     this.vertexShader = vertexShader || [];
     this.fragmentShader = fragmentShader || [];
     this.glVersion = glVersion;
+    this.fallback = fallback;
     this.gl = null;
     this.program = null;
     this.initialized = false;
@@ -4269,7 +4244,14 @@ class HelperBase extends Node {
    * @param {String} shaderName The name of the shader used to render the geometry.
    */
   constructor(renderer, geometryName, shaderName) {
-    super();
+    super(); // Check whether the shader requires WebGL 2.0, if it does and the
+    // machine doesn't support it, go to callback.
+
+    if (Shaders[shaderName].glVersion === 2 && !this.renderer.webgl2) {
+      console.warn('Switching from ' + shaderName + ' to fallback shader ' + Shaders[shaderName].fallback + ' due to missing WebGL2 support.');
+      shaderName = Shaders[shaderName].fallback;
+    }
+
     this.renderer = renderer;
     this.shader = Shaders[shaderName].clone();
     this.geometry = this.renderer.createGeometry(geometryName, shaderName);
@@ -9292,7 +9274,7 @@ module.exports = new Shader('FXAAEffect', 1, {
  '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
  '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
  '#define FXAA_SPAN_MAX     8.0',
-  'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+   'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
  '{',
      'fragCoord = fragCoord * resolution;',
      'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -9311,23 +9293,23 @@ module.exports = new Shader('FXAAEffect', 1, {
      'float lumaM  = dot(rgbM,  luma);',
      'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
      'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-      'vec2 dir;',
+       'vec2 dir;',
      'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
      'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-      'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+       'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
      'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-      'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-      'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+       'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+       'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                         'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-      'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+       'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                       'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-      'float lumaB = dot(rgbB, luma);',
+       'float lumaB = dot(rgbB, luma);',
      'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
          'return vec4(rgbA, 1.0);',
      'else',
          'return vec4(rgbB, 1.0);',
  '}',
-  'uniform sampler2D fbo_texture;',
+   'uniform sampler2D fbo_texture;',
  'varying vec2 f_texcoord;',
  'void main(void) {',
      'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
@@ -9348,7 +9330,7 @@ module.exports = new Shader('simpleSphere', 1, {
   cutoff: new Uniform('cutoff', 0.0, 'float'),
   clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 1.0], 'float_vec4'),
   fogDensity: new Uniform('fogDensity', 6.0, 'float')
-}, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'vec3 color = vColor * diffuse;', 'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);', '}']);
+}, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'vec3 color = vColor * diffuse;', 'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);', '}'], 'circle');
 
 },{"../Core/Shader":18,"../Core/Uniform":20}],54:[function(require,module,exports){
 "use strict";
