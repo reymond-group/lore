@@ -1,6 +1,6 @@
 {
   "name": "lore-engine",
-  "version": "1.0.32",
+  "version": "1.0.35",
   "description": "A WebGL based 3D data visualization engine.",
   "main": "./app.js",
   "directories": {

@@ -25,7 +25,7 @@ class HelperBase extends Node {
 
     // Check whether the shader requires WebGL 2.0, if it does and the
     // machine doesn't support it, go to callback.
-    if (Shaders[shaderName].glVersion === 2 && !this.renderer.webgl2) {
+    if (Shaders[shaderName].glVersion === 2 && !renderer.webgl2) {
       console.warn('Switching from ' + shaderName + ' to fallback shader ' + 
                    Shaders[shaderName].fallback + ' due to missing WebGL2 support.');
       shaderName = Shaders[shaderName].fallback;
