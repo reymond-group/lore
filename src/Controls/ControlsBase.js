@@ -52,6 +52,7 @@ class ControlsBase {
         x: 0.0,
         y: 0.0
       },
+      moved: false,
       touches: 0,
       pointerCache: [],
       pinchDiff: 0
@@ -108,6 +109,8 @@ class ControlsBase {
         that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
         that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y;
 
+        that.mouse.moved = true;
+
         that.raiseEvent("mousedrag", {
           e: that.mouse.delta,
           source: "right"
@@ -119,6 +122,8 @@ class ControlsBase {
       ) {
         that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
         that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y;
+
+        that.mouse.moved = true;
 
         // Give priority to left, then middle, then right
         if (that.mouse.state.left) {
@@ -217,6 +222,7 @@ class ControlsBase {
       }
 
       that.renderer.setMaxFps(that.highFps);
+      that.mouse.moved = false;
 
       that.raiseEvent("mousedown", {
         e: that,
@@ -227,11 +233,13 @@ class ControlsBase {
     this.canvas.addEventListener("click", function(e) {
       let btn = e.button;
       let source = "left";
-
-      that.raiseEvent("click", {
-        e: that,
-        source: source
-      });
+      
+      if (!that.mouse.moved) {
+        that.raiseEvent("click", {
+          e: that,
+          source: source
+        });
+      }      
     });
 
     this.canvas.addEventListener("dblclick", function(e) {

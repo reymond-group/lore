@@ -442,6 +442,7 @@ class ControlsBase {
         x: 0.0,
         y: 0.0
       },
+      moved: false,
       touches: 0,
       pointerCache: [],
       pinchDiff: 0
@@ -497,13 +498,15 @@ class ControlsBase {
       } else if (that.mouse.previousPosition.x !== null && that.mouse.pointerCache.length === 3) {
         that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
         that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y;
+        that.mouse.moved = true;
         that.raiseEvent("mousedrag", {
           e: that.mouse.delta,
           source: "right"
         });
       } else if (that.mouse.previousPosition.x !== null && (that.mouse.state.left || that.mouse.state.middle || that.mouse.state.right)) {
         that.mouse.delta.x = pointerLoc[0] - that.mouse.previousPosition.x;
-        that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y; // Give priority to left, then middle, then right
+        that.mouse.delta.y = pointerLoc[1] - that.mouse.previousPosition.y;
+        that.mouse.moved = true; // Give priority to left, then middle, then right
 
         if (that.mouse.state.left) {
           that.raiseEvent("mousedrag", {
@@ -589,6 +592,7 @@ class ControlsBase {
       }
 
       that.renderer.setMaxFps(that.highFps);
+      that.mouse.moved = false;
       that.raiseEvent("mousedown", {
         e: that,
         source: source
@@ -597,10 +601,13 @@ class ControlsBase {
     this.canvas.addEventListener("click", function (e) {
       let btn = e.button;
       let source = "left";
-      that.raiseEvent("click", {
-        e: that,
-        source: source
-      });
+
+      if (!that.mouse.moved) {
+        that.raiseEvent("click", {
+          e: that,
+          source: source
+        });
+      }
     });
     this.canvas.addEventListener("dblclick", function (e) {
       let btn = e.button;
@@ -4247,7 +4254,7 @@ class HelperBase extends Node {
     super(); // Check whether the shader requires WebGL 2.0, if it does and the
     // machine doesn't support it, go to callback.
 
-    if (Shaders[shaderName].glVersion === 2 && !this.renderer.webgl2) {
+    if (Shaders[shaderName].glVersion === 2 && !renderer.webgl2) {
       console.warn('Switching from ' + shaderName + ' to fallback shader ' + Shaders[shaderName].fallback + ' due to missing WebGL2 support.');
       shaderName = Shaders[shaderName].fallback;
     }
@@ -4398,6 +4405,25 @@ class OctreeHelper extends HelperBase {
 
     this.target.octreeHelper = this;
     let that = this;
+
+    this._clickHandler = function (e) {
+      if (e.e.mouse.state.middle || e.e.mouse.state.right || !that.target.geometry.isVisible) {
+        return;
+      }
+
+      let mouse = e.e.mouse.normalizedPosition;
+      let result = that.getIntersections(mouse);
+
+      if (result.length > 0) {
+        if (that.selectedContains(result[0].index)) {
+          return;
+        }
+
+        that.addSelected(result[0]);
+      }
+    };
+
+    renderer.controls.addEventListener('click', this._clickHandler);
 
     this._dblclickHandler = function (e) {
       if (e.e.mouse.state.middle || e.e.mouse.state.right || !that.target.geometry.isVisible) {
@@ -4921,6 +4947,7 @@ class OctreeHelper extends HelperBase {
 
 
   destruct() {
+    this.renderer.controls.removeEventListener('click', this._dblclickHandler);
     this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
     this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler);
     this.renderer.controls.removeEventListener('updated', this._updatedHandler);

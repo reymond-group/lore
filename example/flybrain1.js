@@ -34,6 +34,10 @@
     octreeHelper = new Lore.Helpers.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper, {
       visualize: false
     });
+
+    octreeHelper.addEventListener('selectedchanged', e => {
+      console.log(e);
+    });
   });
 
   document.addEventListener('keydown', function (e) {

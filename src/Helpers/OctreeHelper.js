@@ -56,6 +56,26 @@ class OctreeHelper extends HelperBase {
 
     let that = this;
 
+    this._clickHandler = function (e) {
+      if (e.e.mouse.state.middle || e.e.mouse.state.right || 
+          !that.target.geometry.isVisible) {
+        return;
+      }
+
+      let mouse = e.e.mouse.normalizedPosition;
+      let result = that.getIntersections(mouse);
+
+      if (result.length > 0) {
+        if (that.selectedContains(result[0].index)) {
+          return;
+        }
+
+        that.addSelected(result[0]);
+      }
+    };
+
+    renderer.controls.addEventListener('click', this._clickHandler);
+
     this._dblclickHandler = function (e) {
       if (e.e.mouse.state.middle || e.e.mouse.state.right || 
           !that.target.geometry.isVisible) {
@@ -577,6 +597,7 @@ class OctreeHelper extends HelperBase {
    * Remove eventhandlers from associated controls.
    */
   destruct() {
+    this.renderer.controls.removeEventListener('click', this._dblclickHandler);
     this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
     this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler);
     this.renderer.controls.removeEventListener('updated', this._updatedHandler);
