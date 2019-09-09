@@ -1,20 +1,20 @@
 //@ts-check
 
-const HelperBase = require('./HelperBase');
-const PointHelper = require('./PointHelper');
-const Octree = require('../Spice/Octree');
-const Raycaster = require('../Spice/Raycaster');
-const DrawModes = require('../Core/DrawModes');
-const Utils = require('../Utils/Utils');
-const Vector3f = require('../Math/Vector3f');
-const AABB = require('../Spice/AABB');
-const Matrix4f = require('../Math/Matrix4f');
-const FilterBase = require('../Filters/FilterBase');
-const Ray = require('../Math/Ray')
+const HelperBase = require("./HelperBase");
+const PointHelper = require("./PointHelper");
+const Octree = require("../Spice/Octree");
+const Raycaster = require("../Spice/Raycaster");
+const DrawModes = require("../Core/DrawModes");
+const Utils = require("../Utils/Utils");
+const Vector3f = require("../Math/Vector3f");
+const AABB = require("../Spice/AABB");
+const Matrix4f = require("../Math/Matrix4f");
+const FilterBase = require("../Filters/FilterBase");
+const Ray = require("../Math/Ray");
 
-/** 
- * A helper class to create an octree associated with vertex data. 
- * 
+/**
+ * A helper class to create an octree associated with vertex data.
+ *
  * @property {*} opts An object containing options.
  * @property {PointHelper} target The Lore.PointHelper object from which this octree is constructed.
  * @property {Renderer} renderer An instance of Lore.Renderer.
@@ -24,10 +24,9 @@ const Ray = require('../Math/Ray')
  * @property {Object[]} selected The currently selected items.
  */
 class OctreeHelper extends HelperBase {
-
   /**
    * Creates an instance of OctreeHelper.
-   * 
+   *
    * @param {Renderer} renderer A Lore.Renderer object.
    * @param {String} geometryName The name of this geometry.
    * @param {String} shaderName The name of the shader used to render this octree.
@@ -40,7 +39,7 @@ class OctreeHelper extends HelperBase {
     this.defaults = {
       visualize: false,
       multiSelect: true
-    }
+    };
 
     this.opts = Utils.extend(true, this.defaults, options);
     this._eventListeners = {};
@@ -56,9 +55,12 @@ class OctreeHelper extends HelperBase {
 
     let that = this;
 
-    this._clickHandler = function (e) {
-      if (e.e.mouse.state.middle || e.e.mouse.state.right || 
-          !that.target.geometry.isVisible) {
+    this._clickHandler = function(e) {
+      if (
+        e.e.mouse.state.middle ||
+        e.e.mouse.state.right ||
+        !that.target.geometry.isVisible
+      ) {
         return;
       }
 
@@ -74,11 +76,14 @@ class OctreeHelper extends HelperBase {
       }
     };
 
-    renderer.controls.addEventListener('click', this._clickHandler);
+    renderer.controls.addEventListener("click", this._clickHandler);
 
-    this._dblclickHandler = function (e) {
-      if (e.e.mouse.state.middle || e.e.mouse.state.right || 
-          !that.target.geometry.isVisible) {
+    this._dblclickHandler = function(e) {
+      if (
+        e.e.mouse.state.middle ||
+        e.e.mouse.state.right ||
+        !that.target.geometry.isVisible
+      ) {
         return;
       }
 
@@ -94,11 +99,15 @@ class OctreeHelper extends HelperBase {
       }
     };
 
-    renderer.controls.addEventListener('dblclick', this._dblclickHandler);
+    renderer.controls.addEventListener("dblclick", this._dblclickHandler);
 
-    this._mousemoveHandler = function (e) {
-      if (e.e.mouse.state.left || e.e.mouse.state.middle || 
-          e.e.mouse.state.right || !that.target.geometry.isVisible) {
+    this._mousemoveHandler = function(e) {
+      if (
+        e.e.mouse.state.left ||
+        e.e.mouse.state.middle ||
+        e.e.mouse.state.right ||
+        !that.target.geometry.isVisible
+      ) {
         return;
       }
 
@@ -111,38 +120,47 @@ class OctreeHelper extends HelperBase {
         }
 
         that.hovered = result[0];
-        that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
+        that.hovered.screenPosition = that.renderer.camera.sceneToScreen(
+          result[0].position,
+          renderer
+        );
 
-        that.raiseEvent('hoveredchanged', {
+        that.raiseEvent("hoveredchanged", {
           e: that.hovered
         });
       } else {
         that.hovered = null;
-        that.raiseEvent('hoveredchanged', {
+        that.raiseEvent("hoveredchanged", {
           e: null
         });
       }
     };
 
-    renderer.controls.addEventListener('mousemove', this._mousemoveHandler);
+    renderer.controls.addEventListener("mousemove", this._mousemoveHandler);
 
-    this._updatedHandler = function () {
+    this._updatedHandler = function() {
       if (!that.target.geometry.isVisible) {
         return;
       }
 
       for (let i = 0; i < that.selected.length; i++) {
-        that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(that.selected[i].position, renderer);
+        that.selected[i].screenPosition = that.renderer.camera.sceneToScreen(
+          that.selected[i].position,
+          renderer
+        );
       }
 
       if (that.hovered) {
-        that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
+        that.hovered.screenPosition = that.renderer.camera.sceneToScreen(
+          that.hovered.position,
+          renderer
+        );
       }
 
-      that.raiseEvent('updated');
+      that.raiseEvent("updated");
     };
 
-    renderer.controls.addEventListener('updated', this._updatedHandler);
+    renderer.controls.addEventListener("updated", this._updatedHandler);
 
     this.init();
   }
@@ -151,9 +169,9 @@ class OctreeHelper extends HelperBase {
    * Initialize this octree.
    */
   init() {
-    if (this.opts.visualize === 'centers') {
+    if (this.opts.visualize === "centers") {
       this.drawCenters();
-    } else if (this.opts.visualize === 'cubes') {
+    } else if (this.opts.visualize === "cubes") {
       this.drawBoxes();
     } else {
       this.geometry.isVisible = false;
@@ -162,12 +180,12 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Get the screen position of a vertex by its index.
-   * 
+   *
    * @param {Number} index The index of a vertex.
    * @returns {Number[]} An array containing the screen position. E.g. [122, 290].
    */
   getScreenPosition(index) {
-    let positions = this.target.geometry.attributes['position'].data;
+    let positions = this.target.geometry.attributes["position"].data;
     let k = index * 3;
     let p = new Vector3f(positions[k], positions[k + 1], positions[k + 2]);
 
@@ -176,22 +194,27 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Adds an object to the selected collection of this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Object|Number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
    */
   addSelected(item) {
     // If item is only the index, create a dummy item
     if (!isNaN(parseFloat(item))) {
-      let positions = this.target.geometry.attributes['position'].data;
-      let colors = this.target.geometry.attributes['color'].data;
+      let positions = this.target.geometry.attributes["position"].data;
+      let colors = this.target.geometry.attributes["color"].data;
       let k = item * 3;
 
       item = {
         distance: -1,
         index: item,
         locCode: -1,
-        position: new Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-        color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+        position: new Vector3f(
+          positions[k],
+          positions[k + 1],
+          positions[k + 2]
+        ),
+        color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null,
+        timestamp: Date.now()
       };
     }
 
@@ -204,21 +227,24 @@ class OctreeHelper extends HelperBase {
       index = 0;
     }
 
-    this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
-    this.raiseEvent('selectedchanged', {
+    this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(
+      item.position,
+      this.renderer
+    );
+    this.raiseEvent("selectedchanged", {
       e: this.selected
     });
   }
 
   /**
    * Remove an item from the selected collection of this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Number} index The index of the item in the selected collection.
    */
   removeSelected(index) {
     this.selected.splice(index, 1);
 
-    this.raiseEvent('selectedchanged', {
+    this.raiseEvent("selectedchanged", {
       e: this.selected
     });
   }
@@ -229,14 +255,14 @@ class OctreeHelper extends HelperBase {
   clearSelected() {
     this.selected = [];
 
-    this.raiseEvent('selectedchanged', {
+    this.raiseEvent("selectedchanged", {
       e: this.selected
     });
   }
 
   /**
    * Check whether or not the selected collection of this Lore.OctreeHelper object contains a vertex with a given index.
-   * 
+   *
    * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
    * @returns {Boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
    */
@@ -252,7 +278,7 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Adds a vertex with a given index to the currently hovered vertex of this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
    */
   setHovered(index) {
@@ -261,11 +287,11 @@ class OctreeHelper extends HelperBase {
     }
 
     let k = index * 3;
-    let positions = this.target.geometry.attributes['position'].data;
+    let positions = this.target.geometry.attributes["position"].data;
     let colors = null;
 
-    if ('color' in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes['color'].data;
+    if ("color" in this.target.geometry.attributes) {
+      colors = this.target.geometry.attributes["color"].data;
     }
 
     this.hovered = {
@@ -274,14 +300,17 @@ class OctreeHelper extends HelperBase {
       color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
     };
 
-    this.hovered.screenPosition = this.renderer.camera.sceneToScreen(this.hovered.position, this.renderer);
-    this.raiseEvent('hoveredchanged', {
+    this.hovered.screenPosition = this.renderer.camera.sceneToScreen(
+      this.hovered.position,
+      this.renderer
+    );
+    this.raiseEvent("hoveredchanged", {
       e: this.hovered
     });
   }
 
   /**
-   * Add the currently hovered vertex to the collection of selected vertices. 
+   * Add the currently hovered vertex to the collection of selected vertices.
    */
   selectHovered() {
     if (!this.hovered || this.selectedContains(this.hovered.index)) {
@@ -298,19 +327,19 @@ class OctreeHelper extends HelperBase {
   }
 
   /**
-   * Show the centers of the axis-aligned bounding boxes of this octree. 
+   * Show the centers of the axis-aligned bounding boxes of this octree.
    */
   showCenters() {
-    this.opts.visualize = 'centers';
+    this.opts.visualize = "centers";
     this.drawCenters();
     this.geometry.isVisible = true;
   }
 
   /**
-   * Show the axis-aligned boudning boxes of this octree as cubes. 
+   * Show the axis-aligned boudning boxes of this octree as cubes.
    */
   showCubes() {
-    this.opts.visualize = 'cubes';
+    this.opts.visualize = "cubes";
     this.drawBoxes();
     this.geometry.isVisible = true;
   }
@@ -322,13 +351,13 @@ class OctreeHelper extends HelperBase {
     this.opts.visualize = false;
     this.geometry.isVisible = false;
 
-    this.setAttribute('position', new Float32Array([]));
-    this.setAttribute('color', new Float32Array([]));
+    this.setAttribute("position", new Float32Array([]));
+    this.setAttribute("color", new Float32Array([]));
   }
 
   /**
    * Get the indices and distances of the vertices currently intersected by the ray sent from the mouse position.
-   * 
+   *
    * @param {Object} mouse A mouse object containing x and y properties.
    * @returns {Object[]} A distance-sorted (ASC) array containing the interesected vertices.
    */
@@ -338,8 +367,8 @@ class OctreeHelper extends HelperBase {
     let tmp = this.octree.raySearch(this.raycaster);
     let result = this.rayIntersections(tmp);
 
-    result.sort(function (a, b) {
-      return a.distance - b.distance
+    result.sort(function(a, b) {
+      return a.distance - b.distance;
     });
 
     return result;
@@ -347,7 +376,7 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Add an event listener to this Lore.OctreeHelper object.
-   * 
+   *
    * @param {String} eventName The name of the event to listen for.
    * @param {Function} callback A callback function called when an event is fired.
    */
@@ -361,7 +390,7 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Raise an event with a given name and send the data to the functions listening for this event.
-   * 
+   *
    * @param {String} eventName The name of the event to be rised.
    * @param {*} [data={}] Data to be sent to the listening functions.
    */
@@ -377,13 +406,13 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Adds a hoveredchanged event to multiple octrees and merges the event property e.
-   * 
+   *
    * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
    * @param {Function} eventListener A event listener for hoveredchanged.
    */
   static joinHoveredChanged(octreeHelpers, eventListener) {
     for (let i = 0; i < octreeHelpers.length; i++) {
-      octreeHelpers[i].addEventListener('hoveredchanged', function(e) {
+      octreeHelpers[i].addEventListener("hoveredchanged", function(e) {
         let result = { e: null, source: null };
         for (let j = 0; j < octreeHelpers.length; j++) {
           if (octreeHelpers[j].hovered !== null) {
@@ -397,14 +426,14 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Adds a selectedchanged event to multiple octrees and merges the event property e.
-   * 
+   *
    * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
    * @param {Function} eventListener A event listener for selectedchanged.
    */
   static joinSelectedChanged(octreeHelpers, eventListener) {
     for (let i = 0; i < octreeHelpers.length; i++) {
-      octreeHelpers[i].addEventListener('selectedchanged', function(e) {
-        let result = []
+      octreeHelpers[i].addEventListener("selectedchanged", function(e) {
+        let result = [];
         for (let j = 0; j < octreeHelpers.length; j++) {
           result.push({ selected: octreeHelpers[j].selected, source: j });
         }
@@ -441,8 +470,8 @@ class OctreeHelper extends HelperBase {
       i++;
     }
 
-    this.setAttribute('position', new Float32Array(positions));
-    this.setAttribute('color', new Float32Array(colors));
+    this.setAttribute("position", new Float32Array(positions));
+    this.setAttribute("color", new Float32Array(colors));
   }
 
   /**
@@ -545,13 +574,13 @@ class OctreeHelper extends HelperBase {
       p[index++] = corners[7][2];
     }
 
-    this.setAttribute('position', p);
-    this.setAttribute('color', c);
+    this.setAttribute("position", p);
+    this.setAttribute("color", c);
   }
 
   /**
    * Set the threshold of the raycaster associated with this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Number} threshold The threshold (maximum distance to the ray) of the raycaster.
    */
   setThreshold(threshold) {
@@ -560,7 +589,7 @@ class OctreeHelper extends HelperBase {
 
   /**
    * Execute a ray intersection search within this octree.
-   * 
+   *
    * @param {Number[]} indices The indices of the octree nodes that are intersected by the ray.
    * @returns {*} An array containing the vertices intersected by the ray.
    */
@@ -569,11 +598,11 @@ class OctreeHelper extends HelperBase {
     let inverseMatrix = Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
     let ray = new Ray();
     let threshold = this.raycaster.threshold * this.target.getPointScale();
-    let positions = this.target.geometry.attributes['position'].data;
+    let positions = this.target.geometry.attributes["position"].data;
     let colors = null;
 
-    if ('color' in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes['color'].data;
+    if ("color" in this.target.geometry.attributes) {
+      colors = this.target.geometry.attributes["color"].data;
     }
 
     // Only get points further away than the cutoff set in the point HelperBase
@@ -596,7 +625,13 @@ class OctreeHelper extends HelperBase {
         intersectedPoint.applyProjection(this.target.modelMatrix);
         let dist = this.raycaster.ray.source.distanceTo(intersectedPoint);
         let isVisible = FilterBase.isVisible(this.target.geometry, index);
-        if (dist < this.raycaster.near || dist > this.raycaster.far || dist < cutoff || !isVisible) continue;
+        if (
+          dist < this.raycaster.near ||
+          dist > this.raycaster.far ||
+          dist < cutoff ||
+          !isVisible
+        )
+          continue;
 
         result.push({
           distance: dist,
@@ -615,11 +650,17 @@ class OctreeHelper extends HelperBase {
    * Remove eventhandlers from associated controls.
    */
   destruct() {
-    this.renderer.controls.removeEventListener('click', this._dblclickHandler);
-    this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
-    this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler);
-    this.renderer.controls.removeEventListener('updated', this._updatedHandler);
+    this.renderer.controls.removeEventListener("click", this._dblclickHandler);
+    this.renderer.controls.removeEventListener(
+      "dblclick",
+      this._dblclickHandler
+    );
+    this.renderer.controls.removeEventListener(
+      "mousemove",
+      this._mousemoveHandler
+    );
+    this.renderer.controls.removeEventListener("updated", this._updatedHandler);
   }
 }
 
-module.exports = OctreeHelper
+module.exports = OctreeHelper;
