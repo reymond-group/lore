@@ -435,7 +435,13 @@ class OctreeHelper extends HelperBase {
       octreeHelpers[i].addEventListener("selectedchanged", function(e) {
         let result = [];
         for (let j = 0; j < octreeHelpers.length; j++) {
-          result.push({ selected: octreeHelpers[j].selected, source: j });
+          for (let k = 0; k < octreeHelpers[j].selected.length; k++)
+            result.push({
+              timestamp: octreeHelpers[j].selected[k].timestamp,
+              item: octreeHelpers[j].selected[k],
+              index: k,
+              source: j
+            });
         }
         eventListener(result);
       });
