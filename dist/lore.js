@@ -668,8 +668,8 @@ class ControlsBase {
         if (displays.length === 0) {
           return;
         }
-          for (var i = 0; i < displays.length; ++i) {
-          }
+         for (var i = 0; i < displays.length; ++i) {
+         }
       });
     }
   }
@@ -880,14 +880,14 @@ module.exports = FirstPersonControls;
 "use strict";
 
 //@ts-check
-const ControlsBase = require('../Controls/ControlsBase');
+const ControlsBase = require("../Controls/ControlsBase");
 
-const Vector3f = require('../Math/Vector3f');
+const Vector3f = require("../Math/Vector3f");
 
-const SphericalCoords = require('../Math/SphericalCoords');
-/** 
+const SphericalCoords = require("../Math/SphericalCoords");
+/**
  * A class representing orbital controls.
- * 
+ *
  * @property {Vector3f} up The global up vector.
  * @property {Number} radius The distance from the camera to the lookat vector.
  * @property {Number} [yRotationLimit=Math.PI] The limit for the vertical rotation.
@@ -919,27 +919,27 @@ class OrbitalControls extends ControlsBase {
     this.camera.updateViewMatrix();
     this.rotationLocked = false;
     let that = this;
-    this.addEventListener('mousedrag', function (e) {
+    this.addEventListener("mousedrag", function (e) {
       that.update(e.e, e.source);
     });
-    this.addEventListener('touch', function (e) {
+    this.addEventListener("touch", function (e) {
       that.update(e.e, e.source);
     });
-    this.addEventListener('mousewheel', function (e) {
+    this.addEventListener("mousewheel", function (e) {
       that.update({
         x: 0,
         y: -e.e
-      }, 'wheel');
+      }, "wheel");
     }); // Initial update
 
     this.update({
       x: 0,
       y: 0
-    }, 'left');
+    }, "left");
   }
   /**
    * Limit the vertical rotation to the horizon (the upper hemisphere).
-   * 
+   *
    * @param {Boolean} limit A boolean indicating whether or not to limit the vertical rotation to the horizon.
    * @returns {OrbitalControls} Returns itself.
    */
@@ -956,7 +956,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Sets the distance (radius of the sphere) from the lookat vector to the camera.
-   * 
+   *
    * @param {Number} radius The radius.
    * @returns {OrbitalControls} Returns itself.
    */
@@ -972,7 +972,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Update the camera (on mouse move, touch drag, mousewheel scroll, ...).
-   * 
+   *
    * @param {*} [e=null] A mouse or touch events data.
    * @param {String} [source=null] The source of the input ('left', 'middle', 'right', 'wheel', ...).
    * @returns {OrbitalControls} Returns itself.
@@ -980,13 +980,13 @@ class OrbitalControls extends ControlsBase {
 
 
   update(e = null, source = null) {
-    if (source == 'left' && !this.rotationLocked) {
+    if (source == "left" && !this.rotationLocked) {
       // Rotate
       this._dTheta = -2 * Math.PI * e.x / (this.canvas.clientWidth * this.camera.zoom);
       this._dPhi = -2 * Math.PI * e.y / (this.canvas.clientHeight * this.camera.zoom); // It's just to fast like this ...
       // this._dTheta = -2 * Math.PI * e.x / this.canvas.clientWidth;
       // this._dPhi = -2 * Math.PI * e.y / this.canvas.clientHeight;
-    } else if (source == 'right' || source == 'left' && this.rotationLocked) {
+    } else if (source == "right" || source == "left" && this.rotationLocked) {
       // Translate
       let x = e.x * (this.camera.right - this.camera.left) / this.camera.zoom / this.canvas.clientWidth;
       let y = e.y * (this.camera.top - this.camera.bottom) / this.camera.zoom / this.canvas.clientHeight;
@@ -995,17 +995,17 @@ class OrbitalControls extends ControlsBase {
       this._dPan.components[0] = r[0] * -x + u[0] * y;
       this._dPan.components[1] = r[1] * -x + u[1] * y;
       this._dPan.components[2] = r[2] * -x + u[2] * y;
-    } else if (source == 'middle' || source == 'wheel' || source == 'pinch') {
+    } else if (source == "middle" || source == "wheel" || source == "pinch") {
       if (e.y > 0) {
         // Zoom Out
         this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
         this.camera.updateProjectionMatrix();
-        this.raiseEvent('zoomchanged', this.camera.zoom);
+        this.raiseEvent("zoomchanged", this.camera.zoom);
       } else if (e.y < 0) {
         // Zoom In
         this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
         this.camera.updateProjectionMatrix();
-        this.raiseEvent('zoomchanged', this.camera.zoom);
+        this.raiseEvent("zoomchanged", this.camera.zoom);
       }
     } // Update the camera
 
@@ -1027,12 +1027,12 @@ class OrbitalControls extends ControlsBase {
 
     this._dPan.set(0, 0, 0);
 
-    this.raiseEvent('updated');
+    this.raiseEvent("updated");
     return this;
   }
   /**
    * Moves the camera around the sphere by spherical coordinates.
-   * 
+   *
    * @param {Number} phi The phi component of the spherical coordinates.
    * @param {Number} theta The theta component of the spherical coordinates.
    * @returns {OrbitalControls} Returns itself.
@@ -1049,12 +1049,12 @@ class OrbitalControls extends ControlsBase {
     this.camera.position.copyFrom(this.lookAt).add(offset);
     this.camera.setLookAt(this.lookAt);
     this.camera.updateViewMatrix();
-    this.raiseEvent('updated');
+    this.raiseEvent("updated");
     return this;
   }
   /**
    * Zoom in on the lookat vector.
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1062,13 +1062,13 @@ class OrbitalControls extends ControlsBase {
   zoomIn() {
     this.camera.zoom = Math.max(0, this.camera.zoom / this.scale);
     this.camera.updateProjectionMatrix();
-    this.raiseEvent('zoomchanged', this.camera.zoom);
-    this.raiseEvent('updated');
+    this.raiseEvent("zoomchanged", this.camera.zoom);
+    this.raiseEvent("updated");
     return this;
   }
   /**
    * Zoom out from the lookat vector.
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1076,13 +1076,13 @@ class OrbitalControls extends ControlsBase {
   zoomOut() {
     this.camera.zoom = Math.max(0, this.camera.zoom * this.scale);
     this.camera.updateProjectionMatrix();
-    this.raiseEvent('zoomchanged', this.camera.zoom);
-    this.raiseEvent('updated');
+    this.raiseEvent("zoomchanged", this.camera.zoom);
+    this.raiseEvent("updated");
     return this;
   }
   /**
    * Set the zoom to a given value.
-   * 
+   *
    * @param {Number} zoom The zoom value.
    * @returns {OrbitalControls} Returns itself.
    */
@@ -1091,13 +1091,13 @@ class OrbitalControls extends ControlsBase {
   setZoom(zoom) {
     this.camera.zoom = zoom;
     this.camera.updateProjectionMatrix();
-    this.raiseEvent('zoomchanged', this.camera.zoom);
+    this.raiseEvent("zoomchanged", this.camera.zoom);
     this.update();
     return this;
   }
   /**
    * Get the zoom.
-   * 
+   *
    * @returns {Number} The zoom value.
    */
 
@@ -1106,8 +1106,49 @@ class OrbitalControls extends ControlsBase {
     return this.camera.zoom;
   }
   /**
+   * Sets the view by name (left, right, top, bottom, back, front, free)
+   *
+   * @param {String} viewName The name of the view.
+   *
+   * @returns {OrbitalControls} Returns itself.
+   */
+
+
+  setViewByName(viewName) {
+    switch (viewName) {
+      case "left":
+        this.setLeftView();
+        break;
+
+      case "right":
+        this.setRightView();
+        break;
+
+      case "top":
+        this.setTopView();
+        break;
+
+      case "bottom":
+        this.setBottomView();
+        break;
+
+      case "back":
+        this.setBackView();
+        break;
+
+      case "front":
+        this.setFrontView();
+        break;
+
+      default:
+        this.setFreeView();
+    }
+
+    return this;
+  }
+  /**
    * Set the camera to the top view (locks rotation).
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1119,7 +1160,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Set the camera to the bottom view (locks rotation).
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1131,7 +1172,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Set the camera to the right view (locks rotation).
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1143,7 +1184,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Set the camera to the left view (locks rotation).
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1155,7 +1196,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Set the camera to the front view (locks rotation).
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1167,7 +1208,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Set the camera to the back view (locks rotation).
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -1179,7 +1220,7 @@ class OrbitalControls extends ControlsBase {
   }
   /**
    * Set the camera to free view (unlocks rotation).
-   * 
+   *
    * @returns {OrbitalControls} Returns itself.
    */
 
@@ -4344,30 +4385,30 @@ module.exports = HelperBase;
 "use strict";
 
 //@ts-check
-const HelperBase = require('./HelperBase');
+const HelperBase = require("./HelperBase");
 
-const PointHelper = require('./PointHelper');
+const PointHelper = require("./PointHelper");
 
-const Octree = require('../Spice/Octree');
+const Octree = require("../Spice/Octree");
 
-const Raycaster = require('../Spice/Raycaster');
+const Raycaster = require("../Spice/Raycaster");
 
-const DrawModes = require('../Core/DrawModes');
+const DrawModes = require("../Core/DrawModes");
 
-const Utils = require('../Utils/Utils');
+const Utils = require("../Utils/Utils");
 
-const Vector3f = require('../Math/Vector3f');
+const Vector3f = require("../Math/Vector3f");
 
-const AABB = require('../Spice/AABB');
+const AABB = require("../Spice/AABB");
 
-const Matrix4f = require('../Math/Matrix4f');
+const Matrix4f = require("../Math/Matrix4f");
 
-const FilterBase = require('../Filters/FilterBase');
+const FilterBase = require("../Filters/FilterBase");
 
-const Ray = require('../Math/Ray');
-/** 
- * A helper class to create an octree associated with vertex data. 
- * 
+const Ray = require("../Math/Ray");
+/**
+ * A helper class to create an octree associated with vertex data.
+ *
  * @property {*} opts An object containing options.
  * @property {PointHelper} target The Lore.PointHelper object from which this octree is constructed.
  * @property {Renderer} renderer An instance of Lore.Renderer.
@@ -4381,7 +4422,7 @@ const Ray = require('../Math/Ray');
 class OctreeHelper extends HelperBase {
   /**
    * Creates an instance of OctreeHelper.
-   * 
+   *
    * @param {Renderer} renderer A Lore.Renderer object.
    * @param {String} geometryName The name of this geometry.
    * @param {String} shaderName The name of the shader used to render this octree.
@@ -4423,7 +4464,7 @@ class OctreeHelper extends HelperBase {
       }
     };
 
-    renderer.controls.addEventListener('click', this._clickHandler);
+    renderer.controls.addEventListener("click", this._clickHandler);
 
     this._dblclickHandler = function (e) {
       if (e.e.mouse.state.middle || e.e.mouse.state.right || !that.target.geometry.isVisible) {
@@ -4442,7 +4483,7 @@ class OctreeHelper extends HelperBase {
       }
     };
 
-    renderer.controls.addEventListener('dblclick', this._dblclickHandler);
+    renderer.controls.addEventListener("dblclick", this._dblclickHandler);
 
     this._mousemoveHandler = function (e) {
       if (e.e.mouse.state.left || e.e.mouse.state.middle || e.e.mouse.state.right || !that.target.geometry.isVisible) {
@@ -4459,18 +4500,18 @@ class OctreeHelper extends HelperBase {
 
         that.hovered = result[0];
         that.hovered.screenPosition = that.renderer.camera.sceneToScreen(result[0].position, renderer);
-        that.raiseEvent('hoveredchanged', {
+        that.raiseEvent("hoveredchanged", {
           e: that.hovered
         });
       } else {
         that.hovered = null;
-        that.raiseEvent('hoveredchanged', {
+        that.raiseEvent("hoveredchanged", {
           e: null
         });
       }
     };
 
-    renderer.controls.addEventListener('mousemove', this._mousemoveHandler);
+    renderer.controls.addEventListener("mousemove", this._mousemoveHandler);
 
     this._updatedHandler = function () {
       if (!that.target.geometry.isVisible) {
@@ -4485,10 +4526,10 @@ class OctreeHelper extends HelperBase {
         that.hovered.screenPosition = that.renderer.camera.sceneToScreen(that.hovered.position, renderer);
       }
 
-      that.raiseEvent('updated');
+      that.raiseEvent("updated");
     };
 
-    renderer.controls.addEventListener('updated', this._updatedHandler);
+    renderer.controls.addEventListener("updated", this._updatedHandler);
     this.init();
   }
   /**
@@ -4497,9 +4538,9 @@ class OctreeHelper extends HelperBase {
 
 
   init() {
-    if (this.opts.visualize === 'centers') {
+    if (this.opts.visualize === "centers") {
       this.drawCenters();
-    } else if (this.opts.visualize === 'cubes') {
+    } else if (this.opts.visualize === "cubes") {
       this.drawBoxes();
     } else {
       this.geometry.isVisible = false;
@@ -4507,21 +4548,21 @@ class OctreeHelper extends HelperBase {
   }
   /**
    * Get the screen position of a vertex by its index.
-   * 
+   *
    * @param {Number} index The index of a vertex.
    * @returns {Number[]} An array containing the screen position. E.g. [122, 290].
    */
 
 
   getScreenPosition(index) {
-    let positions = this.target.geometry.attributes['position'].data;
+    let positions = this.target.geometry.attributes["position"].data;
     let k = index * 3;
     let p = new Vector3f(positions[k], positions[k + 1], positions[k + 2]);
     return this.renderer.camera.sceneToScreen(p, this.renderer);
   }
   /**
    * Adds an object to the selected collection of this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Object|Number} item Either an item (used internally) or the index of a vertex from the associated Lore.PointHelper object.
    */
 
@@ -4529,8 +4570,8 @@ class OctreeHelper extends HelperBase {
   addSelected(item) {
     // If item is only the index, create a dummy item
     if (!isNaN(parseFloat(item))) {
-      let positions = this.target.geometry.attributes['position'].data;
-      let colors = this.target.geometry.attributes['color'].data;
+      let positions = this.target.geometry.attributes["position"].data;
+      let colors = this.target.geometry.attributes["color"].data;
       let k = item * 3;
       item = {
         distance: -1,
@@ -4539,8 +4580,11 @@ class OctreeHelper extends HelperBase {
         position: new Vector3f(positions[k], positions[k + 1], positions[k + 2]),
         color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
       };
-    }
+    } // Add a timestamp to every selected item. This can be used to order
+    // selected items in a GUI
 
+
+    item["timestamp"] = Date.now();
     let index = this.selected.length;
 
     if (this.opts.multiSelect) {
@@ -4551,20 +4595,20 @@ class OctreeHelper extends HelperBase {
     }
 
     this.selected[index].screenPosition = this.renderer.camera.sceneToScreen(item.position, this.renderer);
-    this.raiseEvent('selectedchanged', {
+    this.raiseEvent("selectedchanged", {
       e: this.selected
     });
   }
   /**
    * Remove an item from the selected collection of this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Number} index The index of the item in the selected collection.
    */
 
 
   removeSelected(index) {
     this.selected.splice(index, 1);
-    this.raiseEvent('selectedchanged', {
+    this.raiseEvent("selectedchanged", {
       e: this.selected
     });
   }
@@ -4575,13 +4619,13 @@ class OctreeHelper extends HelperBase {
 
   clearSelected() {
     this.selected = [];
-    this.raiseEvent('selectedchanged', {
+    this.raiseEvent("selectedchanged", {
       e: this.selected
     });
   }
   /**
    * Check whether or not the selected collection of this Lore.OctreeHelper object contains a vertex with a given index.
-   * 
+   *
    * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
    * @returns {Boolean} A boolean indicating whether or not the selected collection of this Lore.OctreeHelper contains a vertex with a given index.
    */
@@ -4598,7 +4642,7 @@ class OctreeHelper extends HelperBase {
   }
   /**
    * Adds a vertex with a given index to the currently hovered vertex of this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Number} index The index of a vertex in the associated Lore.PointHelper object.
    */
 
@@ -4609,11 +4653,11 @@ class OctreeHelper extends HelperBase {
     }
 
     let k = index * 3;
-    let positions = this.target.geometry.attributes['position'].data;
+    let positions = this.target.geometry.attributes["position"].data;
     let colors = null;
 
-    if ('color' in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes['color'].data;
+    if ("color" in this.target.geometry.attributes) {
+      colors = this.target.geometry.attributes["color"].data;
     }
 
     this.hovered = {
@@ -4622,12 +4666,12 @@ class OctreeHelper extends HelperBase {
       color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
     };
     this.hovered.screenPosition = this.renderer.camera.sceneToScreen(this.hovered.position, this.renderer);
-    this.raiseEvent('hoveredchanged', {
+    this.raiseEvent("hoveredchanged", {
       e: this.hovered
     });
   }
   /**
-   * Add the currently hovered vertex to the collection of selected vertices. 
+   * Add the currently hovered vertex to the collection of selected vertices.
    */
 
 
@@ -4645,22 +4689,22 @@ class OctreeHelper extends HelperBase {
     });
   }
   /**
-   * Show the centers of the axis-aligned bounding boxes of this octree. 
+   * Show the centers of the axis-aligned bounding boxes of this octree.
    */
 
 
   showCenters() {
-    this.opts.visualize = 'centers';
+    this.opts.visualize = "centers";
     this.drawCenters();
     this.geometry.isVisible = true;
   }
   /**
-   * Show the axis-aligned boudning boxes of this octree as cubes. 
+   * Show the axis-aligned boudning boxes of this octree as cubes.
    */
 
 
   showCubes() {
-    this.opts.visualize = 'cubes';
+    this.opts.visualize = "cubes";
     this.drawBoxes();
     this.geometry.isVisible = true;
   }
@@ -4672,12 +4716,12 @@ class OctreeHelper extends HelperBase {
   hide() {
     this.opts.visualize = false;
     this.geometry.isVisible = false;
-    this.setAttribute('position', new Float32Array([]));
-    this.setAttribute('color', new Float32Array([]));
+    this.setAttribute("position", new Float32Array([]));
+    this.setAttribute("color", new Float32Array([]));
   }
   /**
    * Get the indices and distances of the vertices currently intersected by the ray sent from the mouse position.
-   * 
+   *
    * @param {Object} mouse A mouse object containing x and y properties.
    * @returns {Object[]} A distance-sorted (ASC) array containing the interesected vertices.
    */
@@ -4694,7 +4738,7 @@ class OctreeHelper extends HelperBase {
   }
   /**
    * Add an event listener to this Lore.OctreeHelper object.
-   * 
+   *
    * @param {String} eventName The name of the event to listen for.
    * @param {Function} callback A callback function called when an event is fired.
    */
@@ -4709,7 +4753,7 @@ class OctreeHelper extends HelperBase {
   }
   /**
    * Raise an event with a given name and send the data to the functions listening for this event.
-   * 
+   *
    * @param {String} eventName The name of the event to be rised.
    * @param {*} [data={}] Data to be sent to the listening functions.
    */
@@ -4726,7 +4770,7 @@ class OctreeHelper extends HelperBase {
   }
   /**
    * Adds a hoveredchanged event to multiple octrees and merges the event property e.
-   * 
+   *
    * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
    * @param {Function} eventListener A event listener for hoveredchanged.
    */
@@ -4734,7 +4778,7 @@ class OctreeHelper extends HelperBase {
 
   static joinHoveredChanged(octreeHelpers, eventListener) {
     for (let i = 0; i < octreeHelpers.length; i++) {
-      octreeHelpers[i].addEventListener('hoveredchanged', function (e) {
+      octreeHelpers[i].addEventListener("hoveredchanged", function (e) {
         let result = {
           e: null,
           source: null
@@ -4755,7 +4799,7 @@ class OctreeHelper extends HelperBase {
   }
   /**
    * Adds a selectedchanged event to multiple octrees and merges the event property e.
-   * 
+   *
    * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
    * @param {Function} eventListener A event listener for selectedchanged.
    */
@@ -4763,12 +4807,14 @@ class OctreeHelper extends HelperBase {
 
   static joinSelectedChanged(octreeHelpers, eventListener) {
     for (let i = 0; i < octreeHelpers.length; i++) {
-      octreeHelpers[i].addEventListener('selectedchanged', function (e) {
+      octreeHelpers[i].addEventListener("selectedchanged", function (e) {
         let result = [];
 
         for (let j = 0; j < octreeHelpers.length; j++) {
-          result.push({
-            selected: octreeHelpers[j].selected,
+          for (let k = 0; k < octreeHelpers[j].selected.length; k++) result.push({
+            timestamp: octreeHelpers[j].selected[k].timestamp,
+            item: octreeHelpers[j].selected[k],
+            index: k,
             source: j
           });
         }
@@ -4802,8 +4848,8 @@ class OctreeHelper extends HelperBase {
       i++;
     }
 
-    this.setAttribute('position', new Float32Array(positions));
-    this.setAttribute('color', new Float32Array(colors));
+    this.setAttribute("position", new Float32Array(positions));
+    this.setAttribute("color", new Float32Array(colors));
   }
   /**
    * Draw the axis-aligned bounding boxes of this octree.
@@ -4899,12 +4945,12 @@ class OctreeHelper extends HelperBase {
       p[index++] = corners[7][2];
     }
 
-    this.setAttribute('position', p);
-    this.setAttribute('color', c);
+    this.setAttribute("position", p);
+    this.setAttribute("color", c);
   }
   /**
    * Set the threshold of the raycaster associated with this Lore.OctreeHelper object.
-   * 
+   *
    * @param {Number} threshold The threshold (maximum distance to the ray) of the raycaster.
    */
 
@@ -4914,7 +4960,7 @@ class OctreeHelper extends HelperBase {
   }
   /**
    * Execute a ray intersection search within this octree.
-   * 
+   *
    * @param {Number[]} indices The indices of the octree nodes that are intersected by the ray.
    * @returns {*} An array containing the vertices intersected by the ray.
    */
@@ -4926,11 +4972,11 @@ class OctreeHelper extends HelperBase {
 
     let ray = new Ray();
     let threshold = this.raycaster.threshold * this.target.getPointScale();
-    let positions = this.target.geometry.attributes['position'].data;
+    let positions = this.target.geometry.attributes["position"].data;
     let colors = null;
 
-    if ('color' in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes['color'].data;
+    if ("color" in this.target.geometry.attributes) {
+      colors = this.target.geometry.attributes["color"].data;
     } // Only get points further away than the cutoff set in the point HelperBase
 
 
@@ -4971,10 +5017,10 @@ class OctreeHelper extends HelperBase {
 
 
   destruct() {
-    this.renderer.controls.removeEventListener('click', this._dblclickHandler);
-    this.renderer.controls.removeEventListener('dblclick', this._dblclickHandler);
-    this.renderer.controls.removeEventListener('mousemove', this._mousemoveHandler);
-    this.renderer.controls.removeEventListener('updated', this._updatedHandler);
+    this.renderer.controls.removeEventListener("click", this._dblclickHandler);
+    this.renderer.controls.removeEventListener("dblclick", this._dblclickHandler);
+    this.renderer.controls.removeEventListener("mousemove", this._mousemoveHandler);
+    this.renderer.controls.removeEventListener("updated", this._updatedHandler);
   }
 
 }
@@ -9325,7 +9371,7 @@ module.exports = new Shader('FXAAEffect', 1, {
  '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
  '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
  '#define FXAA_SPAN_MAX     8.0',
-   'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+  'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
  '{',
      'fragCoord = fragCoord * resolution;',
      'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -9344,23 +9390,23 @@ module.exports = new Shader('FXAAEffect', 1, {
      'float lumaM  = dot(rgbM,  luma);',
      'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
      'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-       'vec2 dir;',
+      'vec2 dir;',
      'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
      'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-       'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+      'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
      'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-       'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-       'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+      'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+      'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                         'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-       'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+      'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                       'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-       'float lumaB = dot(rgbB, luma);',
+      'float lumaB = dot(rgbB, luma);',
      'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
          'return vec4(rgbA, 1.0);',
      'else',
          'return vec4(rgbB, 1.0);',
  '}',
-   'uniform sampler2D fbo_texture;',
+  'uniform sampler2D fbo_texture;',
  'varying vec2 f_texcoord;',
  'void main(void) {',
      'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',

@@ -213,10 +213,13 @@ class OctreeHelper extends HelperBase {
           positions[k + 1],
           positions[k + 2]
         ),
-        color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null,
-        timestamp: Date.now()
+        color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
       };
     }
+
+    // Add a timestamp to every selected item. This can be used to order
+    // selected items in a GUI
+    item["timestamp"] = Date.now();
 
     let index = this.selected.length;
 
