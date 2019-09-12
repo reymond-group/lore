@@ -4454,14 +4454,7 @@ class OctreeHelper extends HelperBase {
 
       let mouse = e.e.mouse.normalizedPosition;
       let result = that.getIntersections(mouse);
-
-      if (result.length > 0) {
-        if (that.selectedContains(result[0].index)) {
-          return;
-        }
-
-        that.addSelected(result[0]);
-      }
+      if (result.length > 0) that.addSelected(result[0]);
     };
 
     renderer.controls.addEventListener("click", this._clickHandler);
@@ -4473,14 +4466,7 @@ class OctreeHelper extends HelperBase {
 
       let mouse = e.e.mouse.normalizedPosition;
       let result = that.getIntersections(mouse);
-
-      if (result.length > 0) {
-        if (that.selectedContains(result[0].index)) {
-          return;
-        }
-
-        that.addSelected(result[0]);
-      }
+      if (result.length > 0) that.addSelected(result[0]);
     };
 
     renderer.controls.addEventListener("dblclick", this._dblclickHandler);
@@ -4580,6 +4566,13 @@ class OctreeHelper extends HelperBase {
         position: new Vector3f(positions[k], positions[k + 1], positions[k + 2]),
         color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
       };
+    }
+
+    if (this.selectedContains(item.index)) {
+      this.raiseEvent("reselected", {
+        e: item
+      });
+      return;
     } // Add a timestamp to every selected item. This can be used to order
     // selected items in a GUI
 
