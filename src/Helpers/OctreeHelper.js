@@ -447,6 +447,27 @@ class OctreeHelper extends HelperBase {
   }
 
   /**
+   * Adds a reselected event to multiple octrees and merges the event property e.
+   *
+   * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
+   * @param {Function} eventListener A event listener for selectedchanged.
+   */
+  static joinReslected(octreeHelpers, eventListener) {
+    for (let i = 0; i < octreeHelpers.length; i++) {
+      octreeHelpers[i].addEventListener("reselected", function(e) {
+        let result = [];
+        for (let j = 0; j < octreeHelpers.length; j++) {
+          result.push({
+            item: e.item,
+            source: j
+          });
+        }
+        eventListener(result);
+      });
+    }
+  }
+
+  /**
    * Draw the centers of the axis-aligned bounding boxes of this octree.
    */
   drawCenters() {
