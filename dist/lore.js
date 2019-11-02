@@ -123,6 +123,7 @@ class CameraBase extends Node {
     this.viewMatrix = new Matrix4f();
     this.near = 0.0;
     this.far = 1000.0;
+    this._eventListeners = {};
   }
   /**
    * Initializes this camera instance.
@@ -209,6 +210,14 @@ class CameraBase extends Node {
     return this.viewMatrix.entries;
   }
   /**
+   * Virtual Method
+   */
+
+
+  getFrustum() {
+    return null;
+  }
+  /**
    * Projects a vector into screen space.
    * 
    * @param {Vector3f} vec A vector.
@@ -227,6 +236,55 @@ class CameraBase extends Node {
     let y = Math.round((-vector.components[1] + 1) * canvas.height / 2) / renderer.devicePixelRatio;
     return [x, y];
   }
+  /**
+  * Adds an event listener to this controls instance.
+  *
+  * @param {String} eventName The name of the event that is to be listened for.
+  * @param {Function} callback A callback function to be called on the event being fired.
+  */
+
+
+  addEventListener(eventName, callback) {
+    if (!this._eventListeners[eventName]) {
+      this._eventListeners[eventName] = [];
+    }
+
+    this._eventListeners[eventName].push(callback);
+  }
+  /**
+   * Remove an event listener from this controls instance.
+   *
+   * @param {String} eventName The name of the event that is to be listened for.
+   * @param {Function} callback A callback function to be called on the event being fired.
+   */
+
+
+  removeEventListener(eventName, callback) {
+    if (!this._eventListeners.hasOwnProperty(eventName)) {
+      return;
+    }
+
+    let index = this._eventListeners[eventName].indexOf(callback);
+
+    if (index > -1) {
+      this._eventListeners[eventName].splice(index, 1);
+    }
+  }
+  /**
+   * Raises an event.
+   *
+   * @param {String} eventName The name of the event to be raised.
+   * @param {*} [data={}] The data to be supplied to the callback function.
+   */
+
+
+  raiseEvent(eventName, data = {}) {
+    if (this._eventListeners[eventName]) {
+      for (let i = 0; i < this._eventListeners[eventName].length; i++) {
+        this._eventListeners[eventName][i](data);
+      }
+    }
+  }
 
 }
 
@@ -237,6 +295,10 @@ module.exports = CameraBase;
 
 //@ts-check
 const CameraBase = require('./CameraBase');
+
+const Vector3f = require('../Math/Vector3f');
+
+const Matrix4f = require('../Math/Matrix4f');
 /** 
  * A class representing an orthographic camera. 
  * 
@@ -290,6 +352,9 @@ class OrthographicCamera extends CameraBase {
     let bottom = y - height;
     this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
     this.isProjectionMatrixStale = true;
+    this.raiseEvent('projectionmatrixupdated', {
+      source: this
+    });
     return this;
   }
   /**
@@ -307,14 +372,31 @@ class OrthographicCamera extends CameraBase {
     this.right = width / 2.0;
     this.top = height / 2.0;
     this.bottom = -height / 2.0;
+    this.raiseEvent('viewportupdated', {
+      source: this
+    });
     return this;
+  }
+  /**
+   * Returns the frustum of the orthographic camera which is essentially just a box.
+   * 
+   * @returns {Vector3f[]} An array that contains two vectors defining minima and maxima.
+   */
+
+
+  getFrustum() {
+    let min = new Vector3f(-1.0, -1.0, -1.0);
+    let max = new Vector3f(1.0, 1.0, 1.0);
+    Matrix4f.unprojectVector(min, this);
+    Matrix4f.unprojectVector(max, this);
+    return [min, max];
   }
 
 }
 
 module.exports = OrthographicCamera;
 
-},{"./CameraBase":2}],4:[function(require,module,exports){
+},{"../Math/Matrix4f":38,"../Math/Vector3f":45,"./CameraBase":2}],4:[function(require,module,exports){
 "use strict";
 
 //@ts-check
@@ -668,8 +750,8 @@ class ControlsBase {
         if (displays.length === 0) {
           return;
         }
-         for (var i = 0; i < displays.length; ++i) {
-         }
+          for (var i = 0; i < displays.length; ++i) {
+          }
       });
     }
   }
@@ -1538,7 +1620,7 @@ class Color {
 
 
   getG() {
-    return this.components[0];
+    return this.components[1];
   }
   /**
    * Get the blue component of the color.
@@ -1548,7 +1630,7 @@ class Color {
 
 
   getB() {
-    return this.components[0];
+    return this.components[2];
   }
   /**
    * Get the alpha component of the color.
@@ -1558,7 +1640,7 @@ class Color {
 
 
   getA() {
-    return this.components[0];
+    return this.components[3];
   }
   /**
    * Convert this colour to a float.
@@ -1574,7 +1656,7 @@ class Color {
    * Set the r,g,b components from a hex string.
    * 
    * @static
-   * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
+   * @param {string} hex A hex string in the form of #ABCDEF or #ABC.
    * @returns {Color} A color representing the hex string.
    */
 
@@ -1587,7 +1669,7 @@ class Color {
    * Create an rgb array from the r,g,b components from a hex string.
    * 
    * @static
-   * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
+   * @param {string} hex A hex string in the form of #ABCDEF or #ABC.
    * @returns {Array} Returns an array containing rgb values.
    */
 
@@ -4305,6 +4387,17 @@ class HelperBase extends Node {
     this.geometry = this.renderer.createGeometry(geometryName, shaderName);
   }
   /**
+   * Checks whether the geometry associated with this helper has an attribute with a given name.
+   * 
+   * @param {String} name The name of the attribute.
+   * @returns {boolean} A boolean indicating whether an attribute with a the given name is present.
+   */
+
+
+  hasAttribute(name) {
+    return name in this.geometry.attributes;
+  }
+  /**
    * Set the value (a typed array) of an attribute.
    * 
    * @param {String} name The name of the attribute. 
@@ -4557,14 +4650,15 @@ class OctreeHelper extends HelperBase {
     // If item is only the index, create a dummy item
     if (!isNaN(parseFloat(item))) {
       let positions = this.target.geometry.attributes["position"].data;
-      let colors = this.target.geometry.attributes["color"].data;
       let k = item * 3;
+      let color = null;
+      if (this.target.hasAttribute('color')) color = this.target.getColor(item);
       item = {
         distance: -1,
         index: item,
         locCode: -1,
         position: new Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-        color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+        color: color
       };
     }
 
@@ -4647,16 +4741,12 @@ class OctreeHelper extends HelperBase {
 
     let k = index * 3;
     let positions = this.target.geometry.attributes["position"].data;
-    let colors = null;
-
-    if ("color" in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes["color"].data;
-    }
-
+    let color = null;
+    if (this.target.hasAttribute('color')) color = this.target.getColor(index);
     this.hovered = {
       index: index,
       position: new Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-      color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+      color: color
     };
     this.hovered.screenPosition = this.renderer.camera.sceneToScreen(this.hovered.position, this.renderer);
     this.raiseEvent("hoveredchanged", {
@@ -4728,6 +4818,15 @@ class OctreeHelper extends HelperBase {
       return a.distance - b.distance;
     });
     return result;
+  }
+  /**
+   * 
+   */
+
+
+  getVisible() {
+    let frustum = this.renderer.camera.getFrustum();
+    this.octree.intersectBox(frustum[0], frustum[1]);
   }
   /**
    * Add an event listener to this Lore.OctreeHelper object.
@@ -4989,13 +5088,7 @@ class OctreeHelper extends HelperBase {
 
     let ray = new Ray();
     let threshold = this.raycaster.threshold * this.target.getPointScale();
-    let positions = this.target.geometry.attributes["position"].data;
-    let colors = null;
-
-    if ("color" in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes["color"].data;
-    } // Only get points further away than the cutoff set in the point HelperBase
-
+    let positions = this.target.geometry.attributes["position"].data; // Only get points further away than the cutoff set in the point HelperBase
 
     let cutoff = this.target.getCutoff();
     ray.copyFrom(this.raycaster.ray).applyProjection(inverseMatrix);
@@ -5008,6 +5101,8 @@ class OctreeHelper extends HelperBase {
       let locCode = indices[i].locCode;
       let k = index * 3;
       let v = new Vector3f(positions[k], positions[k + 1], positions[k + 2]);
+      let color = null;
+      if (this.target.hasAttribute('color')) color = this.target.getColor(index);
       let rayPointDistanceSq = ray.distanceSqToPoint(v);
 
       if (rayPointDistanceSq < localThresholdSq) {
@@ -5021,7 +5116,7 @@ class OctreeHelper extends HelperBase {
           index: index,
           locCode: locCode,
           position: v,
-          color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+          color: color
         });
       }
     }
@@ -5551,7 +5646,7 @@ class PointHelper extends HelperBase {
   /**
    * Sets the fog colour and it's density, as seen from the camera.
    * 
-   * @param {Array} color An array defining the rgba values of the fog colour.
+   * @param {any} color An array or hex string defining the rgba values of the fog colour.
    * @param {Number} fogDensity The density of the fog.
    * @returns {PointHelper} Itself.
    */
@@ -5561,6 +5656,12 @@ class PointHelper extends HelperBase {
     if (!this.geometry.shader.uniforms.clearColor || !this.geometry.shader.uniforms.fogDensity) {
       console.warn('Shader "' + this.geometry.shader.name + '" does not support fog.');
       return this;
+    } // If the color is passed as a string, convert the hex value to an array
+
+
+    if (typeof color === 'string') {
+      let c = Color.fromHex(color);
+      color = [c.getR(), c.getG(), c.getB(), 1.0];
     }
 
     this.geometry.shader.uniforms.clearColor.value = color;
@@ -9388,7 +9489,7 @@ module.exports = new Shader('FXAAEffect', 1, {
  '#define FXAA_REDUCE_MIN   (1.0/ 128.0)',
  '#define FXAA_REDUCE_MUL   (1.0 / 8.0)',
  '#define FXAA_SPAN_MAX     8.0',
-  'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
+   'vec4 applyFXAA(vec2 fragCoord, sampler2D tex, vec2 resolution)',
  '{',
      'fragCoord = fragCoord * resolution;',
      'vec2 inverseVP = vec2(1.0 / 500.0, 1.0 / 500.0);',
@@ -9407,23 +9508,23 @@ module.exports = new Shader('FXAAEffect', 1, {
      'float lumaM  = dot(rgbM,  luma);',
      'float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
      'float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
-      'vec2 dir;',
+       'vec2 dir;',
      'dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
      'dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
-      'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
+       'float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);',
      'float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
-      'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
-      'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
+       'dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * inverseVP;',
+       'vec3 rgbA = 0.5 * (texture2D(tex, fragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +',
                         'texture2D(tex, fragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);',
-      'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
+       'vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +',
                                       'texture2D(tex, fragCoord.xy * inverseVP + dir * 0.5).xyz);',
-      'float lumaB = dot(rgbB, luma);',
+       'float lumaB = dot(rgbB, luma);',
      'if ((lumaB < lumaMin) || (lumaB > lumaMax))',
          'return vec4(rgbA, 1.0);',
      'else',
          'return vec4(rgbB, 1.0);',
  '}',
-  'uniform sampler2D fbo_texture;',
+   'uniform sampler2D fbo_texture;',
  'varying vec2 f_texcoord;',
  'void main(void) {',
      'gl_FragColor = applyFXAA(f_texcoord, fbo_texture, vec2(500.0, 500.0));',
@@ -9470,7 +9571,7 @@ const Uniform = require('../Core/Uniform');
 module.exports = new Shader('sphere', 1, {
   size: new Uniform('size', 5.0, 'float'),
   cutoff: new Uniform('cutoff', 0.0, 'float'),
-  clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4'),
+  clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 0.0], 'float_vec4'),
   fogDensity: new Uniform('fogDensity', 6.0, 'float')
 }, ['uniform float size;', 'uniform float cutoff;', 'attribute vec3 position;', 'attribute vec3 color;', 'varying vec3 vColor;', 'varying float vDiscard;', 'vec3 floatToRgb(float n) {', 'float b = floor(n / 65536.0);', 'float g = floor((n - b * 65536.0) / 256.0);', 'float r = floor(n - b * 65536.0 - g * 256.0);', 'return vec3(r / 255.0, g / 255.0, b / 255.0);', '}', 'void main() {', 'float point_size = color.b;', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);', 'vec4 mv_pos = modelViewMatrix * vec4(position, 1.0);', 'vDiscard = 0.0;', 'if(-mv_pos.z < cutoff || point_size <= 0.0 || mv_pos.z > 0.0) {', 'vDiscard = 1.0;', 'return;', '}', 'gl_PointSize = point_size * size;', 'vColor = floatToRgb(color.r);', '}'], ['uniform vec4 clearColor;', 'uniform float fogDensity;', 'varying vec3 vColor;', 'varying float vDiscard;', 'float rand(vec2 co) {', 'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);', '}', 'void main() {', 'if(vDiscard > 0.5) discard;', 'vec3 N;', 'N.xy = gl_PointCoord * 2.0 - vec2(1.0);', 'float mag = dot(N.xy, N.xy);', 'if (mag > 1.0) discard;   // discard fragments outside circle', 'N.z = sqrt(1.0 - mag);', 'vec3 light_dir = vec3(0.25, -0.25, 1.0);', 'float diffuse = max(0.25, dot(light_dir, N));', 'vec3 v = normalize(vec3(0.1, -0.2, 1.0));', 'vec3 h = normalize(light_dir + v);', 'float specular = pow(max(0.0, dot(N, h)), 100.0);', '// specular += 0.1 * rand(gl_PointCoord);', 'float z = gl_FragCoord.z / gl_FragCoord.w;', 'float fog_factor = clamp(exp2(-fogDensity * fogDensity * z * z * 1.442695), 0.025, 1.0);', 'vec3 color = vColor * diffuse + specular * 0.5;', 'gl_FragColor = mix(clearColor, vec4(color, 1.0), fog_factor);', '}']);
 
@@ -9816,6 +9917,8 @@ const AABB = require('./AABB');
 
 const Vector3f = require('../Math/Vector3f');
 
+const ProjectionMatrix = require('../Math/ProjectionMatrix');
+
 const Utils = require('../Utils/Utils');
 
 const Raycaster = require('./Raycaster');
@@ -10042,6 +10145,31 @@ class Octree {
       }
     }, function (aabb, locCode) {
       return aabb.cylinderTest(raycaster.ray.source, inverseDir, raycaster.far, raycaster.threshold);
+    });
+    return result;
+  }
+  /**
+   * Returns the locCodes and number of points of axis aligned bounding boxes that are intersected by a box defined by min and max vectors. Boxes not containing any points are ignored.
+   * @param {Vector3f} min - The minima of the box.
+   * @param {Vector3f} max - The maxima of the box.
+   * @returns {Array} An array containing locCodes and the number of points of the intersected axis aligned bounding boxes.
+   */
+
+
+  intersectBox(min, max) {
+    let result = [];
+    console.log(min, max);
+    this.traverseIf(function (points, aabb, locCode) {
+      if (!points) {
+        return;
+      }
+
+      console.log(locCode, points.length);
+    }, function (aabb, locCode) {
+      // console.log(min, max);
+      // console.log(aabb);
+      console.log(locCode);
+      return !(min.getX() < aabb.max[0] && max.getX() > aabb.min[0] && min.getY() < aabb.max[1] && max.getY() > aabb.min[1] && min.getZ() < aabb.max[2] && max.getZ() > aabb.min[2]);
     });
     return result;
   }
@@ -10592,7 +10720,7 @@ class Octree {
 
 module.exports = Octree;
 
-},{"../Math/RadixSort":41,"../Math/Vector3f":45,"../Utils/Utils":62,"./AABB":58,"./Raycaster":60}],60:[function(require,module,exports){
+},{"../Math/ProjectionMatrix":39,"../Math/RadixSort":41,"../Math/Vector3f":45,"../Utils/Utils":62,"./AABB":58,"./Raycaster":60}],60:[function(require,module,exports){
 "use strict";
 
 //@ts-check

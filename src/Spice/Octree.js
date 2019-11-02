@@ -2,6 +2,7 @@
 
 const AABB = require('./AABB');
 const Vector3f = require('../Math/Vector3f');
+const ProjectionMatrix = require('../Math/ProjectionMatrix');
 const Utils = require('../Utils/Utils');
 const Raycaster = require('./Raycaster');
 const RadixSort = require('../Math/RadixSort');
@@ -238,6 +239,35 @@ class Octree {
     }, function (aabb, locCode) {
       return aabb.cylinderTest(raycaster.ray.source, inverseDir,
         raycaster.far, raycaster.threshold);
+    });
+
+    return result;
+  }
+
+  /**
+   * Returns the locCodes and number of points of axis aligned bounding boxes that are intersected by a box defined by min and max vectors. Boxes not containing any points are ignored.
+   * @param {Vector3f} min - The minima of the box.
+   * @param {Vector3f} max - The maxima of the box.
+   * @returns {Array} An array containing locCodes and the number of points of the intersected axis aligned bounding boxes.
+   */
+  intersectBox(min, max) {
+    let result = [];
+
+    console.log(min, max);
+
+    this.traverseIf(function (points, aabb, locCode) {
+      if (!points) {
+        return;
+      }
+
+      console.log(locCode, points.length);
+    }, function (aabb, locCode) {
+      // console.log(min, max);
+      // console.log(aabb);
+      console.log(locCode);
+      return !((min.getX() < aabb.max[0]) && (max.getX() > aabb.min[0]) &&
+             (min.getY() < aabb.max[1]) && (max.getY() > aabb.min[1]) &&
+             (min.getZ() < aabb.max[2]) && (max.getZ() > aabb.min[2]));
     });
 
     return result;

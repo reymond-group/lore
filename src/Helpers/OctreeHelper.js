@@ -189,8 +189,11 @@ class OctreeHelper extends HelperBase {
     // If item is only the index, create a dummy item
     if (!isNaN(parseFloat(item))) {
       let positions = this.target.geometry.attributes["position"].data;
-      let colors = this.target.geometry.attributes["color"].data;
       let k = item * 3;
+
+      let color = null;
+      if (this.target.hasAttribute('color'))
+        color = this.target.getColor(item);
 
       item = {
         distance: -1,
@@ -201,7 +204,7 @@ class OctreeHelper extends HelperBase {
           positions[k + 1],
           positions[k + 2]
         ),
-        color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+        color: color
       };
     }
 
@@ -286,16 +289,15 @@ class OctreeHelper extends HelperBase {
 
     let k = index * 3;
     let positions = this.target.geometry.attributes["position"].data;
-    let colors = null;
-
-    if ("color" in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes["color"].data;
-    }
+    
+    let color = null;
+    if (this.target.hasAttribute('color'))
+      color = this.target.getColor(index);
 
     this.hovered = {
       index: index,
       position: new Vector3f(positions[k], positions[k + 1], positions[k + 2]),
-      color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+      color: color
     };
 
     this.hovered.screenPosition = this.renderer.camera.sceneToScreen(
@@ -370,6 +372,14 @@ class OctreeHelper extends HelperBase {
     });
 
     return result;
+  }
+
+  /**
+   * 
+   */
+  getVisible() {
+    let frustum = this.renderer.camera.getFrustum();
+    this.octree.intersectBox(frustum[0], frustum[1]);
   }
 
   /**
@@ -623,12 +633,7 @@ class OctreeHelper extends HelperBase {
     let inverseMatrix = Matrix4f.invert(this.target.modelMatrix); // this could be optimized, since the model matrix does not change
     let ray = new Ray();
     let threshold = this.raycaster.threshold * this.target.getPointScale();
-    let positions = this.target.geometry.attributes["position"].data;
-    let colors = null;
-
-    if ("color" in this.target.geometry.attributes) {
-      colors = this.target.geometry.attributes["color"].data;
-    }
+    let positions = this.target.geometry.attributes["position"].data;    
 
     // Only get points further away than the cutoff set in the point HelperBase
     let cutoff = this.target.getCutoff();
@@ -643,6 +648,10 @@ class OctreeHelper extends HelperBase {
       let locCode = indices[i].locCode;
       let k = index * 3;
       let v = new Vector3f(positions[k], positions[k + 1], positions[k + 2]);
+
+      let color = null;
+      if (this.target.hasAttribute('color'))
+        color = this.target.getColor(index);
 
       let rayPointDistanceSq = ray.distanceSqToPoint(v);
       if (rayPointDistanceSq < localThresholdSq) {
@@ -663,7 +672,7 @@ class OctreeHelper extends HelperBase {
           index: index,
           locCode: locCode,
           position: v,
-          color: colors ? [colors[k], colors[k + 1], colors[k + 2]] : null
+          color: color
         });
       }
     }

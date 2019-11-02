@@ -37,6 +37,16 @@ class HelperBase extends Node {
   }
 
   /**
+   * Checks whether the geometry associated with this helper has an attribute with a given name.
+   * 
+   * @param {String} name The name of the attribute.
+   * @returns {boolean} A boolean indicating whether an attribute with a the given name is present.
+   */
+  hasAttribute(name) {
+    return name in this.geometry.attributes;
+  }
+
+  /**
    * Set the value (a typed array) of an attribute.
    * 
    * @param {String} name The name of the attribute. 

@@ -151,7 +151,7 @@ class ControlsBase {
         ((e.clientX - rect.left * s) / that.canvas.width) * s * 2 - 1;
       that.mouse.normalizedPosition.y =
         -(((e.clientY - rect.top * s) / that.canvas.height) * s) * 2 + 1;
-
+        
       that.raiseEvent("mousemove", {
         e: that
       });

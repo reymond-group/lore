@@ -1,0 +1,67 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            html, body {
+                margin: 0px;
+                padding: 0px;
+                height: 100%;
+            }
+
+            #lore {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="lore"></canvas>
+
+        <script src="../dist/lore.js"></script>
+        <script>
+            // Create some random data
+            let data = { x: [], y: [], z: [], c: [] }
+            for (var i = 0; i < 1000; i++) {
+                data.x.push(Math.random() * 500);
+                data.y.push(Math.random() * 500);
+                data.z.push(Math.random() * 500);
+                data.c.push(Math.random());
+            }
+            for (var i = 0; i < 5000; i++) {
+                data.x.push((Math.random() + 0.5) * 500);
+                data.y.push((Math.random() + 0.5) * 500);
+                data.z.push((Math.random()) * 500);
+                data.c.push(Math.random());
+            }
+
+            // Initialize the engine
+            let lore = Lore.init("lore", { clearColor: '#222222' });
+
+            // Draw the data points
+            let ph = new Lore.Helpers.PointHelper(lore, 'MyPoints', 'smoothCircle');
+            ph.setPositionsXYZHSS(data.x, data.y, data.z, data.c, 1.0, 1.0);
+            ph.setFog('#222222');
+            ph.setPointScale(5.0);
+
+            // Set the camera based on the point helper
+            lore.controls.setLookAt(ph.getCenter());
+            lore.controls.setRadius(ph.getMaxRadius());
+
+            // Make the visualization interactive using the octree helper
+            oh = new Lore.Helpers.OctreeHelper(lore, 'MyOctree', 'tree', ph, {
+                visualize: 'cubes'
+            });
+
+            oh.addEventListener('hoveredchanged', e => {
+                if (e && e.e) {
+                    console.log(e.e.color);
+                }
+            });
+        </script>
+    </body>
+</html>

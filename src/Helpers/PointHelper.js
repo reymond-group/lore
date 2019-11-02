@@ -486,7 +486,7 @@ class PointHelper extends HelperBase {
   /**
    * Sets the fog colour and it's density, as seen from the camera.
    * 
-   * @param {Array} color An array defining the rgba values of the fog colour.
+   * @param {any} color An array or hex string defining the rgba values of the fog colour.
    * @param {Number} fogDensity The density of the fog.
    * @returns {PointHelper} Itself.
    */
@@ -494,6 +494,12 @@ class PointHelper extends HelperBase {
     if (!this.geometry.shader.uniforms.clearColor || !this.geometry.shader.uniforms.fogDensity) {
       console.warn('Shader "' + this.geometry.shader.name + '" does not support fog.');
       return this;
+    }
+
+    // If the color is passed as a string, convert the hex value to an array
+    if (typeof color === 'string') {
+      let c = Color.fromHex(color);
+      color = [c.getR(), c.getG(), c.getB(), 1.0];
     }
 
     this.geometry.shader.uniforms.clearColor.value = color;

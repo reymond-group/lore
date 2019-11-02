@@ -61,7 +61,7 @@ class Color {
    * @returns {Number} The green component of the color.
    */
   getG() {
-    return this.components[0];
+    return this.components[1];
   }
 
   /**
@@ -70,7 +70,7 @@ class Color {
    * @returns {Number} The blue component of the color.
    */
   getB() {
-    return this.components[0];
+    return this.components[2];
   }
 
   /**
@@ -79,7 +79,7 @@ class Color {
    * @returns {Number} The alpha component of the color.
    */
   getA() {
-    return this.components[0];
+    return this.components[3];
   }
 
   /**
@@ -95,7 +95,7 @@ class Color {
    * Set the r,g,b components from a hex string.
    * 
    * @static
-   * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
+   * @param {string} hex A hex string in the form of #ABCDEF or #ABC.
    * @returns {Color} A color representing the hex string.
    */
   static fromHex(hex) {
@@ -107,7 +107,7 @@ class Color {
    * Create an rgb array from the r,g,b components from a hex string.
    * 
    * @static
-   * @param {String} hex A hex string in the form of #ABCDEF or #ABC.
+   * @param {string} hex A hex string in the form of #ABCDEF or #ABC.
    * @returns {Array} Returns an array containing rgb values.
    */
   static hexToRgb(hex) {

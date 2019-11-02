@@ -77,7 +77,8 @@
       filter.setMax(0.85);
       filter.filter();
     } else if (e.keyCode == 55) {
-
+      console.log('test');
+      octreeHelper.getVisible();
     } else if (e.keyCode == 56) {
 
     } else if (e.keyCode == 57) {

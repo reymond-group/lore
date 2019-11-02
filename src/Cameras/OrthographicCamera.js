@@ -1,6 +1,8 @@
 //@ts-check
 
 const CameraBase = require('./CameraBase');
+const Vector3f = require('../Math/Vector3f');
+const Matrix4f = require('../Math/Matrix4f');
 
 /** 
  * A class representing an orthographic camera. 
@@ -57,6 +59,8 @@ class OrthographicCamera extends CameraBase {
         this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
         this.isProjectionMatrixStale = true;
 
+        this.raiseEvent('projectionmatrixupdated', { source: this });
+
         return this;
     }
 
@@ -74,7 +78,24 @@ class OrthographicCamera extends CameraBase {
         this.top = height / 2.0;
         this.bottom = -height / 2.0;
 
+        this.raiseEvent('viewportupdated', { source: this });
+
         return this;
+    }
+
+    /**
+     * Returns the frustum of the orthographic camera which is essentially just a box.
+     * 
+     * @returns {Vector3f[]} An array that contains two vectors defining minima and maxima.
+     */
+    getFrustum() {
+        let min = new Vector3f(-1.0, -1.0, -1.0);
+        let max = new Vector3f(1.0, 1.0, 1.0);
+
+        Matrix4f.unprojectVector(min, this);
+        Matrix4f.unprojectVector(max, this);
+
+        return [min, max];
     }
 }
 

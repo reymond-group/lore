@@ -1,6 +1,7 @@
 (function () {
   let lore = Lore.init('lore', {
-    clearColor: '#222222', preserveDrawingBuffer: true
+    clearColor: '#222222', preserveDrawingBuffer: true,
+    alphaBlending: true
   });
 
   let dlButton = document.getElementById('btn-download');
@@ -22,7 +23,7 @@
   fileReader.addEventListener('loaded', function (data) {
     original_data = data;
 
-    pointHelper = new Lore.Helpers.PointHelper(lore, 'Seppli', 'sphere');
+    pointHelper = new Lore.Helpers.PointHelper(lore, 'Seppli', 'smoothCircle');
     pointHelper.setPositionsXYZHSS(data['x'], data['y'], data['z'], data['c'], 1.0, 1.0)
     pointHelper.setPointScale(1.0);
     pointHelper.setFog([0.05, 0.05, 0.05, 1.0], 6.0);

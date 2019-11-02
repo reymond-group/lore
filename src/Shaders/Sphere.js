@@ -3,7 +3,7 @@ const Uniform = require('../Core/Uniform')
 
 module.exports = new Shader('sphere', 1, { size: new Uniform('size', 5.0, 'float'),
                                            cutoff: new Uniform('cutoff', 0.0, 'float'),
-                                           clearColor: new Uniform('clearColor', [1.0, 1.0, 1.0, 1.0], 'float_vec4'),
+                                           clearColor: new Uniform('clearColor', [0.0, 0.0, 0.0, 0.0], 'float_vec4'),
                                            fogDensity: new Uniform('fogDensity', 6.0, 'float') }, [
     'uniform float size;',
     'uniform float cutoff;',
