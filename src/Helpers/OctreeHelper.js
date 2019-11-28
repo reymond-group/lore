@@ -464,13 +464,13 @@ class OctreeHelper extends HelperBase {
    * @param {OctreeHelper[]} octreeHelpers An array of octree helpers to join.
    * @param {Function} eventListener A event listener for selectedchanged.
    */
-  static joinReslected(octreeHelpers, eventListener) {
+  static joinReselected(octreeHelpers, eventListener) {
     for (let i = 0; i < octreeHelpers.length; i++) {
       octreeHelpers[i].addEventListener("reselected", function(e) {
         let result = [];
         for (let j = 0; j < octreeHelpers.length; j++) {
           result.push({
-            item: e.item,
+            item: e,
             source: j
           });
         }
