@@ -379,6 +379,8 @@ class OctreeHelper extends HelperBase {
    */
   getVisible() {
     let frustum = this.renderer.camera.getFrustum();
+    console.log(frustum[0].toString());
+    console.log(frustum[1].toString());
     this.octree.intersectBox(frustum[0], frustum[1]);
   }
 

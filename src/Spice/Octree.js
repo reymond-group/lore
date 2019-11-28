@@ -253,7 +253,9 @@ class Octree {
   intersectBox(min, max) {
     let result = [];
 
-    console.log(min, max);
+    console.log(this.aabbs);
+
+    // console.log(min, max);
 
     this.traverseIf(function (points, aabb, locCode) {
       if (!points) {
@@ -264,7 +266,7 @@ class Octree {
     }, function (aabb, locCode) {
       // console.log(min, max);
       // console.log(aabb);
-      console.log(locCode);
+      // console.log(locCode);
       return !((min.getX() < aabb.max[0]) && (max.getX() > aabb.min[0]) &&
              (min.getY() < aabb.max[1]) && (max.getY() > aabb.min[1]) &&
              (min.getZ() < aabb.max[2]) && (max.getZ() > aabb.min[2]));

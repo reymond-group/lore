@@ -43,7 +43,7 @@
             let lore = Lore.init("lore", { clearColor: '#222222' });
 
             // Draw the data points
-            let ph = new Lore.Helpers.PointHelper(lore, 'MyPoints', 'smoothCircle');
+            let ph = new Lore.Helpers.PointHelper(lore, 'MyPoints', 'sphere');
             ph.setPositionsXYZHSS(data.x, data.y, data.z, data.c, 1.0, 1.0);
             ph.setFog('#222222');
             ph.setPointScale(5.0);
@@ -59,7 +59,22 @@
 
             oh.addEventListener('hoveredchanged', e => {
                 if (e && e.e) {
-                    console.log(e.e.color);
+                    // console.log(e.e.color);
+                }
+            });
+
+            // Test stuff on key press
+            let visible = true;
+            document.addEventListener('keydown', e => {
+                if (e.keyCode == 70) {
+                    // oh.getVisible();
+                    if (visible) {
+                        ph.hide();
+                        visible = false;
+                    } else {
+                        ph.show();
+                        visible = true;
+                    }
                 }
             });
         </script>

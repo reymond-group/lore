@@ -89,8 +89,9 @@ class OrthographicCamera extends CameraBase {
      * @returns {Vector3f[]} An array that contains two vectors defining minima and maxima.
      */
     getFrustum() {
-        let min = new Vector3f(-1.0, -1.0, -1.0);
-        let max = new Vector3f(1.0, 1.0, 1.0);
+        let z = (this.near + this.far) / (this.near - this.far)
+        let min = new Vector3f(-1.0, -1.0, z);
+        let max = new Vector3f(1.0, 1.0, z);
 
         Matrix4f.unprojectVector(min, this);
         Matrix4f.unprojectVector(max, this);

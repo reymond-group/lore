@@ -385,8 +385,9 @@ class OrthographicCamera extends CameraBase {
 
 
   getFrustum() {
-    let min = new Vector3f(-1.0, -1.0, -1.0);
-    let max = new Vector3f(1.0, 1.0, 1.0);
+    let z = (this.near + this.far) / (this.near - this.far);
+    let min = new Vector3f(-1.0, -1.0, z);
+    let max = new Vector3f(1.0, 1.0, z);
     Matrix4f.unprojectVector(min, this);
     Matrix4f.unprojectVector(max, this);
     return [min, max];
@@ -4826,6 +4827,8 @@ class OctreeHelper extends HelperBase {
 
   getVisible() {
     let frustum = this.renderer.camera.getFrustum();
+    console.log(frustum[0].toString());
+    console.log(frustum[1].toString());
     this.octree.intersectBox(frustum[0], frustum[1]);
   }
   /**
@@ -10158,7 +10161,8 @@ class Octree {
 
   intersectBox(min, max) {
     let result = [];
-    console.log(min, max);
+    console.log(this.aabbs); // console.log(min, max);
+
     this.traverseIf(function (points, aabb, locCode) {
       if (!points) {
         return;
@@ -10168,7 +10172,7 @@ class Octree {
     }, function (aabb, locCode) {
       // console.log(min, max);
       // console.log(aabb);
-      console.log(locCode);
+      // console.log(locCode);
       return !(min.getX() < aabb.max[0] && max.getX() > aabb.min[0] && min.getY() < aabb.max[1] && max.getY() > aabb.min[1] && min.getZ() < aabb.max[2] && max.getZ() > aabb.min[2]);
     });
     return result;
