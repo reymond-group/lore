@@ -3,7 +3,7 @@
 If you use this code or application, please cite the original paper published by Bioinformatics: [10.1093/bioinformatics/btx760](http://dx.doi.org/10.1093/bioinformatics/btx760)
 
 # Lore
-Current Version: 1.0.27 ([Godzilla](https://youtu.be/RTzb-sduiWc))
+Current Version: 1.1.10 ([Godzilla](https://youtu.be/RTzb-sduiWc))
 
 ### Teasers
 <table style="width=100%">
@@ -125,4 +125,10 @@ The options for the coordinate helper are self-explanatory:
 | The maximum point size | maxPointSize | number | 100.0 |
 
 ### [Documentation](/doc/all.md)
-The documentation can be found in the docs folder. A markdown version is available [here](/doc/all.md).
+The documentation can be found in the docs folder. A markdown version is available [here](/doc/all.md)
+
+### Contributions & Thanks
+![BrowserStack Logo](https://d98b8t1nnulk5.cloudfront.net/production/images/layout/logo-header.png?1469004780)
+
+Big thanks to [Browserstack](https://www.browserstack.com/) for providing us with their excellent App and Browser Testing service.
+
