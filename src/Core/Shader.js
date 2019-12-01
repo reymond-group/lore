@@ -11,7 +11,7 @@ const Matrix4f = require('../Math/Matrix4f');
  * 
  */
 class Shader {
-    constructor(name, glVersion, uniforms, vertexShader, fragmentShader, fallback = 'default') {
+    constructor(name, glVersion, uniforms, vertexShader, fragmentShader, fallback = 'circle') {
         this.name = name;
         this.uniforms = uniforms || {};
         this.vertexShader = vertexShader || [];
