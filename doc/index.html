@@ -59,8 +59,10 @@
     <section class="readme">
         <article><p><img src="https://github.com/reymond-group/lore/blob/master/logo.png?raw=true" alt="Lore"></p>
 <p>If you use this code or application, please cite the original paper published by Bioinformatics: <a href="http://dx.doi.org/10.1093/bioinformatics/btx760">10.1093/bioinformatics/btx760</a></p>
-<h1>Lore</h1><p>Current Version: 1.1.10 (<a href="https://youtu.be/RTzb-sduiWc">Godzilla</a>)</p>
-<h3>Teasers</h3><table style="width=100%">
+<h1>Lore</h1>
+<p>Current Version: 1.1.10 (<a href="https://youtu.be/RTzb-sduiWc">Godzilla</a>)</p>
+<h3>Teasers</h3>
+<table style="width=100%">
     <tbody>
         <tr>
             <td><img src="http://doc.gdb.tools/fun/img/lore_faerun_small.gif"></img></td>
@@ -70,15 +72,24 @@
         </tr>
     </tbody>
 </table>
-
 <p>Browsing the SureChEMBL database (containing &gt; 12 million datapoints): <a href="http://faerun.gdb.tools">Faerun</a>.</p>
-<h3>Example</h3><p>A basic <a href="https://jsfiddle.net/bmkxpg7g/2/">fiddle</a>
+<h3>Example</h3>
+<p>A basic <a href="https://jsfiddle.net/bmkxpg7g/2/">fiddle</a>
 <strong>See the examples folder for more details.</strong></p>
-<h3>Installation</h3><p>You can either download or clone this repository and use the JavaScript file in the dist folder, or you can use yarn to install the package lore-engine:</p>
-<pre class="prettyprint source lang-bash"><code>yarn add lore-engine</code></pre><h3>Building Lore</h3><p>If you decide not to use the ready-to-go scripts in <code>dist</code>, you can (edit and) build the project by running:</p>
+<h3>Installation</h3>
+<p>You can either download or clone this repository and use the JavaScript file in the dist folder, or you can use yarn to install the package lore-engine:</p>
+<pre class="prettyprint source lang-bash"><code>yarn add lore-engine
+</code></pre>
+<h3>Building Lore</h3>
+<p>If you decide not to use the ready-to-go scripts in <code>dist</code>, you can (edit and) build the project by running:</p>
 <pre class="prettyprint source lang-bash"><code>npm install
-gulp</code></pre><h3>Getting Started</h3><p>A simple example can be found in the <code>example</code> folder. The <a href="https://github.com/reymond-group/lore/blob/master/example/v5_s10544-17fe05-03.pce">example data file</a> was downloaded from the <a href="http://bdtnp.lbl.gov/Fly-Net/">website</a> of the Berkeley Drosophila Transcription Network Project. It is a very small data set (N=6000) chosen because of the small file size (larger files can not be hosted on github).</p>
-<h3>Options</h3><h4>Renderer</h4><table>
+gulp
+</code></pre>
+<h3>Getting Started</h3>
+<p>A simple example can be found in the <code>example</code> folder. The <a href="https://github.com/reymond-group/lore/blob/master/example/v5_s10544-17fe05-03.pce">example data file</a> was downloaded from the <a href="http://bdtnp.lbl.gov/Fly-Net/">website</a> of the Berkeley Drosophila Transcription Network Project. It is a very small data set (N=6000) chosen because of the small file size (larger files can not be hosted on github).</p>
+<h3>Options</h3>
+<h4>Renderer</h4>
+<table>
 <thead>
 <tr>
 <th>Option</th>
@@ -144,7 +155,8 @@ gulp</code></pre><h3>Getting Started</h3><p>A simple example can be found in the
 </tr>
 </tbody>
 </table>
-<h4>CoordinatesHelper</h4><p>The options for the coordinate helper are self-explanatory:</p>
+<h4>CoordinatesHelper</h4>
+<p>The options for the coordinate helper are self-explanatory:</p>
 <pre class="prettyprint source lang-javascript"><code>{
     position: new Lore.Vector3f(),
     axis: {
@@ -194,7 +206,10 @@ gulp</code></pre><h3>Getting Started</h3><p>A simple example can be found in the
             color: Lore.Color.fromHex('#222222')
         }
     },
-}</code></pre><h4>OctreeHelper</h4><table>
+}
+</code></pre>
+<h4>OctreeHelper</h4>
+<table>
 <thead>
 <tr>
 <th>Option</th>
@@ -218,7 +233,8 @@ gulp</code></pre><h3>Getting Started</h3><p>A simple example can be found in the
 </tr>
 </tbody>
 </table>
-<h4>PointHelper</h4><table>
+<h4>PointHelper</h4>
+<table>
 <thead>
 <tr>
 <th>Option</th>
@@ -260,8 +276,10 @@ gulp</code></pre><h3>Getting Started</h3><p>A simple example can be found in the
 </tr>
 </tbody>
 </table>
-<h3><a href="/doc/all.md">Documentation</a></h3><p>The documentation can be found in the docs folder. A markdown version is available <a href="/doc/all.md">here</a></p>
-<h3>Contributions &amp; Thanks</h3><p><img src="https://d98b8t1nnulk5.cloudfront.net/production/images/layout/logo-header.png?1469004780" alt="BrowserStack Logo"></p>
+<h3><a href="/doc/all.md">Documentation</a></h3>
+<p>The documentation can be found in the docs folder. A markdown version is available <a href="/doc/all.md">here</a></p>
+<h3>Contributions &amp; Thanks</h3>
+<p><img src="https://d98b8t1nnulk5.cloudfront.net/production/images/layout/logo-header.png?1469004780" alt="BrowserStack Logo"></p>
 <p>Big thanks to <a href="https://www.browserstack.com/">Browserstack</a> for providing us with their excellent App and Browser Testing service. This allows us to test our library quickly on a wide range of browsers and operating systems.</p></article>
     </section>
 
@@ -277,7 +295,7 @@ gulp</code></pre><h3>Getting Started</h3><p>A simple example can be found in the
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Dec 01 2019 15:25:37 GMT+0100 (Central European Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Fri Nov 26 2021 14:44:21 GMT+0100 (Central European Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

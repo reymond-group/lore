@@ -131,4 +131,3 @@ The documentation can be found in the docs folder. A markdown version is availab
 ![BrowserStack Logo](https://d98b8t1nnulk5.cloudfront.net/production/images/layout/logo-header.png?1469004780)
 
 Big thanks to [Browserstack](https://www.browserstack.com/) for providing us with their excellent App and Browser Testing service. This allows us to test our library quickly on a wide range of browsers and operating systems.
-
