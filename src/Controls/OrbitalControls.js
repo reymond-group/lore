@@ -259,6 +259,23 @@ class OrbitalControls extends ControlsBase {
   }
 
   /**
+   * Set zoom so it contains a bounding box
+   * 
+   * @param {Number} width The width of the square to be contained.
+   * @param {Number} height The height of the square to be contained.
+   * @returns {OrbitalControls} Returns itself.
+   */
+  zoomTo(width, height) {
+    if (this.camera.type !== 'Lore.OrthographicCamera') {
+      throw('Feature not implemented.');
+    }
+
+    this.setZoom(this.camera.getRequiredZoomToContain(width, height));
+
+    return this;
+  }
+
+  /**
    * Sets the view by name (left, right, top, bottom, back, front, free)
    *
    * @param {String} viewName The name of the view.

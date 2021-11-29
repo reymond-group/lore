@@ -496,7 +496,7 @@ class Vector3f {
     }
 
     /**
-     * Subtracts one scalar from another (u - v)
+     * Subtracts one vector from another (u - v)
      * 
      * @static
      * @param {Vector3f} u A vector. 
@@ -537,6 +537,22 @@ class Vector3f {
         return u.components[0] * v.components[0] +
             u.components[1] * v.components[1] +
             u.components[2] * v.components[2];
+    }
+
+    /**
+     * Calculates the midpoint between two vectors.
+     * 
+     * @static
+     * @param {Vector3f} u A vector. 
+     * @param {Vector3f} v A vector. 
+     * @returns {Vector3f} The midpoint between the two vectors.
+     */
+     static midpoint(u, v) {
+        return new Vector3f(
+            u.components[0] + v.components[0] / 2.0,
+            u.components[1] + v.components[1] / 2.0,
+            u.components[2] + v.components[2] / 2.0
+        );
     }
 
     /**

@@ -34,10 +34,10 @@
             }
 
             // Initialize the engine
-            let lore = Lore.init("lore", { clearColor: '#222222' });
+            let lore = Lore.init("lore", { clearColor: '#222222', alphaBlending: true });
 
             // Draw the data points
-            let ph = new Lore.Helpers.PointHelper(lore, 'MyPoints', 'sphere');
+            let ph = new Lore.Helpers.PointHelper(lore, 'MyPoints', 'smoothCircle');
             ph.setPositionsXYZHSS(data.x, data.y, data.z, data.c, 1.0, 1.0);
             ph.setFog([0, 0, 0], 0.0);
             ph.setPointScale(5.0);
@@ -51,7 +51,7 @@
 
             oh.addEventListener('hoveredchanged', e => {
                 if (e && e.e) {
-                    console.log(e);
+                    console.log(e.e.position)
                 }
             });
 
@@ -59,14 +59,7 @@
             let visible = true;
             document.addEventListener('keydown', e => {
                 if (e.keyCode == 70) {
-                    // oh.getVisible();
-                    if (visible) {
-                        ph.hide();
-                        visible = false;
-                    } else {
-                        ph.show();
-                        visible = true;
-                    }
+                    lore.controls.zoomTo(100, 100);
                 }
             });
         </script>

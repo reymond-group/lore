@@ -46,6 +46,7 @@ class OrthographicCamera extends CameraBase {
      * @returns {OrthographicCamera} Returns itself.
      */
     updateProjectionMatrix() {
+        //TODO: This is called in each render loop? Does it have to?
         let width = (this.right - this.left) / (2.0 * this.zoom);
         let height = (this.top - this.bottom) / (2.0 * this.zoom);
         let x = (this.right + this.left) / 2.0;
@@ -62,6 +63,22 @@ class OrthographicCamera extends CameraBase {
         this.raiseEvent('projectionmatrixupdated', { source: this });
 
         return this;
+    }
+
+
+    /**
+     * Calculate the required zoom factor to contain an a specified width and height.
+     * 
+     * @param {Number} width Width of regtion to be contained.
+     * @param {Number} height Height of region to be contained.
+     * 
+     * @returns {Number} The zoom to be set to contain the specified width and height.
+     */
+    getRequiredZoomToContain(width, height) {
+        let zoom_width = (this.right - this.left) / (2.0 * width);
+        let zoom_height = (this.top - this.bottom) / (2.0 * height);
+
+        return Math.min(zoom_width, zoom_height);
     }
 
     /**

@@ -342,6 +342,7 @@ class OrthographicCamera extends CameraBase {
 
 
   updateProjectionMatrix() {
+    //TODO: This is called in each render loop? Does it have to?
     let width = (this.right - this.left) / (2.0 * this.zoom);
     let height = (this.top - this.bottom) / (2.0 * this.zoom);
     let x = (this.right + this.left) / 2.0;
@@ -356,6 +357,21 @@ class OrthographicCamera extends CameraBase {
       source: this
     });
     return this;
+  }
+  /**
+   * Calculate the required zoom factor to contain an a specified width and height.
+   * 
+   * @param {Number} width Width of regtion to be contained.
+   * @param {Number} height Height of region to be contained.
+   * 
+   * @returns {Number} The zoom to be set to contain the specified width and height.
+   */
+
+
+  getRequiredZoomToContain(width, height) {
+    let zoom_width = (this.right - this.left) / (2.0 * width);
+    let zoom_height = (this.top - this.bottom) / (2.0 * height);
+    return Math.min(zoom_width, zoom_height);
   }
   /**
    * Has to be called when the viewport size changes (e.g. window resize).
@@ -1187,6 +1203,23 @@ class OrbitalControls extends ControlsBase {
 
   getZoom() {
     return this.camera.zoom;
+  }
+  /**
+   * Set zoom so it contains a bounding box
+   * 
+   * @param {Number} width The width of the square to be contained.
+   * @param {Number} height The height of the square to be contained.
+   * @returns {OrbitalControls} Returns itself.
+   */
+
+
+  zoomTo(width, height) {
+    if (this.camera.type !== 'Lore.OrthographicCamera') {
+      throw 'Feature not implemented.';
+    }
+
+    this.setZoom(this.camera.getRequiredZoomToContain(width, height));
+    return this;
   }
   /**
    * Sets the view by name (left, right, top, bottom, back, front, free)
@@ -9306,7 +9339,7 @@ class Vector3f {
     return new Vector3f(u.components[0] + v.components[0], u.components[1] + v.components[1], u.components[2] + v.components[2]);
   }
   /**
-   * Subtracts one scalar from another (u - v)
+   * Subtracts one vector from another (u - v)
    * 
    * @static
    * @param {Vector3f} u A vector. 
@@ -9343,6 +9376,19 @@ class Vector3f {
 
   static dot(u, v) {
     return u.components[0] * v.components[0] + u.components[1] * v.components[1] + u.components[2] * v.components[2];
+  }
+  /**
+   * Calculates the midpoint between two vectors.
+   * 
+   * @static
+   * @param {Vector3f} u A vector. 
+   * @param {Vector3f} v A vector. 
+   * @returns {Vector3f} The midpoint between the two vectors.
+   */
+
+
+  static midpoint(u, v) {
+    return new Vector3f(u.components[0] + v.components[0] / 2.0, u.components[1] + v.components[1] / 2.0, u.components[2] + v.components[2] / 2.0);
   }
   /**
    * Returns the forward vector (0, 0, 1).
