@@ -163,7 +163,7 @@ class OrbitalControls extends ControlsBase {
     this.spherical.components[2] += this._dTheta;
     this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
     this.spherical.secure();
-
+    
     // Limit radius here
     this.lookAt.add(this._dPan);
     offset.setFromSphericalCoords(this.spherical);
@@ -175,6 +175,38 @@ class OrbitalControls extends ControlsBase {
     this._dPhi = 0.0;
     this._dTheta = 0.0;
     this._dPan.set(0, 0, 0);
+
+    this.raiseEvent("updated");
+
+    return this;
+  }
+
+  /**
+   * Sets the lookat vector, which is the center of the orbital camera sphere.
+   *
+   * @param {Vector3f} lookAt The lookat vector.
+   * @returns {ControlsBase} Returns itself.
+   */
+  setLookAt(lookAt) {
+    // TODO: Most of this code (except for setting lookAt to lookAt instead of _dPan)
+    //       is compied from updated. Maybe fix that
+
+    // Update the camera
+    let offset = this.camera.position.clone().subtract(this.lookAt);
+
+    this.spherical.setFromVector(offset);
+    this.spherical.components[1] += this._dPhi;
+    this.spherical.components[2] += this._dTheta;
+    this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
+    this.spherical.secure();
+    
+    // Limit radius here
+    this.lookAt = lookAt.clone();
+    offset.setFromSphericalCoords(this.spherical);
+
+    this.camera.position.copyFrom(this.lookAt).add(offset);
+    this.camera.setLookAt(this.lookAt);
+    this.camera.updateViewMatrix();
 
     this.raiseEvent("updated");
 
@@ -272,6 +304,16 @@ class OrbitalControls extends ControlsBase {
 
     this.setZoom(this.camera.getRequiredZoomToContain(width, height));
 
+    return this;
+  }
+
+  /**
+   * 
+   * @param {Vector3f} v The vector to pan to.
+   * @returns {OrbitalControls} Returns itself.
+   */
+  panTo(v) {
+    
     return this;
   }
 

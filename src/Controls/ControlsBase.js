@@ -373,17 +373,13 @@ class ControlsBase {
   }
 
   /**
-   * Sets the lookat vector, which is the center of the orbital camera sphere.
+   * Virtual method. Sets the lookat vector, which is the center of the orbital camera sphere.
    *
    * @param {Vector3f} lookAt The lookat vector.
    * @returns {ControlsBase} Returns itself.
    */
   setLookAt(lookAt) {
-    //this.camera.position = new Vector3f(this.radius, this.radius, this.radius);
-    this.lookAt = lookAt.clone();
-    this.update();
-
-    return this;
+    return null;
   }
 
   /**
