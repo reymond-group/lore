@@ -24,7 +24,7 @@ class OrthographicCamera extends CameraBase {
      * @param {Number} bottom Bottom extend of the viewing volume.
      * @param {Number} near Near extend of the viewing volume.
      * @param {Number} far Far extend of the viewing volume.
-     */ 
+     */
     constructor(left, right, top, bottom, near = 0.1, far = 2500) {
         super();
 
@@ -56,7 +56,7 @@ class OrthographicCamera extends CameraBase {
         let right = x + width;
         let top = y + height;
         let bottom = y - height;
-        
+
         this.projectionMatrix.setOrthographic(left, right, top, bottom, this.near, this.far);
         this.isProjectionMatrixStale = true;
 
@@ -71,12 +71,14 @@ class OrthographicCamera extends CameraBase {
      * 
      * @param {Number} width Width of regtion to be contained.
      * @param {Number} height Height of region to be contained.
+     * @param {Number} padding Padding applied to the zoom as a fraction of width and height.
      * 
      * @returns {Number} The zoom to be set to contain the specified width and height.
      */
-    getRequiredZoomToContain(width, height) {
-        let zoom_width = (this.right - this.left) / (2.0 * width);
-        let zoom_height = (this.top - this.bottom) / (2.0 * height);
+    getRequiredZoomToContain(width, height, padding = 0.1) {
+
+        let zoom_width = (this.right - this.left) / (width + width * padding);
+        let zoom_height = (this.top - this.bottom) / (height + height * padding);
 
         return Math.min(zoom_width, zoom_height);
     }

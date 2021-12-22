@@ -368,9 +368,9 @@ class OrthographicCamera extends CameraBase {
    */
 
 
-  getRequiredZoomToContain(width, height) {
-    let zoom_width = (this.right - this.left) / (2.0 * width);
-    let zoom_height = (this.top - this.bottom) / (2.0 * height);
+  getRequiredZoomToContain(width, height, padding = 0.1) {
+    let zoom_width = (this.right - this.left) / (width + width * padding);
+    let zoom_height = (this.top - this.bottom) / (height + height * padding);
     return Math.min(zoom_width, zoom_height);
   }
   /**

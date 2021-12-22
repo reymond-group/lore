@@ -45,15 +45,15 @@ class OrbitalControls extends ControlsBase {
 
     let that = this;
 
-    this.addEventListener("mousedrag", function(e) {
+    this.addEventListener("mousedrag", function (e) {
       that.update(e.e, e.source);
     });
 
-    this.addEventListener("touch", function(e) {
+    this.addEventListener("touch", function (e) {
       that.update(e.e, e.source);
     });
 
-    this.addEventListener("mousewheel", function(e) {
+    this.addEventListener("mousewheel", function (e) {
       that.update(
         {
           x: 0,
@@ -163,7 +163,7 @@ class OrbitalControls extends ControlsBase {
     this.spherical.components[2] += this._dTheta;
     this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
     this.spherical.secure();
-    
+
     // Limit radius here
     this.lookAt.add(this._dPan);
     offset.setFromSphericalCoords(this.spherical);
@@ -199,7 +199,7 @@ class OrbitalControls extends ControlsBase {
     this.spherical.components[2] += this._dTheta;
     this.spherical.limit(0, this.yRotationLimit, -Infinity, Infinity);
     this.spherical.secure();
-    
+
     // Limit radius here
     this.lookAt = lookAt.clone();
     offset.setFromSphericalCoords(this.spherical);
@@ -295,14 +295,19 @@ class OrbitalControls extends ControlsBase {
    * 
    * @param {Number} width The width of the square to be contained.
    * @param {Number} height The height of the square to be contained.
+   * @param {Number} padding Padding applied to the zoom as a fraction of width and height.
    * @returns {OrbitalControls} Returns itself.
    */
-  zoomTo(width, height) {
+  zoomTo(width, height, padding = 0.1) {
     if (this.camera.type !== 'Lore.OrthographicCamera') {
-      throw('Feature not implemented.');
+      throw ('Feature not implemented.');
     }
 
-    this.setZoom(this.camera.getRequiredZoomToContain(width, height));
+    this.setZoom(this.camera.getRequiredZoomToContain(
+      width,
+      height,
+      padding
+    ));
 
     return this;
   }
@@ -313,7 +318,6 @@ class OrbitalControls extends ControlsBase {
    * @returns {OrbitalControls} Returns itself.
    */
   panTo(v) {
-    
     return this;
   }
 

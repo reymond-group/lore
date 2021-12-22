@@ -1,75 +1,79 @@
 <!doctype html>
 <html class="no-js" lang="">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            html, body {
-                margin: 0px;
-                padding: 0px;
-                height: 100%;
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html,
+        body {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+        }
+
+        #lore {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="lore"></canvas>
+
+    <script src="../dist/lore.js"></script>
+    <script>
+        // Create some random data
+        // let data = { x: [], y: [], z: [], c: [] }
+        // for (var i = 0; i < 2222; i++) {
+        //     data.x.push((Math.random() + 0.5) * 500);
+        //     data.y.push((Math.random() + 0.5) * 500);
+        //     data.z.push(0);
+        //     data.c.push(Math.random());
+        // }
+
+        let data = {
+            x: [0, 100, 500, 600],
+            y: [0, 100, 500, 600],
+            z: [0, 0, 0, 0],
+            c: [Math.random(), Math.random(), Math.random(), Math.random()]
+        }
+
+        // Initialize the engine
+        let lore = Lore.init("lore", { clearColor: '#222222', alphaBlending: true });
+
+        // Draw the data points
+        let ph = new Lore.Helpers.PointHelper(lore, 'MyPoints', 'smoothCircle');
+        ph.setPositionsXYZHSS(data.x, data.y, data.z, data.c, 1.0, 1.0);
+        ph.setFog([0, 0, 0], 0.0);
+        ph.setPointScale(5.0);
+        lore.controls.setLookAt(ph.getCenter());
+
+        // Set the camera based on the point helper
+        lore.controls.setFrontView();
+
+        // Make the visualization interactive using the octree helper
+        oh = new Lore.Helpers.OctreeHelper(lore, 'MyOctree', 'tree', ph);
+
+        oh.addEventListener('hoveredchanged', e => {
+            if (e && e.e) {
+                console.log(e.e.position)
             }
+        });
 
-            #lore {
-                width: 100%;
-                height: 100%;
+        // Test stuff on key press
+        let visible = true;
+        document.addEventListener('keydown', e => {
+            if (e.keyCode == 70) {
+                lore.controls.setLookAt(new Lore.Math.Vector3f(550, 550, 0));
+                lore.controls.zoomTo(100, 100)
             }
-        </style>
-    </head>
-    <body>
-        <canvas id="lore"></canvas>
+        });
+    </script>
+</body>
 
-        <script src="../dist/lore.js"></script>
-        <script>
-            // Create some random data
-            // let data = { x: [], y: [], z: [], c: [] }
-            // for (var i = 0; i < 2222; i++) {
-            //     data.x.push((Math.random() + 0.5) * 500);
-            //     data.y.push((Math.random() + 0.5) * 500);
-            //     data.z.push(0);
-            //     data.c.push(Math.random());
-            // }
-
-            let data = { 
-                x: [0, 100, 500, 600], 
-                y: [0, 100, 500, 600], 
-                z: [0, 0, 0, 0], 
-                c: [Math.random(), Math.random(), Math.random(), Math.random()] 
-            }
-
-            // Initialize the engine
-            let lore = Lore.init("lore", { clearColor: '#222222', alphaBlending: true });
-
-            // Draw the data points
-            let ph = new Lore.Helpers.PointHelper(lore, 'MyPoints', 'smoothCircle');
-            ph.setPositionsXYZHSS(data.x, data.y, data.z, data.c, 1.0, 1.0);
-            ph.setFog([0, 0, 0], 0.0);
-            ph.setPointScale(5.0);
-            lore.controls.setLookAt(ph.getCenter());
-
-            // Set the camera based on the point helper
-            lore.controls.setFrontView();
-
-            // Make the visualization interactive using the octree helper
-            oh = new Lore.Helpers.OctreeHelper(lore, 'MyOctree', 'tree', ph);
-
-            oh.addEventListener('hoveredchanged', e => {
-                if (e && e.e) {
-                    console.log(e.e.position)
-                }
-            });
-
-            // Test stuff on key press
-            let visible = true;
-            document.addEventListener('keydown', e => {
-                if (e.keyCode == 70) {
-                    lore.controls.setLookAt(new Lore.Math.Vector3f(550, 550, 0));
-                    lore.controls.zoomTo(100, 100)
-                }
-            });
-        </script>
-    </body>
 </html>
