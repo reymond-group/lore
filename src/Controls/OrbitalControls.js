@@ -298,7 +298,7 @@ class OrbitalControls extends ControlsBase {
    * @param {Number} padding Padding applied to the zoom as a fraction of width and height.
    * @returns {OrbitalControls} Returns itself.
    */
-  zoomTo(width, height, padding = 0.1) {
+  zoomTo(width, height, padding = 0.0) {
     if (this.camera.type !== 'Lore.OrthographicCamera') {
       throw ('Feature not implemented.');
     }

@@ -363,12 +363,13 @@ class OrthographicCamera extends CameraBase {
    * 
    * @param {Number} width Width of regtion to be contained.
    * @param {Number} height Height of region to be contained.
+   * @param {Number} padding Padding applied to the zoom as a fraction of width and height.
    * 
    * @returns {Number} The zoom to be set to contain the specified width and height.
    */
 
 
-  getRequiredZoomToContain(width, height, padding = 0.1) {
+  getRequiredZoomToContain(width, height, padding = 0.0) {
     let zoom_width = (this.right - this.left) / (width + width * padding);
     let zoom_height = (this.top - this.bottom) / (height + height * padding);
     return Math.min(zoom_width, zoom_height);
@@ -1233,16 +1234,17 @@ class OrbitalControls extends ControlsBase {
    * 
    * @param {Number} width The width of the square to be contained.
    * @param {Number} height The height of the square to be contained.
+   * @param {Number} padding Padding applied to the zoom as a fraction of width and height.
    * @returns {OrbitalControls} Returns itself.
    */
 
 
-  zoomTo(width, height) {
+  zoomTo(width, height, padding = 0.0) {
     if (this.camera.type !== 'Lore.OrthographicCamera') {
       throw 'Feature not implemented.';
     }
 
-    this.setZoom(this.camera.getRequiredZoomToContain(width, height));
+    this.setZoom(this.camera.getRequiredZoomToContain(width, height, padding));
     return this;
   }
   /**

@@ -69,8 +69,18 @@
         let visible = true;
         document.addEventListener('keydown', e => {
             if (e.keyCode == 70) {
-                lore.controls.setLookAt(new Lore.Math.Vector3f(550, 550, 0));
-                lore.controls.zoomTo(100, 100)
+                // lore.controls.setLookAt(new Lore.Math.Vector3f(550, 550, 0));
+                // lore.controls.zoomTo(100, 100)
+
+                let center = ph.getCenter();
+                let dims = ph.getDimensions();
+
+                lore.controls.setLookAt(center);
+                lore.controls.zoomTo(
+                    dims.max.getX() - dims.min.getX(),
+                    dims.max.getY() - dims.min.getY(),
+                    0.0
+                );
             }
         });
     </script>

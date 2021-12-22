@@ -75,7 +75,7 @@ class OrthographicCamera extends CameraBase {
      * 
      * @returns {Number} The zoom to be set to contain the specified width and height.
      */
-    getRequiredZoomToContain(width, height, padding = 0.1) {
+    getRequiredZoomToContain(width, height, padding = 0.0) {
 
         let zoom_width = (this.right - this.left) / (width + width * padding);
         let zoom_height = (this.top - this.bottom) / (height + height * padding);
