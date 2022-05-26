@@ -22,10 +22,10 @@ class Renderer {
 
   /**
    * Creates an instance of Renderer.
-   * @param {String} targetId The id of a canvas element.
+   * @param {Element} target A canvas element.
    * @param {any} options The options.
    */
-  constructor(targetId, options) {
+  constructor(target, options) {
     this.defaults = {
       antialiasing: true,
       verbose: false,
@@ -41,7 +41,7 @@ class Renderer {
 
     this.opts = Utils.extend(true, this.defaults, options);
 
-    this.canvas = document.getElementById(targetId);
+    this.canvas = target;
     this.webgl2 = true;
     this.parent = this.canvas.parentElement;
     this.fps = 0;
@@ -54,7 +54,7 @@ class Renderer {
     this.geometries = {};
     this.ready = false;
     this.gl = null;
-    this.render = function (camera, geometries) {};
+    this.render = function (camera, geometries) { };
     this.effect = null;
     this.lastTiming = performance.now();
 

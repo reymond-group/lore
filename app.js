@@ -3,19 +3,19 @@
 // Detect SSR (server side rendering)
 var canUseDOM = !!(
   (typeof window !== 'undefined' &&
-  window.document && window.document.createElement)
+    window.document && window.document.createElement)
 );
 
 var Lore = require('./src/Lore');
 
 // By Shmiddty from stackoverflow
-function Enum(a){
+function Enum(a) {
   let i = Object
     .keys(a)
-    .reduce((o, k)=>(o[a[k]] = k, o), {});
+    .reduce((o, k) => (o[a[k]] = k, o), {});
 
   return Object.freeze(
-    Object.keys(a).reduce((o, k)=>(o[k] = a[k],o), v => i[v])
+    Object.keys(a).reduce((o, k) => (o[k] = a[k], o), v => i[v])
   );
 }
 
@@ -35,57 +35,61 @@ Lore.Keyboard = Enum({
   Esc: 27
 });
 
-Lore.init = function(canvas, options) {
+Lore.init = function (canvas, options) {
   this.opts = Lore.Utils.extend(true, Lore.defaults, options);
-  
+
   // Lore.getGrakaInfo(canvas);
-  
+
   var cc = Lore.Core.Color.fromHex(this.opts.clearColor);
 
+  if (!(canvas instanceof Element)) {
+    canvas = document.getElementById(canvas);
+  }
+
   var renderer = new Lore.Core.Renderer(canvas, {
-      clearColor: cc,
-      verbose: true,
-      fps: document.getElementById('fps'),
-      center: new Lore.Math.Vector3f(125, 125, 125),
-      antialiasing: this.opts.antialiasing,
-      alphaBlending: this.opts.alphaBlending,
-      preserveDrawingBuffer: this.opts.preserveDrawingBuffer
+    clearColor: cc,
+    verbose: true,
+    fps: document.getElementById('fps'),
+    center: new Lore.Math.Vector3f(125, 125, 125),
+    antialiasing: this.opts.antialiasing,
+    alphaBlending: this.opts.alphaBlending,
+    preserveDrawingBuffer: this.opts.preserveDrawingBuffer
   });
- 
+
   renderer.controls.limitRotationToHorizon(this.opts.limitRotationToHorizon);
 
-  renderer.render = function(camera, geometries) {
-      for(var key in geometries) {
-          geometries[key].draw(renderer);
-      }
+  renderer.render = function (camera, geometries) {
+    for (var key in geometries) {
+      geometries[key].draw(renderer);
+    }
   }
 
   return renderer;
 }
 
-Lore.getGrakaInfo = function(targetId) {
+Lore.getGrakaInfo = function (targetId) {
   let canvas = document.getElementById(targetId);
-  let gl = canvas.getContext('webgl') || 
-           canvas.getContext('experimental-webgl');
+  let gl = canvas.getContext('webgl') ||
+    canvas.getContext('experimental-webgl');
 
   let info = {
-      renderer: '',
-      vendor: ''
+    renderer: '',
+    vendor: ''
   };
 
   let dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
-  
+
   if (dbgRenderInfo != null) {
-      info.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
-      info.vendor   = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
+    info.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+    info.vendor = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
   }
 
   return info;
 }
 
-Lore.supportsHighQuality = function(targetId) {
+Lore.supportsHighQuality = function (targetId) {
   let info = Lore.getGrakaInfo(targetId);
-  
+
 
   return false;
 }

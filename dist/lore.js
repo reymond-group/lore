@@ -32,6 +32,11 @@ Lore.init = function (canvas, options) {
   this.opts = Lore.Utils.extend(true, Lore.defaults, options); // Lore.getGrakaInfo(canvas);
 
   var cc = Lore.Core.Color.fromHex(this.opts.clearColor);
+
+  if (!(canvas instanceof Element)) {
+    canvas = document.getElementById(canvas);
+  }
+
   var renderer = new Lore.Core.Renderer(canvas, {
     clearColor: cc,
     verbose: true,
@@ -3180,10 +3185,10 @@ const OrthographicCamera = require('../Cameras/OrthographicCamera');
 class Renderer {
   /**
    * Creates an instance of Renderer.
-   * @param {String} targetId The id of a canvas element.
+   * @param {Element} target A canvas element.
    * @param {any} options The options.
    */
-  constructor(targetId, options) {
+  constructor(target, options) {
     this.defaults = {
       antialiasing: true,
       verbose: false,
@@ -3197,7 +3202,7 @@ class Renderer {
       preserveDrawingBuffer: false
     };
     this.opts = Utils.extend(true, this.defaults, options);
-    this.canvas = document.getElementById(targetId);
+    this.canvas = target;
     this.webgl2 = true;
     this.parent = this.canvas.parentElement;
     this.fps = 0;
